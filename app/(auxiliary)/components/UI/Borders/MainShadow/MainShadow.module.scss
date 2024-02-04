@@ -1,0 +1,8 @@
+@import "@/styles/variables.module.scss";
+
+.main_shadow {
+    //box-shadow: $main_shadow;
+    border: $solid_line_lite;
+    border-radius: 30px;
+    overflow: hidden;
+}

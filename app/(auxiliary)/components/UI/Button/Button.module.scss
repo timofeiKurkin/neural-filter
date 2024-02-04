@@ -1,0 +1,82 @@
+@import '@/styles/variables.module.scss';
+
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    font-family: inherit;
+    user-select: none;
+    opacity: 1;
+    transition: opacity .6s ease, background-color .5s ease;
+    border-radius: 15px;
+    
+    @media ($phone375_639) {
+        padding: 12px 22px;
+    }
+    
+    @media ($pad640_991) {
+        padding: 14px 26px;
+    }
+    
+    @media ($pad992_1279) {
+        padding: 14px 28px;
+    }
+    
+    @media ($desktop1280_1439) {
+        padding: 14px 28px;
+    }
+    
+    @media ($desktop1440_1919) {
+        padding: 16px 32px;
+    }
+    
+    @media ($desktop1920) {
+        padding: 16px 41px;
+        border-radius: 15px;
+    }
+    
+    .buttonText {
+        @media ($phone375_639) {
+            //height: 24px;
+            //padding-right: 10px;
+        }
+        
+        @media ($pad640_991) {
+            //height: 22px;
+            //padding-right: 12px;
+        }
+        
+        @media ($pad992_1279) {
+            //height: 23px;
+            //padding-right: 15px;
+        }
+        
+        @media ($desktop1280_1439) {
+            //height: 23px;
+            //padding-right: 15px;
+        }
+        
+        @media ($desktop1440_1919) {
+            //height: 24px;
+            //margin-right: 15px;
+        }
+        
+        @media ($desktop1920) {
+            //height: 25px;
+            //padding-right: 12px;
+        }
+    }
+}
+
+.buttonHover {
+    transition: opacity .6s;
+    
+    &:hover {
+        opacity: .9;
+    }
+    
+    &:active {
+        opacity: 1;
+    }
+}

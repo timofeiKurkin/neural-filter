@@ -1,0 +1,35 @@
+@import "@/styles/variables.module.scss";
+
+.dropZoneWrapper {
+    width: 100%;
+    height: 100%;
+    background-color: $color_5;
+    //padding: 25px 0;
+    
+    .dropInput {
+        width: inherit;
+        height: 100%;
+    }
+    
+    .dropTextContent {
+        height: inherit;
+        
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        
+        justify-items: center;
+        align-items: center;
+        
+        div {
+            display: grid;
+            justify-items: center;
+            
+            transition: all .5s ease;
+            
+            img {
+                margin-bottom: 15px;
+            }
+        }
+    }
+}

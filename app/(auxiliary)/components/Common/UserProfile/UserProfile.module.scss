@@ -1,0 +1,21 @@
+
+.userProfileWrapper {
+    width: 100%;
+    
+    display: grid;
+    grid-template-columns: 119px;
+    grid-template-rows: 46px;
+    justify-content: end;
+    
+    .userProfile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        
+        .userProfileName {}
+        
+        
+        .userProfilePhoto {}
+    }
+}

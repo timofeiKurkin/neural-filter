@@ -1,0 +1,10 @@
+export const color_1 = '#352F44';
+export const color_2 = '#5C5470';
+export const color_3 = '#B9B4C7';
+export const color_4 = '#FAF0E6';
+export const color_5 = '#F6F6F6';
+export const color_6 = '#FF9494';
+export const color_7 = '#A6CF98';
+export const color_8 = '#FFD28F';
+export const color_black = '#0A0A0A';
+export const color_white = '#FFFFFF';

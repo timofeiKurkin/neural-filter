@@ -1,0 +1,13 @@
+
+
+.dragDrop {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 150px min-content;
+    row-gap: 30px;
+    
+    .dragDropButton {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

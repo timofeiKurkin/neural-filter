@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "title": "For what",
+    "description": "This educational project was created to analyze network traffic for the presence of anomalies using a neural network. \nYou can follow the development of the project here."
+  },
+  {
+    "id": 1,
+    "title": "All traffic",
+    "description": "On this page you can monitor internet traffic in real time using WireShark. You can select the network interface you need."
+  },
+  {
+    "id": 2,
+    "title": "Network anomalies",
+    "description": "This page displays the anomalies found by the neural network."
+  },
+  {
+    "id": 3,
+    "title": "Education AI",
+    "description": "On this page you can train the neural network and monitor training metrics. For training, you can upload datasets with a maximum size of up to 200MB.\nWarning: Use CAP traffic extensions."
+  }
+]

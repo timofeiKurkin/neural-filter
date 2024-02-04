@@ -1,0 +1,35 @@
+
+.allTrafficWrapper {
+    width: 100%;
+    
+    display: grid;
+    grid-template-columns: min-content min-content 1fr;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: "title inter search" "all-trafic all-trafic all-trafic";
+    align-items: center;
+    row-gap: 35px;
+    
+    white-space: nowrap;
+    
+    .allTrafficTitle {
+        grid-area: title;
+        margin-right: 37px;
+    }
+    
+    .allTrafficInter {
+        grid-area: inter;
+    }
+    
+    .allTrafficSearch {
+        grid-area: search;
+        justify-self: end;
+        
+        display: grid;
+        grid-template-columns: minmax(170px, 220px);
+    }
+    
+    .allTraffic {
+        grid-area: all-trafic;
+        
+    }
+}

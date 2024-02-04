@@ -1,0 +1,22 @@
+@import "@/styles/variables.module.scss";
+
+.scrollbar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: $color_1 transparent;
+    
+    &::-webkit-scrollbar-thumb {
+        background-color: $color_1;
+        border-radius: 7px;
+    }
+    
+    &::-webkit-scrollbar {
+        width: 8px;
+        border-radius: 7px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background-color: $color_3;
+        border-radius: 7px;
+    }
+}

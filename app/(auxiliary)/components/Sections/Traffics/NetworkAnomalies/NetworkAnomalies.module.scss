@@ -1,0 +1,27 @@
+
+.networkAnomaliesWrapper {
+    width: 100%;
+    
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: "title search" "content content";
+    align-items: center;
+    row-gap: 35px;
+    
+    .networkAnomaliesTitle {
+        grid-area: title;
+    }
+    
+    .networkAnomaliesSearch {
+        grid-area: search;
+        
+        justify-self: end;
+        display: grid;
+        grid-template-columns: minmax(170px, 220px);
+    }
+    
+    .networkAnomalies {
+        grid-area: content;
+    }
+}

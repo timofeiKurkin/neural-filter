@@ -3,22 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "set PORT=3001 && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1",
+    "@types/axios": "^0.14.0",
+    "axios": "^1.6.3",
+    "dotenv": "^16.3.1",
+    "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.4"
+    "react-dropzone": "^14.2.3"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/redux-logger": "^3.0.12",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4"
+    "eslint-config-next": "14.0.4",
+    "react-redux": "^9.0.4",
+    "redux-logger": "^3.0.6",
+    "sass": "^1.69.6",
+    "typescript": "^5"
   }
 }
