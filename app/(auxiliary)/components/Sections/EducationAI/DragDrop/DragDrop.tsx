@@ -13,7 +13,7 @@ const DragDrop = () => {
 
             <div className={styles.dragDropButton}>
                 <Button style={{backgroundColor: color_1, textColor: color_white}}>
-                    Start education
+                    Send & Start education
                 </Button>
             </div>
         </div>

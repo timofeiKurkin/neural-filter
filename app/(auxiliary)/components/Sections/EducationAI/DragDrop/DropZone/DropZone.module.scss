@@ -1,34 +1,109 @@
 @import "@/styles/variables.module.scss";
 
-.dropZoneWrapper {
-    width: 100%;
-    height: 100%;
-    background-color: $color_5;
-    //padding: 25px 0;
+.substrateDropZone {
+    display: grid;
+    grid-template-rows: 150px 1fr;
+    box-sizing: border-box;
     
-    .dropInput {
-        width: inherit;
-        height: 100%;
+    border-radius: 30px;
+    background-color: $color_5;
+    border: 2px solid $color_3;
+    
+    position: relative;
+    
+    &:before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 150px;
+        inset: -1px;
+        background-color: $color_3;
+        border: 2px solid $color_2;
+        border-radius: 30px;
     }
     
-    .dropTextContent {
-        height: inherit;
+    .dropZone {
+        position: absolute;
+        width: 100%;
+        height: 150px;
         
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr;
-        
-        justify-items: center;
-        align-items: center;
-        
-        div {
-            display: grid;
-            justify-items: center;
+        .dropZoneWrapper {
+            width: 100%;
+            height: 100%;
             
-            transition: all .5s ease;
+            .dropInput {
+                width: inherit;
+                height: 100%;
+            }
             
-            img {
-                margin-bottom: 15px;
+            .dropTextContent {
+                height: inherit;
+                
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr;
+                
+                align-items: center;
+                
+                user-select: none;
+                pointer-events: none;
+                
+                transition: all .5s ease;
+                
+                .dropYouCanSend {
+                    display: grid;
+                    justify-items: center;
+                    color: $color_1;
+                    
+                    .dropTheDatasetHere, .sendDataset {
+                        display: grid;
+                        justify-items: center;
+                        
+                        img {
+                            margin-bottom: 15px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    .filesList {
+        grid-row: 2/3;
+        
+        .filesListWrapper {
+            padding: 30px;
+            
+            .dropFilesPreview {
+                display: grid;
+                grid-template-columns: repeat(5, 140px);
+                row-gap: 35px;
+                justify-content: space-between;
+                
+                .dropFilePreview {
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    color: $color_2;
+                    position: relative;
+                    
+                    .removeFile {
+                        cursor: pointer;
+                        padding: 2px;
+                        position: absolute;
+                        
+                        top: 0;
+                        right: 10px;
+                    }
+                    
+                    p {
+                        width: 100%;
+                        margin-top: 10px;
+                        word-wrap: break-word;
+                        text-align: center;
+                    }
+                }
             }
         }
     }

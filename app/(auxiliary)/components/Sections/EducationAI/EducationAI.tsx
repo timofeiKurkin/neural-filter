@@ -18,7 +18,6 @@ const EducationAi = () => {
                 </div>
 
                 <div>
-
                 </div>
             </div>
         </div>
