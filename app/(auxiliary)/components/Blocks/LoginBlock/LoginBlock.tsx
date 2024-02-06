@@ -3,7 +3,6 @@
 import React, {useEffect, useState} from "react";
 
 import useInput from "@/app/(auxiliary)/hooks/useInput";
-import _user from "@/data/user/user.json"
 
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import InputPassword from "@/app/(auxiliary)/components/UI/Inputs/InputPassword/InputPassword";
@@ -15,13 +14,12 @@ import {passwordValidations, usernameValidations} from "@/app/(routers)/(without
 
 import {color_1, color_white} from "@/styles/color";
 import styles from "./LoginBlock.module.scss"
-import {setAuth, setUser, useDispatch} from "@/app/(auxiliary)/lib/redux/store";
-import {IUser} from "@/app/(auxiliary)/types/UserTypes/IUser";
+import {useDispatch} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
+import {login} from "@/app/(routers)/(withoutHeader)/login/login";
 
 const LoginBlock = () => {
     const router = useRouter()
-
     const dispatch = useDispatch()
 
     const [hasLogin, setHasLogin] = useState<boolean>(true)
@@ -40,22 +38,27 @@ const LoginBlock = () => {
         }
     }, []);
 
-    const clickHandler = () => {
-        const userName = _user.name
-        const userPassword = _user.password
+    const clickHandler = async () => {
+        const response = await login(loginValue.value, passwordValue.value)
+        console.log(response)
 
-        if(userName === loginValue.value && userPassword === passwordValue.value) {
-            dispatch(setAuth(true))
-            const user: IUser = {
-                id: _user.id,
-                userID: _user.userID,
-                name: _user.name,
-            }
-            dispatch(setUser(user))
-            localStorage.setItem("f-auth", JSON.stringify(1))
-            localStorage.removeItem("p-l")
-            router.push('/')
-        }
+        // const userName = _user.name
+        // const userPassword = _user.password
+        //
+        // if(userName === loginValue.value && userPassword === passwordValue.value) {
+        //     dispatch(setAuth(true))
+        //     const user: IUser = {
+        //         id: _user.id,
+        //         userID: _user.userID,
+        //         name: _user.name,
+        //     }
+        //     dispatch(setUser(user))
+        //     localStorage.setItem("f-auth", JSON.stringify(1))
+        //     localStorage.removeItem("p-l")
+        //     router.push('/')
+        // }
+
+
     }
 
 

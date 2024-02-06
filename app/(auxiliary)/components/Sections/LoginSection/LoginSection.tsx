@@ -14,6 +14,7 @@ const LoginSection: FC = () => {
                            alt={"neural filter logo"}
                            fill
                            quality={100}
+                           priority={true}
                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, (max-width: 1920px) 33vw"
                     />
                 </div>

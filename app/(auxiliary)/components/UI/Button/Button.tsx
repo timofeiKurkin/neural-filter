@@ -1,12 +1,14 @@
 import React, {FC, useRef, useState} from "react";
 
+import {motion, Variants} from "framer-motion";
+
 import ButtonText from "@/app/(auxiliary)/components/UI/TextTemplates/ButtonText";
 
 import styles from "./Button.module.scss"
 
 interface buttonType {
     emoji?: string;
-    disabled?:boolean;
+    disabled?: boolean;
     style: {
         backgroundColor: string;
         textColor: string;
@@ -18,25 +20,37 @@ interface buttonType {
 
 const Button: FC<buttonType> = ({style, emoji, disabled, children, tabIndex, onClick}) => {
     const button = useRef(null)
-    const [hover, setHover] = useState<boolean>(false)
+
+    const variants: Variants = {
+        "initial": {
+            opacity: 1,
+            userSelect: "none"
+        },
+        "hover": {
+            opacity: .8
+        }
+    }
 
     return (
-        <button type={"button"} className={`${styles.button} ${hover && styles.buttonHover}`}
-                onMouseEnter={() => setHover(true)}
-                onMouseLeave={() => setHover(false)}
-                ref={button}
-                tabIndex={tabIndex}
-                disabled={disabled}
-                onClick={onClick}
-                style={{
-                    backgroundColor: style.backgroundColor,
-                    color: style.textColor
-                }}
+        <motion.button type={"button"}
+                       className={`${styles.button}`}
+                       ref={button}
+                       tabIndex={tabIndex}
+                       disabled={disabled}
+                       onClick={onClick}
+                       style={{
+                           backgroundColor: style.backgroundColor,
+                           color: style.textColor
+                       }}
+
+                       variants={variants}
+                       initial={'initial'}
+                       whileHover={'hover'}
         >
             <span className={styles.buttonText}>
                 <ButtonText>{children}</ButtonText>
             </span>
-        </button>
+        </motion.button>
     );
 };
 
