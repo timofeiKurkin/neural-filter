@@ -1,21 +1,42 @@
+@import "@/styles/variables.module.scss";
+
 
 .userProfileWrapper {
-    width: 100%;
-    
-    display: grid;
-    grid-template-columns: 119px;
-    grid-template-rows: 46px;
-    justify-content: end;
-    
-    .userProfile {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        
-        .userProfileName {}
-        
-        
-        .userProfilePhoto {}
-    }
+	width: 100%;
+
+	display: grid;
+	grid-template-columns: min-content;
+	grid-template-rows: min-content;
+	justify-content: end;
+
+	.userProfile {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: min-content;
+		justify-content: end;
+		align-items: center;
+
+		cursor: pointer;
+
+		position: relative;
+
+		.userProfileName {
+			margin-right: 10px;
+		}
+
+		.userProfilePhoto {
+		}
+
+		.menu {
+			user-select: none;
+			position: absolute;
+			top: 40px;
+			left: -20px;
+
+			.menuItem {
+				background-color: $color_white;
+				padding: 16px 32px;
+			}
+		}
+	}
 }

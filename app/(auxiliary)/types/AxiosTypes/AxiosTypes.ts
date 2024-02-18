@@ -1,6 +1,6 @@
 import {GetInterfaces} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
-export interface AuthResponse {
+export interface TrafficResponse {
     network_interfaces: GetInterfaces[]
 }
 

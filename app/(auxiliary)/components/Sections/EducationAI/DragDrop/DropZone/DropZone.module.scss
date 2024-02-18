@@ -1,6 +1,7 @@
 @import "@/styles/variables.module.scss";
 
 .substrateDropZone {
+    grid-area: drop;
     display: grid;
     grid-template-rows: 150px 1fr;
     box-sizing: border-box;

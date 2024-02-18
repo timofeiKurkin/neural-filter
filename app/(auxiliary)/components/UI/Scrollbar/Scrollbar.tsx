@@ -28,7 +28,7 @@ const Scrollbar: FC<{children: React.ReactNode, trigger: any}> = ({children, tri
 
     return (
         <div className={styles.scrollbar}
-             ref={containerRef}
+             // ref={containerRef}
         >
             {children}
         </div>

@@ -1,14 +1,15 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {IUser} from "@/app/(auxiliary)/types/UserTypes/IUser";
+import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 
 interface InitialStateType {
-    user: IUser,
-    isAuth: boolean
+    user: IUser;
+    isAuth: boolean;
 }
 
 const initialState: InitialStateType = {
     user: {} as IUser,
-    isAuth: false
+    isAuth: false,
 }
 
 export const userSlice = createSlice({
@@ -26,5 +27,5 @@ export const userSlice = createSlice({
 
 export const {
     setUser,
-    setAuth
+    setAuth,
 } = userSlice.actions

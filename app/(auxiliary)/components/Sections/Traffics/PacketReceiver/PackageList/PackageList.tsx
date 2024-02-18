@@ -17,10 +17,6 @@ interface PropsType {
 
 const PackageList: FC<PropsType> = ({packages}) => {
 
-    if (!packages.length) {
-        return <MainTitle>No packages</MainTitle>
-    }
-
     return (
         <div className={styles.packageListWrapper}>
             <div className={`${styles.headerList} ${styles.columnWrapper} ${styles.underLine}`}>
@@ -37,11 +33,17 @@ const PackageList: FC<PropsType> = ({packages}) => {
 
             <Scrollbar trigger={packages.length}>
                 <div className={`${styles.packageList}`}>
-                    {packages.map((item) => (
-                        <div key={`key=${item.id}+${Math.random()}`}>
-                            <PackageItem packageItem={item}/>
+                    {packages.length ?
+                        packages.map((item) => (
+                            <div key={`key=${item.id}+${Math.random()}`}>
+                                <PackageItem packageItem={item}/>
+                            </div>
+                        ))
+                        :
+                        <div className={styles.packageListIsEmpty}>
+                            <MainTitle>No packages</MainTitle>
                         </div>
-                    ))}
+                    }
                 </div>
             </Scrollbar>
 

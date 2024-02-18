@@ -4,8 +4,12 @@ import Image from "next/image";
 import LoginBlock from "@/app/(auxiliary)/components/Blocks/LoginBlock/LoginBlock";
 
 import styles from "./LoginSection.module.scss";
+import {cookies} from "next/headers";
 
 const LoginSection: FC = () => {
+    const cookiesStore = cookies()
+    const token = cookiesStore.get('csrftoken')
+
     return (
         <div className={styles.loginSectionWrapper}>
             <div className={styles.loginSectionLogoWrapper}>
@@ -22,9 +26,13 @@ const LoginSection: FC = () => {
 
             <div className={styles.loginSectionBorder}></div>
 
-            <div className={styles.loginSectionInputsWrapper}>
-                <LoginBlock/>
-            </div>
+            {
+                token?.value &&
+                <div className={styles.loginSectionInputsWrapper}>
+                    <LoginBlock csrfToken={token.value}/>
+                </div>
+            }
+
         </div>
     );
 };

@@ -17,58 +17,60 @@ const PacketReceiver: FC = () => {
     const [packages, setPackages] = useState<TrafficPackageType[]>([])
 
     useEffect(() => {
-        const url = `${WS_URL_SERVER}/ws/packet/`
-        const socket = new WebSocket(url)
+        if(currentInterface) {
+            const url = `${WS_URL_SERVER}/ws/packet/`
+            let socket = new WebSocket(url)
 
-        /**
-         * Соединение не сработало
-         */
-        socket.onopen = (e) => {
-            console.log('Произошло соединение\n', e)
+            /**
+             * Соединение не сработало
+             */
+            socket.onopen = (e) => {
+                console.log('Произошло соединение\n', e)
 
-            socket.send(JSON.stringify({
-                interface: currentInterface
-            }))
-        }
-
-        /**
-         * Событие, которое срабатывает при получении сообщения
-         * @param event
-         */
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-
-            if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
-                setPackages((prevState) => ([...prevState, data]))
+                socket.send(JSON.stringify({
+                    interface: currentInterface
+                }))
             }
-        }
 
-        /**
-         * Событие с ошибкой
-         * @param e
-         */
-        socket.onerror = (e) => {
-            console.log('Произошла ошибка\n', e)
-        }
+            /**
+             * Событие, которое срабатывает при получении сообщения
+             * @param event
+             */
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data)
 
-        /**
-         * Соединение с сервером закрыто
-         * @param e
-         */
-        socket.onclose = (e) => {
-            console.log('Соединение с сервером закрыто\n', e)
-        }
+                if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
+                    setPackages((prevState) => ([...prevState, data]))
+                }
+            }
 
-        /**
-         *
-         */
-        if (socket.CONNECTING) {
-            console.log('connecting', socket.CONNECTING)
-        }
+            /**
+             * Событие с ошибкой
+             * @param e
+             */
+            socket.onerror = (e) => {
+                console.log('Произошла ошибка\n', e)
+            }
 
-        return () => {
-            socket.close()
-            setPackages([])
+            /**
+             * Соединение с сервером закрыто
+             * @param e
+             */
+            socket.onclose = (e) => {
+                console.log('Соединение с сервером закрыто\n', e)
+            }
+
+            /**
+             *
+             */
+            if (socket.CONNECTING) {
+                console.log('connecting', socket.CONNECTING)
+            }
+
+            return () => {
+                socket.close()
+                setPackages([])
+            }
         }
     }, [currentInterface]);
 

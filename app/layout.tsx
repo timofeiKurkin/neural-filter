@@ -1,9 +1,10 @@
 import type {Metadata} from "next"
 import "./globals.scss"
 import React from "react";
-import {kanit} from "@/font/font"
+import {KanitLocalFont} from "@/font/font";
 import Providers from "@/app/(auxiliary)/lib/redux/Providers";
 import AppWrapper from "@/app/(auxiliary)/components/Sections/AppWrapper/AppWrapper";
+import {cookies} from "next/headers";
 
 
 export const metadata: Metadata = {
@@ -15,11 +16,20 @@ interface PropsType {
 }
 
 export default function RootLayout({children}: PropsType) {
+
+    const cookiesStore = cookies()
+    const tokenObject = cookiesStore.get('csrftoken')
+    let CSRFToken: string = ''
+
+    if(tokenObject?.value && tokenObject.name) {
+        CSRFToken = tokenObject.value
+    }
+
     return (
         <html lang="en">
-        <body className={`${kanit.className}`}>
+        <body className={`${KanitLocalFont.className}`}>
         <Providers>
-            <AppWrapper>
+            <AppWrapper CSRFToken={CSRFToken}>
                 {children}
             </AppWrapper>
         </Providers>

@@ -11,7 +11,7 @@ interface PropsType {
 
 export default function RootLayout({children}: PropsType) {
     return (
-        <Scrollbar>
+        <Scrollbar trigger={''}>
             <div className={styles.layoutWrapper}>
                 <Header/>
 

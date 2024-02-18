@@ -1,51 +1,76 @@
-import React, {FC, useCallback, useState} from "react";
+import React, {FC, useCallback, useEffect, useState} from "react";
 
-import {useDropzone} from "react-dropzone";
+import {FileError, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
 import directoryOpen from "@/public/directory-open.svg";
 import filePreview from "@/public/file.svg";
 import cross from "@/public/cross.svg";
-import {motion, Variants} from "framer-motion";
+import {AnimatePresence, motion, Variants} from "framer-motion";
 
 import styles from "./DropZone.module.scss";
 import Image from "next/image";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 
-const DropZone: FC = () => {
-    const [filesUnique, setFilesUnique] = useState(new Set())
 
-    const files: any[] = Array.from(filesUnique)
+interface PropsType {
+    setHasFiles: (state: boolean) => void;
+    removeFiles: boolean
+}
+
+const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
+
+    const [files, setFiles] = useState<File[]>([])
 
     const onDrop = useCallback((acceptedFiles: any[]) => {
         if (acceptedFiles.length) {
-            setFilesUnique(() => {
-                const newSet = new Set(files)
-                acceptedFiles.forEach((acceptedFile) => {
-                    if (acceptedFile.name.split('.')[1] === 'pcap') {
-                        newSet.add(Object.assign(acceptedFile, {preview: URL.createObjectURL(acceptedFile)}))
-                    }
-                })
-                return newSet
-            })
+            setFiles((prevState) => [
+                ...prevState,
+                ...acceptedFiles.map((file) => Object.assign(file, {preview: URL.createObjectURL(file)})),
+            ])
         }
     }, [])
 
-    const {getRootProps, getInputProps, isDragActive} = useDropzone({
+    const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null => {
+        if (file.name.split('.')[1] !== 'pcap') {
+            return {
+                code: "",
+                message: "only pcap files"
+            }
+        }
+
+        return null
+    }
+
+    const {
+        acceptedFiles,
+        fileRejections,
+        getRootProps,
+        getInputProps,
+        isDragActive
+    } = useDropzone({
+        validator: noRepeatFiles,
         onDrop,
         accept: {},
+        maxFiles: 10
     })
 
-    const removeFileHandler = (index: number) => {
-        setFilesUnique(() => {
-            const newSet = new Set()
-            files.forEach((file, i) => {
-                if(i !== index) {
-                    newSet.add(file)
-                }
-            })
-            return newSet
+    const removeFileHandler = (fileName: string) => {
+        setFiles((prevState) => {
+            return prevState.filter(file => file.name !== fileName)
         })
     }
+
+    useEffect(() => {
+        if (files.length > 0) {
+            setHasFiles(true)
+        } else {
+            setHasFiles(false)
+        }
+    }, [files]);
+
+    useEffect(() => {
+        setFiles([])
+    }, [removeFiles]);
 
     const listVariants: Variants = {
         'visible': {
@@ -53,16 +78,23 @@ const DropZone: FC = () => {
         },
         'hidden': {
             y: -10, opacity: 0
-        }
+        },
+        'exit': {}
     }
 
     const substrateVariants: Variants = {
-        'open': {},
-        'hidden': {}
+        'open': {
+            height: "auto"
+        },
+        'hidden': {
+            height: "0"
+        }
     }
 
     return (
         <motion.div className={styles.substrateDropZone}
+                    initial={'hidden'}
+                    animate={'open'}
                     variants={substrateVariants}
         >
             <div className={styles.dropZone}>
@@ -105,24 +137,28 @@ const DropZone: FC = () => {
                 {files.length ?
                     <div className={styles.filesListWrapper}>
                         <div className={styles.dropFilesPreview}>
-                            {
-                                files.map((file, index) => (
-                                    <motion.div key={`key=${file.path}`}
-                                                className={styles.dropFilePreview}
-                                                variants={listVariants}
-                                                initial={'hidden'}
-                                                animate={'visible'}
-                                    >
-                                        <Image src={filePreview} alt={"file"}/>
+                            <AnimatePresence>
+                                {
+                                    files.map((file, index) => (
+                                        <motion.div key={`key=${file.name}`}
+                                                    className={styles.dropFilePreview}
+                                                    variants={listVariants}
+                                                    initial={'hidden'}
+                                                    animate={'visible'}
+                                                    exit={'hidden'}
+                                        >
+                                            <Image src={filePreview} alt={"file"}/>
 
-                                        <RegularText>{file.name}</RegularText>
+                                            <RegularText>{file.name}</RegularText>
 
-                                        <div className={styles.removeFile} onClick={() => removeFileHandler(index)}>
-                                            <Image src={cross} alt={'cross'}/>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            }
+                                            <div className={styles.removeFile}
+                                                 onClick={() => removeFileHandler(file.name)}>
+                                                <Image src={cross} alt={'cross'}/>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                }
+                            </AnimatePresence>
                         </div>
                     </div> : ''
                 }

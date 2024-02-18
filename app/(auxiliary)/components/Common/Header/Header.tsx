@@ -36,7 +36,7 @@ const Header: FC = () => {
                                     fill
                                     quality={100}
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, (max-width: 1920px) 33vw"
-                                    style={{userSelect: "none", pointerEvents: "none"}}
+                                    // style={{userSelect: "none", pointerEvents: "none"}}
                                 />
                             </Link>
                         </div>

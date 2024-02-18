@@ -9,7 +9,7 @@ import {getInterface} from "@/app/(routers)/(withHeader)/all-traffic/func";
 
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 
-import {AuthResponse} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
+import {TrafficResponse} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import {GetInterfaces} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
 import styles from "./InterfaceHandler.module.scss";
@@ -34,8 +34,8 @@ const InterfaceHandler: FC = () => {
         const fetchData = async () => {
             const response = await getInterface()
             if (active) {
-                if ((response as AxiosResponse<AuthResponse>).status === 200) {
-                    const responseData = (response as AxiosResponse<AuthResponse>).data.network_interfaces
+                if ((response as AxiosResponse<TrafficResponse>).status === 200) {
+                    const responseData = (response as AxiosResponse<TrafficResponse>).data.network_interfaces
                     setAllInterface(responseData)
                     setSelectedInterface(responseData[0])
                     dispatch(setInterface(responseData[0].title))

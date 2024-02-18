@@ -20,7 +20,7 @@ const EducationAi = () => {
                 </div>
 
                 <div>
-                    <Filter/>
+                    {/*<Filter/>*/}
                 </div>
             </div>
         </div>

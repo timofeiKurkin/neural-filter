@@ -2,11 +2,17 @@
 
 .dragDrop {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(150px, auto) min-content;
     row-gap: 30px;
+    grid-template-areas: 'drop drop' 'remove send';
+    
+    .dragDropResetButton {
+        grid-area: remove;
+    }
     
     .dragDropButton {
+        grid-area: send;
         display: flex;
         justify-content: flex-end;
     }

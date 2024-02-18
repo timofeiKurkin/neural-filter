@@ -1,4 +1,4 @@
-import React, {FC, useRef, useState} from "react";
+import React, {FC, useRef} from "react";
 
 import {motion, Variants} from "framer-motion";
 
@@ -7,7 +7,6 @@ import ButtonText from "@/app/(auxiliary)/components/UI/TextTemplates/ButtonText
 import styles from "./Button.module.scss"
 
 interface buttonType {
-    emoji?: string;
     disabled?: boolean;
     style: {
         backgroundColor: string;
@@ -16,9 +15,17 @@ interface buttonType {
     children: string;
     tabIndex?: number;
     onClick?: () => void;
+    type?: "button" | "reset" | "submit" | undefined
 }
 
-const Button: FC<buttonType> = ({style, emoji, disabled, children, tabIndex, onClick}) => {
+const Button: FC<buttonType> = ({
+                                    style,
+                                    disabled,
+                                    children,
+                                    tabIndex,
+                                    onClick,
+                                    type = "button"
+                                }) => {
     const button = useRef(null)
 
     const variants: Variants = {
@@ -32,7 +39,7 @@ const Button: FC<buttonType> = ({style, emoji, disabled, children, tabIndex, onC
     }
 
     return (
-        <motion.button type={"button"}
+        <motion.button type={type}
                        className={`${styles.button}`}
                        ref={button}
                        tabIndex={tabIndex}

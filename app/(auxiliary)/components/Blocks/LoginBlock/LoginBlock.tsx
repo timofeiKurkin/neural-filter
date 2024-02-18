@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useEffect, useState} from "react";
+import React, {FC, useEffect, useState} from "react";
 
 import useInput from "@/app/(auxiliary)/hooks/useInput";
 
@@ -14,13 +14,22 @@ import {passwordValidations, usernameValidations} from "@/app/(routers)/(without
 
 import {color_1, color_white} from "@/styles/color";
 import styles from "./LoginBlock.module.scss"
-import {useDispatch} from "@/app/(auxiliary)/lib/redux/store";
+import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
 import {login} from "@/app/(routers)/(withoutHeader)/login/login";
+import {AxiosResponse} from "axios";
+import {jwtDecode} from "jwt-decode";
+import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 
-const LoginBlock = () => {
+interface PropsType {
+    csrfToken: string;
+}
+
+const LoginBlock: FC<PropsType> = ({csrfToken}) => {
     const router = useRouter()
     const dispatch = useDispatch()
+
+    const {isAuth, user} = useSelector(selectorUser)
 
     const [hasLogin, setHasLogin] = useState<boolean>(true)
 
@@ -30,38 +39,39 @@ const LoginBlock = () => {
     const passwordKey = "p-l"
     const passwordValue = useInput("", passwordKey, passwordValidations)
 
-    const firstAuth = localStorage.getItem("f-auth")
-
     useEffect(() => {
-        if(firstAuth && loginValue.value) {
-            setHasLogin(false)
-        }
+        let firstAuth = localStorage.getItem("f-auth")
+        firstAuth = JSON.parse(firstAuth ?? '')
+        // if (firstAuth && loginValue.value) {
+        //     setHasLogin(false)
+        // }
     }, []);
 
-    const clickHandler = async () => {
-        const response = await login(loginValue.value, passwordValue.value)
-        console.log(response)
 
-        // const userName = _user.name
-        // const userPassword = _user.password
-        //
-        // if(userName === loginValue.value && userPassword === passwordValue.value) {
-        //     dispatch(setAuth(true))
-        //     const user: IUser = {
-        //         id: _user.id,
-        //         userID: _user.userID,
-        //         name: _user.name,
-        //     }
-        //     dispatch(setUser(user))
-        //     localStorage.setItem("f-auth", JSON.stringify(1))
-        //     localStorage.removeItem("p-l")
-        //     router.push('/')
-        // }
+    const formHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault()
 
+        const response = await login(loginValue.value, passwordValue.value, csrfToken)
 
+        if ((response as AxiosResponse).status === 200) {
+            const data = (response as AxiosResponse).data
+            const decodeJWT: JwtPayloadExtended = jwtDecode(data.access)
+
+            dispatch(setUser({
+                id: decodeJWT.user_id,
+                username: decodeJWT.username
+            }))
+            dispatch(setAuth(true))
+            localStorage.setItem('authTokens', JSON.stringify(data))
+        }
+        // else if () {}
     }
 
-
+    useEffect(() => {
+        if (isAuth && user.id) {
+            router.push('/')
+        }
+    }, [isAuth, user.id]);
 
     return (
         <div className={styles.loginBlockWrapper}>
@@ -71,31 +81,34 @@ const LoginBlock = () => {
                         <MainTitle>Log in</MainTitle>
                     </div>
 
-                    <div className={styles.loginInputs}>
-                        {
-                            hasLogin &&
+                    <form>
+                        <div className={styles.loginInputs}>
+                            {
+                                hasLogin &&
+                                <div>
+                                    <Input inputData={loginValue}
+                                           placeholder={"login"}
+                                           maxLength={10}
+                                           tabIndex={1}/>
+                                </div>
+                            }
+
                             <div>
-                                <Input inputData={loginValue}
-                                       placeholder={"login"}
-                                       maxLength={10}
-                                       tabIndex={1}/>
+                                <InputPassword inputData={passwordValue}
+                                               placeholder={"password"}
+                                               maxLength={20}
+                                               tabIndex={2}/>
                             </div>
-                        }
-
-                        <div>
-                            <InputPassword inputData={passwordValue}
-                                           placeholder={"password"}
-                                           maxLength={20}
-                                           tabIndex={2}/>
                         </div>
-                    </div>
 
-                    <div className={styles.loginButton}>
-                        <Button style={{backgroundColor: color_1, textColor: color_white}}
-                                onClick={clickHandler}
-                                tabIndex={3}
-                        >Continue</Button>
-                    </div>
+                        <div className={styles.loginButton}
+                             onClick={(e: React.MouseEvent<HTMLDivElement>) => formHandler(e)}>
+                            <Button style={{backgroundColor: color_1, textColor: color_white}}
+                                    tabIndex={3}
+                                    type={'submit'}
+                            >Continue</Button>
+                        </div>
+                    </form>
                 </div>
             </MainShadow>
         </div>
