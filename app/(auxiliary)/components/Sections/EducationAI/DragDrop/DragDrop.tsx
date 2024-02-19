@@ -9,7 +9,15 @@ import {AnimatePresence, Variants} from "framer-motion";
 import {motion} from "framer-motion";
 
 const DragDrop = () => {
+
+    /**
+     * Состояние, хранящее boolean значение, которое обозначает есть ли файл в области загрузки
+     */
     const [hasFiles, setHasFiles] = useState<boolean>(false)
+
+    /**
+     * Состояние для удаления всех файлов из области загрузки
+     */
     const [removeAllFiles, setRemoveAllFiles] = useState<boolean>(false)
 
     const variants: Variants = {
@@ -17,12 +25,27 @@ const DragDrop = () => {
         'hidden': {opacity: 0}
     }
 
+    /**
+     * Функция для изменения состояния hasFiles
+     * @param state
+     */
     const hasFilesHandler = (state: boolean) => {
         setHasFiles(state)
     }
 
+    /**
+     * Функция для изменения состояния removeAllFiles
+     */
     const removeAllFilesHandler = () => {
         setRemoveAllFiles((prevState) => (!prevState))
+    }
+
+    /**
+     *
+     */
+    const uploadFilesHandler = () => {
+        const fromData = new FormData()
+
     }
 
     return (

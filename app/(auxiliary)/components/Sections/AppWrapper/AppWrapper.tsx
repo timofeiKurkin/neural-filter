@@ -21,22 +21,30 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
     const route = useRouter()
 
     const {user, isAuth} = useSelector(selectorUser)
-    const tokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('authTokens') : null
+    const accessTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('access') : null
+    const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
+
 
     /**
      * Токены авторизации из localStorage.
      */
     const [tokens, setTokens] = useState<
-        AuthTokens |
-        null
+        AuthTokens
     >(() => {
-        if (tokenFromLS) {
-            return JSON.parse(tokenFromLS)
+        if (accessTokenFromLS && refreshTokenFromLS) {
+            return {
+                access: JSON.parse(accessTokenFromLS),
+                refresh: JSON.parse(refreshTokenFromLS)
+            }
         } else {
-            return null
+            return {
+                access: "",
+                refresh: ""
+            } as AuthTokens
         }
     })
 
+    // console.log(tokens)
 
     /**
      * Эффект для получения токена CSRF с сервера
@@ -49,7 +57,6 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
                 return await getCSRFToken()
             }
         }
-
 
         fetchData().then()
 
@@ -74,30 +81,36 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
                     const decodeJWT: JwtPayloadExtended = jwtDecode(data.access)
 
                     if (decodeJWT) {
-                        setTokens((prevState) => {
-                            if (prevState?.refresh && prevState.access) {
-                                const newToken = {
-                                    refresh: prevState?.refresh,
-                                    access: data.access
-                                }
-                                localStorage.setItem('authTokens', JSON.stringify(newToken))
-                                return newToken
-                            } else {
-                                return null
-                            }
-                        })
-
                         dispatch(setUser({
                             id: decodeJWT.user_id,
                             username: decodeJWT.username
                         }))
                         dispatch(setAuth(true))
+
+                        setTokens((prevState) => {
+                            if (prevState?.refresh) {
+                                const newToken: AuthTokens = {
+                                    access: data.access,
+                                    refresh: prevState?.refresh,
+                                }
+
+                                localStorage.setItem('access', JSON.stringify(newToken.access))
+                                // localStorage.setItem('refresh', JSON.stringify(newToken.refresh))
+
+                                return newToken
+                            } else {
+                                return {
+                                    access: "",
+                                    refresh: ""
+                                } as AuthTokens
+                            }
+                        })
                     }
                 }
             }
         }
 
-        if (tokens && Object.keys(tokens).length) {
+        if (tokens.access && tokens.refresh) {
             fetchData(tokens.refresh, CSRFToken).then()
         }
 
@@ -112,7 +125,13 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
             clearInterval(intervalGettingTokens)
             setTokens(() => ({} as AuthTokens))
         }
-    }, [isAuth, user.id, dispatch]);
+    }, [
+        isAuth,
+        user.id,
+        dispatch,
+        tokens.refresh,
+        tokens.access
+    ]);
 
 
     /**

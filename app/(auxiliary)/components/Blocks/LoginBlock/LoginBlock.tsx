@@ -55,6 +55,8 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
         if ((response as AxiosResponse).status === 200) {
             const data = (response as AxiosResponse).data
+            const accessToken = data.access
+            const refreshToken = data.refresh
             const decodeJWT: JwtPayloadExtended = jwtDecode(data.access)
 
             dispatch(setUser({
@@ -62,9 +64,10 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                 username: decodeJWT.username
             }))
             dispatch(setAuth(true))
-            localStorage.setItem('authTokens', JSON.stringify(data))
+
+            localStorage.setItem('access', JSON.stringify(accessToken))
+            localStorage.setItem('refresh', JSON.stringify(refreshToken))
         }
-        // else if () {}
     }
 
     useEffect(() => {
