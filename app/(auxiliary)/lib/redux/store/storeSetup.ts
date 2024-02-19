@@ -9,10 +9,12 @@ import {userSlice} from "@/app/(auxiliary)/lib/redux/store/slices/userSlice";
 import {middleware} from "@/app/(auxiliary)/lib/redux/store/middleware";
 import {thunk} from "redux-thunk";
 import {trafficSlice} from "@/app/(auxiliary)/lib/redux/store/slices/trafficSlice";
+import {filesSlice} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 
 const rootReducer = combineReducers({
     user: userSlice.reducer,
-    traffic: trafficSlice.reducer
+    traffic: trafficSlice.reducer,
+    files: filesSlice.reducer,
 })
 
 export const storeSetup = configureStore({
