@@ -1,3 +1,4 @@
 export interface FileType {
-    file: File
+    file: File,
+    name: string
 }

@@ -7,8 +7,11 @@ import DropZone from "@/app/(auxiliary)/components/Sections/EducationAI/DragDrop
 import styles from "./DragDrop.module.scss";
 import {AnimatePresence, Variants} from "framer-motion";
 import {motion} from "framer-motion";
+import {useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import {selectorFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 
 const DragDrop = () => {
+    const {files} = useSelector(selectorFiles)
 
     /**
      * Состояние, хранящее boolean значение, которое обозначает есть ли файл в области загрузки
@@ -40,12 +43,16 @@ const DragDrop = () => {
         setRemoveAllFiles((prevState) => (!prevState))
     }
 
+    console.log(files)
+
     /**
-     *
+     * Функция для отправки пакетов на сервер
      */
     const uploadFilesHandler = () => {
         const fromData = new FormData()
 
+        // Изменить метод .toString
+        fromData.append('files', files.toString())
     }
 
     return (

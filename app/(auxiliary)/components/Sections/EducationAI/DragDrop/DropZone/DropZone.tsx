@@ -1,4 +1,4 @@
-import React, {FC, useCallback, useEffect, useState} from "react";
+import React, {FC, useCallback, useEffect} from "react";
 
 import {FileError, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
@@ -10,6 +10,8 @@ import {AnimatePresence, motion, Variants} from "framer-motion";
 import styles from "./DropZone.module.scss";
 import Image from "next/image";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
+import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 
 
 interface PropsType {
@@ -18,15 +20,17 @@ interface PropsType {
 }
 
 const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
+    const dispatch = useDispatch()
+    const {files} = useSelector(selectorFiles)
 
-    const [files, setFiles] = useState<File[]>([])
+    // const [files, setFiles] = useState<File[]>([])
 
     const onDrop = useCallback((acceptedFiles: any[]) => {
         if (acceptedFiles.length) {
-            setFiles((prevState) => [
-                ...prevState,
+            dispatch(setFiles([
+                ...files,
                 ...acceptedFiles.map((file) => Object.assign(file, {preview: URL.createObjectURL(file)})),
-            ])
+            ]))
         }
     }, [])
 
@@ -42,8 +46,8 @@ const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
     }
 
     const {
-        acceptedFiles,
-        fileRejections,
+        // acceptedFiles,
+        // fileRejections,
         getRootProps,
         getInputProps,
         isDragActive
@@ -55,9 +59,12 @@ const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
     })
 
     const removeFileHandler = (fileName: string) => {
-        setFiles((prevState) => {
-            return prevState.filter(file => file.name !== fileName)
-        })
+        const removeFile = files.filter(file => file.name !== fileName)
+        dispatch(setFiles(removeFile))
+
+        // setFiles((prevState) => {
+        //     return prevState.filter(file => file.name !== fileName)
+        // })
     }
 
     useEffect(() => {
@@ -139,7 +146,7 @@ const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
                         <div className={styles.dropFilesPreview}>
                             <AnimatePresence>
                                 {
-                                    files.map((file, index) => (
+                                    files.map((file) => (
                                         <motion.div key={`key=${file.name}`}
                                                     className={styles.dropFilePreview}
                                                     variants={listVariants}
