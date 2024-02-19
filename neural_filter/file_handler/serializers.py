@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import FileHandler
+from .models import FileHandlerModel
 
 
 class FileHandlerSerializer(serializers.ModelSerializer):
+    files = serializers.ListSerializer(
+        child=serializers.FileField(allow_empty_file=False)
+    )
+
     class Meta:
-        model = FileHandler
-        fields = ('file', 'uploaded_on')
+        model = FileHandlerModel
+        fields = ('files',)
+
