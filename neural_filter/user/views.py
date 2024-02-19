@@ -31,7 +31,7 @@ def get_csrf(request: Request) -> JsonResponse:
 
 
 @api_view(["POST"])
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 def change_password(request: Request):
     serializer = ChangePasswordSerializer(data=request.data)
     if serializer.is_valid():

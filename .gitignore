@@ -1,4 +1,4 @@
 .idea
 db.sqlite3
 venv
-./neural_filter/neural_filter/__pycache__
+neural_filter/neural_filter/__pycache__

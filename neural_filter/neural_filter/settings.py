@@ -31,12 +31,12 @@ DEBUG = True
 #     "http://127.0.0.1"
 # ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3001",
-#     "http://127.0.0.1:3001"
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3001",
+    "http://127.0.0.1:3001"
+]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'all_traffic',
     'user',
     'education_ai',
+    'file_handler',
 ]
 
 CHANNEL_LAYERS = {
@@ -72,13 +73,15 @@ CHANNEL_LAYERS = {
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        'rest_framework.permissions.DjangoModelPermissions'
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+# 'rest_framework.permissions.IsAuthenticated',
 # 'rest_framework.authentication.SessionAuthentication',
 
 
@@ -215,6 +218,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+PACKETS_URL = '/packets/'
+PACKETS_ROOT = BASE_DIR / 'packets'
 
 # CSRF_COOKIE_SAMESITE = 'Strict'
 # SESSION_COOKIE_SAMESITE = 'Strict'

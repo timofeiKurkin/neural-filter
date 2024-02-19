@@ -1,6 +1,6 @@
 import psutil
 
-from django.http import HttpRequest, JsonResponse, HttpResponse
+from django.http import JsonResponse
 
 from rest_framework.response import Response
 from rest_framework.request import Request
