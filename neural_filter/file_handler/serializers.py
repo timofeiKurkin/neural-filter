@@ -3,11 +3,22 @@ from .models import FileHandlerModel
 
 
 class FileHandlerSerializer(serializers.ModelSerializer):
-    files = serializers.ListSerializer(
-        child=serializers.FileField(allow_empty_file=False)
-    )
+    # file = serializers.FileField()
 
     class Meta:
         model = FileHandlerModel
-        fields = ('files',)
+        fields = ('file', 'uploaded_on')
 
+
+class MultipleSerializer(serializers.Serializer):
+    file = serializers.ListField(
+        child=serializers.FileField()
+    )
+
+    def create(self, validated_data):
+        return FileHandlerModel.objects.create(**validated_data)
+
+    # def update(self, instance, validated_data):
+    #     instance.file = validated_data.get('file', instance.file)
+    #     instance.save()
+    #     return instance
