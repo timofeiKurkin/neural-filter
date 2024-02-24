@@ -9,16 +9,13 @@ const $api = axios.create({
     baseURL: API_URL_SERVER,
     withCredentials: true,
     xsrfCookieName: "csrftoken",
-    xsrfHeaderName: "X-CSRFTOKEN",
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`
-    }
+    xsrfHeaderName: "X-CSRFTOKEN"
 })
 
-console.log(typeof window !== "undefined" ? localStorage.getItem('access') : null)
+const accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""
 
 $api.interceptors.request.use((config) => {
-    // config.headers.Authorization = `Bearer ${localStorage.getItem('access')}`
+    config.headers.Authorization = `Bearer ${accessToken.split('"').join(' ')}`
     return config
 })
 
