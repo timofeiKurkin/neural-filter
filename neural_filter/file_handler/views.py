@@ -1,6 +1,5 @@
 import os.path
 import uuid
-import pyshark
 
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser

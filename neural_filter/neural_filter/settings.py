@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from dotenv import dotenv_values
+
+config_for_db = dotenv_values('.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,7 +139,12 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2'
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config_for_db['NAME'] if config_for_db['NAME'] else '',
+        'USER': config_for_db['USER'] if config_for_db['USER'] else '',
+        'PASSWORD': config_for_db['PASSWORD'] if config_for_db['PASSWORD'] else '',
+        'HOST': config_for_db['HOST'] if config_for_db['HOST'] else '',
+        'PORT': config_for_db['PORT'] if config_for_db['PORT'] else '',
     }
 }
 
