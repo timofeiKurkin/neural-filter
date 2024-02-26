@@ -29,14 +29,14 @@ SECRET_KEY = env["DJANGO_SECRET_KEY"]
 DEBUG = True
 
 # ALLOWED_HOSTS = [
-#     'http://localhost:3001',
+#     'http://localhost:3000',
 #     "localhost",
 #     "http://127.0.0.1"
 # ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3001",
-    "http://127.0.0.1:3001"
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
 ]
 
 # CORS_ALLOW_ALL_ORIGINS = True
@@ -100,7 +100,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3001"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 
 CORS_ALLOW_METHODS = (
     "GET",
