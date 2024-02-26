@@ -5,10 +5,16 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(150px, auto) min-content;
     row-gap: 30px;
-    grid-template-areas: 'drop drop' 'remove send';
-    
+    grid-template-areas: 'drop drop drop' 'remove input send';
+
+
+
     .dragDropResetButton {
         grid-area: remove;
+    }
+
+    .inputTitleDataset {
+        grid-area: input;
     }
     
     .dragDropButton {

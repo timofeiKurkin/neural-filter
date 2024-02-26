@@ -24,6 +24,12 @@
             row-gap: 55px;
             padding: 60px 0 40px 0;
         }
+
+        .statusAndProfile {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            grid-template-rows: min-content;
+        }
         
         .contentWrapper {
             display: grid;

@@ -14,18 +14,14 @@ import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 
 
-interface PropsType {
-    setHasFiles: (state: boolean) => void;
-    removeFiles: boolean
-}
-
-const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
+const DropZone: FC= () => {
     const dispatch = useDispatch()
     const {files} = useSelector(selectorFiles)
 
     // const [files, setFiles] = useState<File[]>([])
 
     const onDrop = useCallback((acceptedFiles: any[]) => {
+        console.log(acceptedFiles)
         if (acceptedFiles.length) {
             dispatch(setFiles([
                 ...files,
@@ -66,18 +62,6 @@ const DropZone: FC<PropsType> = ({setHasFiles, removeFiles}) => {
         //     return prevState.filter(file => file.name !== fileName)
         // })
     }
-
-    useEffect(() => {
-        if (files.length > 0) {
-            setHasFiles(true)
-        } else {
-            setHasFiles(false)
-        }
-    }, [files]);
-
-    useEffect(() => {
-        setFiles([])
-    }, [removeFiles]);
 
     const listVariants: Variants = {
         'visible': {

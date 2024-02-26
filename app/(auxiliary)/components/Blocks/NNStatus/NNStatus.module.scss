@@ -1,0 +1,50 @@
+@import "@/styles/variables.module.scss";
+
+
+.statusWrapper {
+	border: $solid_line_lite;
+	border-radius: 15px;
+	overflow: hidden;
+
+	display: grid;
+	grid-template-columns: repeat(2, max-content);
+	grid-template-rows: 1fr;
+
+	align-items: center;
+
+	.NNStatusWrapper {
+		display: flex;
+		align-items: center;
+
+		height: 100%;
+		background-color: $color_5;
+		padding: 0 20px;
+		position: relative;
+
+		&:before {
+			position: absolute;
+			content: '';
+			width: 2px;
+			height: 100%;
+			background-color: $color_3;
+			right: 0;
+		}
+	}
+
+	.currentStatus {
+        padding-left: 20px;
+
+		.currentStatusColor {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+		}
+
+		.currentStatusText {
+            margin-left: 14px;
+		}
+
+	}
+}
+

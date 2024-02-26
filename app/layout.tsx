@@ -5,6 +5,7 @@ import {KanitLocalFont} from "@/font/font";
 import Providers from "@/app/(auxiliary)/lib/redux/Providers";
 import AppWrapper from "@/app/(auxiliary)/components/Sections/AppWrapper/AppWrapper";
 import {cookies} from "next/headers";
+import axios from "axios";
 
 
 export const metadata: Metadata = {
@@ -21,8 +22,12 @@ export default function RootLayout({children}: PropsType) {
     const tokenObject = cookiesStore.get('csrftoken')
     let CSRFToken: string = ''
 
-    if(tokenObject?.value && tokenObject.name) {
+    if (tokenObject?.value && tokenObject.name) {
         CSRFToken = tokenObject.value
+    }
+
+    if (axios.defaults.headers != null) {
+        axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
     }
 
     return (

@@ -8,12 +8,19 @@ import border from "./InputBorder.module.scss"
 import fontStyle from "@/styles/FontsStyle/fontsStyle.module.scss";
 import styles from "./Input.module.scss"
 
-const Input: FC<PropsType> = ({inputData, placeholder, type = "text", disabled, maxLength, tabIndex}) => {
+const Input: FC<PropsType> = ({
+                                  inputData,
+                                  placeholder,
+                                  type = "text",
+                                  disabled,
+                                  maxLength,
+                                  tabIndex
+                              }) => {
     const [activeInput, setActiveInput] = useState(false)
 
     const activeFocusHandler = () => {
         // if (!activeInput) {
-            setActiveInput((prev) => (!prev))
+        setActiveInput((prev) => (!prev))
         // }
     }
 

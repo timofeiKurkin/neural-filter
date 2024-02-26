@@ -1,9 +1,8 @@
 "use client"
 
 import React, {FC, useEffect, useState} from 'react';
-import {ChildrenType} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
-import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {useRouter} from "next/navigation";
+import {selectorUser, setAuth, setPath, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import {usePathname, useRouter} from "next/navigation";
 import {getCSRFToken, refreshToken} from "@/app/func";
 import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 import {AxiosResponse} from "axios";
@@ -18,11 +17,22 @@ interface PropsType {
 const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
     const dispatch = useDispatch()
 
+    const pathname = usePathname()
     const route = useRouter()
 
-    const {user, isAuth} = useSelector(selectorUser)
+    const {user, isAuth, rememberPath} = useSelector(selectorUser)
     const accessTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('access') : null
     const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
+
+
+    console.log("rememberPath", rememberPath)
+
+
+    useEffect(() => {
+        if(!rememberPath) {
+            dispatch(setPath(pathname))
+        }
+    });
 
 
     /**
@@ -91,7 +101,7 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
                             if (prevState?.refresh) {
                                 const newToken: AuthTokens = {
                                     access: data.access,
-                                    refresh: prevState?.refresh,
+                                    refresh: prevState.refresh,
                                 }
 
                                 localStorage.setItem('access', JSON.stringify(newToken.access))
@@ -139,7 +149,7 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
      */
     useEffect(() => {
         if (!isAuth && !user.id) {
-            route.push('/login')
+            route.push(rememberPath)
         }
     }, [isAuth, user.id]);
 

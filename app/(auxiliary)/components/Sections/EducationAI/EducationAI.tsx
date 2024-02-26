@@ -1,29 +1,32 @@
 import React from 'react';
 import styles from "./EducationAI.module.scss";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
-import DragDrop from "@/app/(auxiliary)/components/Sections/EducationAI/DragDrop/DragDrop";
-import AnimationTest from "@/app/(auxiliary)/components/UI/AnimationTest/AnimationTest";
-import Filter from "@/app/(auxiliary)/components/UI/AnimationTest/Filter";
+import DragDrop from "@/app/(auxiliary)/components/Blocks/EducationBlocks/DragDrop/DragDrop";
+import TrainingNow from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/TrainingNow";
+import LearningMetrics from "@/app/(auxiliary)/components/Blocks/EducationBlocks/LearningMetrics/LearningMetrics";
 
 const EducationAi = () => {
     return (
-        <div className={styles.educationAIWrapper}>
-            <div className={styles.educationAITitle}>
-                <MainTitle>
-                    Education AI
-                </MainTitle>
+        <div className={styles.contentGrid}>
+            <div className={styles.contentWrapper} style={{gridArea: 'drop-zone'}}>
+                <MainTitle>Education AI</MainTitle>
+
+                <DragDrop/>
             </div>
 
-            <div className={styles.educationAI}>
-                <div>
-                    <DragDrop/>
-                </div>
+            <div className={styles.contentWrapper} style={{gridArea: 'training-now'}}>
+                <MainTitle>Training now</MainTitle>
 
-                <div>
-                    {/*<Filter/>*/}
-                </div>
+                <TrainingNow/>
+            </div>
+
+            <div className={styles.contentWrapper} style={{gridArea: 'metrics'}}>
+                <MainTitle>Learning Metrics</MainTitle>
+
+                <LearningMetrics/>
             </div>
         </div>
+
     );
 };
 

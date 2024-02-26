@@ -41,10 +41,12 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
     useEffect(() => {
         let firstAuth = localStorage.getItem("f-auth")
-        firstAuth = JSON.parse(firstAuth ?? '')
-        // if (firstAuth && loginValue.value) {
-        //     setHasLogin(false)
-        // }
+        if (firstAuth) {
+            firstAuth = JSON.parse(firstAuth ?? '')
+            // if (firstAuth && loginValue.value) {
+            //     setHasLogin(false)
+            // }
+        }
     }, []);
 
 

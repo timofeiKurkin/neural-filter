@@ -1,12 +1,12 @@
 import axios, {AxiosResponse} from "axios";
 import {TrafficResponse, AxiosErrorType, UnknownError} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
-import All_traffic from "@/app/(auxiliary)/lib/axios/services/All_traffic/All_traffic";
+import AllTrafficService from "@/app/(auxiliary)/lib/axios/services/AllTrafficService/AllTrafficService";
 
 type GetInterfaceType = () => Promise<AxiosResponse<TrafficResponse> | AxiosErrorType | UnknownError>
 export const getInterface: GetInterfaceType = async () => {
     try {
         // return await axios.get(`${API_URL_SERVER}all-traffic/get-interface`, {withCredentials: true})
-        return await All_traffic.getInterface()
+        return await AllTrafficService.getInterface()
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             const typedError: AxiosErrorType = {
