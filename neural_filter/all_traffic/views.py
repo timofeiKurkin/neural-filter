@@ -19,6 +19,6 @@ def index(request: Request) -> Response:
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
 def get_network_interfaces(request: Request) -> JsonResponse:
     all_interfaces = psutil.net_if_stats().keys()
-    eth_interfaces = [interface for interface in all_interfaces if interface.startswith('Ethernet')]
+    eth_interfaces = [interface for interface in all_interfaces]  # if interface.startswith('Ethernet')
     result_interfaces = [{"id": i, "title": interface} for i, interface in enumerate(eth_interfaces)]
     return JsonResponse({'network_interfaces': result_interfaces})

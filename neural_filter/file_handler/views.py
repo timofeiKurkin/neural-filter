@@ -25,6 +25,8 @@ class FileHandlerView(APIView):
         self.id_packages = 0
 
     def post(self, request: Request, *args, **kwargs) -> Response:
+        print("request.data:", request.data)
+
         serializer = self.multiple_serializer_class(data=request.data)
 
         if serializer.is_valid():
@@ -53,6 +55,7 @@ class FileHandlerView(APIView):
                         packages_data.append(data)
 
                 file_list.append(FileHandlerModel(file=file, file_json=packages_data, file_name=file_name))
+
             if file_list:
                 FileHandlerModel.objects.bulk_create(file_list)
 
