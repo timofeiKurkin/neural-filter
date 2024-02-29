@@ -5,7 +5,7 @@ import {selectorUser, setAuth, setPath, setUser, useDispatch, useSelector} from 
 import {usePathname, useRouter} from "next/navigation";
 import {getCSRFToken, refreshToken} from "@/app/func";
 import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
-import {AxiosResponse} from "axios";
+import axios, {AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 
@@ -24,9 +24,8 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
     const accessTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('access') : null
     const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
 
-
-    console.log("rememberPath", rememberPath)
-
+    axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
+    axios.defaults.headers.common['Accept'] = "application/vnd.tcpdump.pcap, application/json, text/plain, */*"
 
     useEffect(() => {
         if(!rememberPath) {
@@ -50,11 +49,9 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
             return {
                 access: "",
                 refresh: ""
-            } as AuthTokens
+            }
         }
     })
-
-    // console.log(tokens)
 
     /**
      * Эффект для получения токена CSRF с сервера
@@ -125,10 +122,10 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
         }
 
         const intervalGettingTokens = setInterval(() => {
-            if (tokens && isAuth && user.id) {
+            if (tokens.refresh && isAuth && user.id) {
                 fetchData(tokens.refresh, CSRFToken).then()
             }
-        }, 240000)
+        }, 2400)
 
         return () => {
             active = false
@@ -149,6 +146,8 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
      */
     useEffect(() => {
         if (!isAuth && !user.id) {
+            route.push('/login')
+        } else {
             route.push(rememberPath)
         }
     }, [isAuth, user.id]);

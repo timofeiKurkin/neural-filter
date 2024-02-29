@@ -9,6 +9,7 @@ import {AnimatePresence, Variants} from "framer-motion";
 import {motion} from "framer-motion";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
@@ -28,12 +29,14 @@ const DragDrop = () => {
     /**
      * Функция для отправки пакетов на сервер
      */
-    const uploadFilesHandler = () => {
+    const uploadFilesHandler = async () => {
         const fromData = new FormData()
 
         // Изменить метод .toString
-        fromData.append('files', files.toString())
-        fromData.append('dataset-title', title)
+        fromData.append('file', files)
+        // fromData.append('dataset-title', title)
+
+        await uploadFiles(fromData).then((r) => console.log(r)).catch((e) => console.log(e))
     }
 
 
@@ -79,7 +82,7 @@ const DragDrop = () => {
 
 
             <div className={styles.dragDropButton}>
-                <Button style={{backgroundColor: color_1, textColor: color_white}}>
+                <Button style={{backgroundColor: color_1, textColor: color_white}} onClick={uploadFilesHandler}>
                     Send & Start education
                 </Button>
             </div>

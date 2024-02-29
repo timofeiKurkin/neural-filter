@@ -19,15 +19,11 @@ interface PropsType {
 export default function RootLayout({children}: PropsType) {
 
     const cookiesStore = cookies()
-    const tokenObject = cookiesStore.get('csrftoken')
+    const tokenObject = cookiesStore.get('csrftoken' as any)
     let CSRFToken: string = ''
 
     if (tokenObject?.value && tokenObject.name) {
         CSRFToken = tokenObject.value
-    }
-
-    if (axios.defaults.headers != null) {
-        axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
     }
 
     return (
