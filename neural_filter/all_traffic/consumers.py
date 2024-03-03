@@ -1,8 +1,10 @@
 import asyncio
 import json
+import time
+
 from channels.generic.websocket import AsyncWebsocketConsumer
+from scapy.interfaces import get_if_list
 from scapy.sendrecv import AsyncSniffer
-from scapy.all import get_if_list
 
 
 def ip_proto_convert(pkt):
@@ -53,8 +55,8 @@ class PacketConsumer(AsyncWebsocketConsumer):
                 "length": len(packet)
             }
             self.id_packages += 1
+            time.sleep(0.2)
             self.packages.append(data)
-            asyncio.sleep(0.01)
             asyncio.run(self.send_packet())
 
     # Ответное сообщение пользователю
@@ -62,13 +64,15 @@ class PacketConsumer(AsyncWebsocketConsumer):
         # После подключения отправляю на сервер сообщение с выбранным интерфейсом для сканирования сети
         data = json.loads(text_data)
         interface = data["interface"]
+
         # Этот код чинит ошибку
         # WARNING: Unable to guess datalink type (interface=Ethernet linktype=1).
         # Using <member 'name' of 'Packet' objects>
         # if_list = get_if_list()
         # print(if_list)
+
         if interface:
-            self.traffic = AsyncSniffer(prn=self.packet_callback, iface=interface, store=0)
+            self.traffic = AsyncSniffer(prn=self.packet_callback, iface=interface, store=1)
             await self.start_sniffing()
 
     async def start_sniffing(self):
