@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useRef} from 'react';
+import React, {FC, useMemo} from 'react';
 
 import _headerItems from "@/data/trafficData/headerItems.json"
 
@@ -16,6 +16,10 @@ interface PropsType {
 }
 
 const PackageList: FC<PropsType> = ({packages}) => {
+
+    const packagesMemo = useMemo(
+        () => packages, [packages]
+    )
 
     return (
         <div className={styles.packageListWrapper}>

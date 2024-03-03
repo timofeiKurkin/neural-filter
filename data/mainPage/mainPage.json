@@ -1,8 +1,8 @@
 [
   {
     "id": 0,
-    "title": "For what",
-    "description": "This educational project was created to analyze network traffic for the presence of anomalies using a neural network. \nYou can follow the development of the project here."
+    "title": "Philosophy",
+    "description": "This project is an example of how neural networks can already be used to ensure information security.\nIn this project, a neural network scans network traffic and looks for anomalies in it. You can train a neural network on your own dataset and get interesting results."
   },
   {
     "id": 1,

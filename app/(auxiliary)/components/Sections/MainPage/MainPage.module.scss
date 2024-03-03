@@ -5,12 +5,12 @@
     height: 100%;
     
     display: grid;
-    grid-template-rows: min-content .9fr;
+    grid-template-rows: min-content 1fr;
     row-gap: 30px;
     
     .contentListWrapper {
         display: grid;
-        grid-template-columns: 1020px;
+        grid-template-columns: 1140px;
         grid-template-rows: 1fr;
         justify-content: center;
         align-items: center;
@@ -22,8 +22,8 @@
             
             display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: repeat(2, max-content);
-            row-gap: 120px;
+            grid-template-rows: repeat(2, 1fr);
+            row-gap: 70px;
             column-gap: 60px;
             overflow: hidden;
             
@@ -44,7 +44,7 @@
                     block-size: var(--line-thickness);
                     inset-inline-start: 0;
                     inset-block-start: calc(var(--line-offset) * -1);
-                    top: -60px;
+                    top: -40px;
                 }
                 
                 &:before {
@@ -56,7 +56,7 @@
                 
                 .content {
                     display: grid;
-                    grid-template-columns: 430px;
+                    grid-template-columns: 460px;
                     grid-template-rows: 1fr;
                     row-gap: 10px;
                     justify-content: center;

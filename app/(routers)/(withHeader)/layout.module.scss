@@ -35,7 +35,7 @@
             display: grid;
             
             @media screen and ($desktop1920), screen and ($desktop1440_1919) {
-                grid-template-rows: minmax(755px, 1fr);
+                grid-template-rows: minmax(705px, 1fr);
             }
             
             .content {
