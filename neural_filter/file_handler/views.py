@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.request import Request
-from .serializers import FileHandlerSerializer, MultipleSerializer
+from .serializers import FileHandlerSerializer, MultipleSerializer, DatasetSerializer
 from .models import FileHandlerModel, DatasetModel
 from rest_framework import permissions
 from scapy.all import PcapReader
@@ -18,6 +18,7 @@ class FileHandlerView(APIView):
 
     parser_classes = (MultiPartParser, FormParser)
     serializer_class = FileHandlerSerializer
+    dataset_serializer = DatasetSerializer
 
     multiple_serializer_class = MultipleSerializer
     permissions_classes = [permissions.IsAuthenticated]
@@ -27,71 +28,88 @@ class FileHandlerView(APIView):
         self.id_packages = 0
 
     def post(self, request: Request, *args, **kwargs) -> Response:
-        serializer = self.multiple_serializer_class(data=request.data)
+        multiple_serializer = self.multiple_serializer_class(data=request.data)
 
-        if serializer.is_valid():
+        if multiple_serializer.is_valid():
+
             # File name for saving
-            uploaded_file = serializer.validated_data.get('file')
-            dataset_title = serializer.validated_data.get('dataset_title')
+            uploaded_file = multiple_serializer.validated_data.get('file')
+            dataset_title: str = multiple_serializer.validated_data.get('dataset_title')
 
-            # File list where each file into FileHandlerModel structure
-            file_list = []
-
-            # List with packages into json format
-            packages_data = []
+            print(len(uploaded_file))
+            print(f"{dataset_title:$}")
 
             # UUID for dataset and files
             group_file_id = uuid.uuid4()
 
-            # Dataset Model
-            dataset_model = DatasetModel(dataset_title=dataset_title, group_file_id=group_file_id)
+            dataset_serializer = self.dataset_serializer(data={
+                "dataset_title": dataset_title,
+                "group_file_id": group_file_id,
+                "count_files": len(uploaded_file),
+                "loss": 0,
+                "accuracy": 0
+            })
 
-            for file in uploaded_file:
-                packages = PcapReader(file)
-                file_name = file.name
+            if dataset_serializer.is_valid():
+                dataset_serializer.save()
 
-                for packet in packages:
-                    if "IP" in packet:
-                        data = {
-                            "id": self.id_packages,
-                            "time": '%.30f' % packet.time,
-                            "source": packet["IP"].src,
-                            "destination": packet["IP"].dst,
-                            "protocol": packet['IP'].proto,
-                            "length": len(packet)
-                        }
-                        self.id_packages += 1
-                        packages_data.append(data)
+                print(dataset_serializer)
 
-                file_list.append(FileHandlerModel(
-                    file_data=packages_data,
-                    file_name=file_name,
-                    group_file_id=group_file_id,
-                    dataset=dataset_model
-                ))
+                # List with packages into json format
+                packages_data = []
 
-                # Try to use serializer right
-                serializer_model = FileHandlerModel(
-                    file_data=packages_data,
-                    file_name=file_name,
-                    group_file_id=group_file_id,
-                    dataset=dataset_model
+                response_data = []
+
+                for file in uploaded_file:
+                    packages = PcapReader(file)
+                    file_name = file.name
+
+                    for packet in packages:
+                        if "IP" in packet:
+                            data = {
+                                "id": self.id_packages,
+                                "time": '%.30f' % packet.time,
+                                "source": packet["IP"].src,
+                                "destination": packet["IP"].dst,
+                                "protocol": packet['IP'].proto,
+                                "length": len(packet)
+                            }
+                            self.id_packages += 1
+                            packages_data.append(data)
+
+                    file_serializer = self.serializer_class(data={
+                        "file_data": packages_data,
+                        "file_name": file_name,
+                        "group_file_id": group_file_id,
+                        "dataset": dataset_serializer.instance.id
+                    })
+
+                    if file_serializer.is_valid():
+                        file_serializer.save()
+                        response_data.append({
+                            "file_name": file_serializer.data["file_name"],
+                            "group_file_id": file_serializer.data["group_file_id"]
+                        })
+
+                    else:
+                        return Response(
+                            file_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+                return Response(
+                    response_data,
+                    status=status.HTTP_201_CREATED
                 )
-                result = FileHandlerSerializer(serializer_model)
-                print(result.data)
 
-            if file_list:
-                print('ok')
-                # dataset_model.save()
-                # FileHandlerModel.objects.bulk_create(file_list)
-
-            return Response(
-                'ok',
-                status=status.HTTP_201_CREATED
-            )
+            else:
+                return Response(
+                    dataset_serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         return Response(
-            serializer.errors,
+            multiple_serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
 
