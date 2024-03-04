@@ -7,6 +7,7 @@ import styles from "./AllTraffic.module.scss";
 import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
 import InterfaceHandler from "@/app/(auxiliary)/components/Sections/Traffics/AllTraffic/InterfaceHandler/InterfaceHandler";
 import PacketReceiver from "@/app/(auxiliary)/components/Sections/Traffics/PacketReceiver/PacketReceiver";
+import SaveTraffic from "@/app/(auxiliary)/components/Sections/Traffics/SaveTraffic/SaveTraffic";
 
 const AllTraffic: FC = () => {
     return (
@@ -17,6 +18,10 @@ const AllTraffic: FC = () => {
 
             <div className={styles.allTrafficInter}>
                 <InterfaceHandler/>
+            </div>
+
+            <div className={styles.allTrafficSave}>
+                <SaveTraffic/>
             </div>
 
             <div className={styles.allTrafficSearch}>

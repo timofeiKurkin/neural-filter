@@ -145,12 +145,16 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
      * Эффект на проверку авторизации
      */
     useEffect(() => {
-        if (!isAuth && !user.id) {
+        if (!isAuth && !user.id && !user.username) {
             route.push('/login')
-        } else {
+        }
+        // else if (isAuth && user.id && user.username) {
+        //     route.push('/')
+        // }
+        else {
             route.push(rememberPath)
         }
-    }, [isAuth, user.id]);
+    }, [isAuth, user.id, rememberPath]);
 
 
     return (children)

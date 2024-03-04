@@ -39,17 +39,6 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
     const passwordKey = "p-l"
     const passwordValue = useInput("", passwordKey, passwordValidations)
 
-    useEffect(() => {
-        let firstAuth = localStorage.getItem("f-auth")
-        if (firstAuth) {
-            firstAuth = JSON.parse(firstAuth ?? '')
-            // if (firstAuth && loginValue.value) {
-            //     setHasLogin(false)
-            // }
-        }
-    }, []);
-
-
     const formHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault()
 
@@ -69,14 +58,29 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
             localStorage.setItem('access', JSON.stringify(accessToken))
             localStorage.setItem('refresh', JSON.stringify(refreshToken))
+
+            // router.push('/')
         }
     }
 
     useEffect(() => {
-        if (isAuth && user.id) {
+        let firstAuth = localStorage.getItem("f-auth")
+        if (firstAuth) {
+            firstAuth = JSON.parse(firstAuth ?? '')
+            // if (firstAuth && loginValue.value) {
+            //     setHasLogin(false)
+            // }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isAuth && user.username) {
             router.push('/')
         }
-    }, [isAuth, user.id]);
+    }, [isAuth, user.username]);
+
+    console.log(isAuth)
+    console.log(user)
 
     return (
         <div className={styles.loginBlockWrapper}>

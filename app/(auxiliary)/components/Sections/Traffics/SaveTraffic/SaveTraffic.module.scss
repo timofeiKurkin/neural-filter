@@ -1,0 +1,40 @@
+@import "@/styles/variables.module.scss";
+
+.saveTrafficWrapper {
+
+	.saveTraffic,
+	.savingTraffic {
+		cursor: pointer;
+
+		display: flex;
+		align-items: center;
+		column-gap: 15px;
+
+		padding: 10px 30px;
+		border-radius: 15px;
+
+		box-sizing: border-box;
+		user-select: none;
+
+		img {
+			pointer-events: none;
+		}
+	}
+
+	.saveTraffic {
+		background-color: $color_5;
+		border: 2px solid $color_3;
+	}
+
+	.savingTraffic {
+		background-color: rgba($color_7, 0.3);
+		border: 2px solid $color_7;
+	}
+}
+
+.saveTrafficText {
+	font-size: 14px;
+	font-weight: 600;
+	color: $color_1;
+	letter-spacing: 1px;
+}

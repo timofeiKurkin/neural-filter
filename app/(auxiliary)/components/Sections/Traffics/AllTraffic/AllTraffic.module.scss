@@ -3,21 +3,26 @@
     width: 100%;
     
     display: grid;
-    grid-template-columns: min-content min-content 1fr;
+    grid-template-columns: min-content min-content max-content 170px;
     grid-template-rows: min-content 1fr;
-    grid-template-areas: "title inter search" "all-trafic all-trafic all-trafic";
+    grid-template-areas: "title interface save search" "all-trafic all-trafic all-trafic all-trafic";
     align-items: center;
     row-gap: 35px;
     
     white-space: nowrap;
+
+    justify-content: space-between;
     
     .allTrafficTitle {
         grid-area: title;
-        margin-right: 37px;
     }
     
     .allTrafficInter {
-        grid-area: inter;
+        grid-area: interface;
+    }
+
+    .allTrafficSave {
+        grid-area: save;
     }
     
     .allTrafficSearch {
@@ -25,7 +30,7 @@
         justify-self: end;
         
         display: grid;
-        grid-template-columns: minmax(170px, 220px);
+        grid-template-columns: 170px;
     }
     
     .allTraffic {
