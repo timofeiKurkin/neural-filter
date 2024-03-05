@@ -10,10 +10,12 @@ import {motion} from "framer-motion";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
+import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
+import axios from "axios";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
-    const {files} = useSelector(selectorFiles)
+    const {files}: {files: FileType[]} = useSelector(selectorFiles)
 
     const [title, setTitle] = useState<string>('')
 
@@ -25,18 +27,23 @@ const DragDrop = () => {
         dispatch(setFiles([]))
     }
 
+    console.log("files", files)
 
     /**
      * Функция для отправки пакетов на сервер
      */
     const uploadFilesHandler = async () => {
-        const fromData = new FormData()
+        let formData = new FormData()
 
-        // Изменить метод .toString
-        fromData.append('file', files)
-        // fromData.append('dataset-title', title)
+        files.forEach((file) => {
+            console.log("file", file)
+            formData.append("file", file)
+        })
+        formData.append('dataset_title', title)
 
-        await uploadFiles(fromData).then((r) => console.log(r)).catch((e) => console.log(e))
+        console.log(formData)
+
+        await uploadFiles(formData).then((r) => console.log(r)).catch((e) => console.log(e))
     }
 
 

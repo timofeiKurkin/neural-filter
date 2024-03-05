@@ -10,6 +10,9 @@ const $api = axios.create({
     withCredentials: true,
     xsrfCookieName: "csrftoken",
     xsrfHeaderName: "X-CSRFTOKEN",
+    headers: {
+        "Content-Type": "multipart/form-data"
+    }
 })
 
 const accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""

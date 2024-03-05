@@ -6,7 +6,7 @@ export default class FileService {
     static filePath = 'file_handler/'
 
     static async uploadFiles(files: any): Promise<AxiosResponse> {
-        return $api.post(`${this.filePath}upload_files/`, {file: files})
+        return $api.post(`${this.filePath}upload_files/`, {data: files})
     }
 
     static async getDatasets(): Promise<AxiosResponse<DatasetsType>> {

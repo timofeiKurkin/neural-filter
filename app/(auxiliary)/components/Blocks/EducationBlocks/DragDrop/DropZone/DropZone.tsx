@@ -21,7 +21,6 @@ const DropZone: FC= () => {
     // const [files, setFiles] = useState<File[]>([])
 
     const onDrop = useCallback((acceptedFiles: any[]) => {
-        console.log(acceptedFiles)
         if (acceptedFiles.length) {
             dispatch(setFiles([
                 ...files,

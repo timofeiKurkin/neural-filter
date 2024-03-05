@@ -4,6 +4,7 @@ import goHover from "@/public/go-hover.svg";
 import go from "@/public/go.svg";
 import styles from "./Dataset.module.scss";
 import Image from "next/image";
+import {color_1, color_2} from "@/styles/color";
 
 
 /**
@@ -26,8 +27,6 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         }}></div>
     }
 
-    console.log(dataset)
-
     return (
         <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
              onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
@@ -36,14 +35,14 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetTitle}>
                 <Image src={datasetHover ? goHover : go} alt={'go'}/>
 
-                <span className={styles.datasetText}>{dataset.dataset_title}</span>
+                <span className={styles.datasetText} style={{color: color_1}}>{dataset.dataset_title}</span>
             </div>
 
             <div className={styles.datasetLine}></div>
 
             <div className={styles.datasetStatistics}>
-                <span className={styles.datasetText}>loss: {dataset.loss === 0 ? "0.0" : dataset.loss}</span>
-                <span className={styles.datasetText}>accuracy: {dataset.accuracy === 0 ? "0.0" : dataset.accuracy}</span>
+                <span className={styles.datasetText} style={{color: color_2}}>loss: {dataset.loss === 0 ? "0.0" : dataset.loss}</span>
+                <span className={styles.datasetText} style={{color: color_2}}>accuracy: {dataset.accuracy === 0 ? "0.0" : dataset.accuracy}</span>
             </div>
         </div>
     );

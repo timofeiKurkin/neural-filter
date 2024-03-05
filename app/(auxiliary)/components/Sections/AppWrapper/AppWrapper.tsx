@@ -25,7 +25,7 @@ const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
     const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
 
     axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
-    axios.defaults.headers.common['Accept'] = "application/vnd.tcpdump.pcap, application/json, text/plain, */*"
+    // axios.defaults.headers.common['Accept'] = "application/vnd.tcpdump.pcap, application/json, text/plain, */*"
 
     useEffect(() => {
         if(!rememberPath) {
