@@ -7,11 +7,9 @@ from django.db import models
 
 
 class DatasetModel(models.Model):
-    # id = models.IntegerField(primary_key=True, auto_created=True)
-
     dataset_title = models.CharField(max_length=50)
 
-    group_file_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    group_file_id = models.UUIDField(default=uuid.uuid4)
 
     count_files = models.IntegerField(default=0)
 
@@ -20,10 +18,10 @@ class DatasetModel(models.Model):
     accuracy = models.FloatField(default=0.0)
 
     def __str__(self):
-        return {
-            'dataset_title': self.dataset_title,
-            'group_file_id': self.group_file_id
-        }
+        return (f"dataset_title: {self.dataset_title}, "
+                f"group_file_id: {self.group_file_id}, "
+                f"loss: {self.loss}, "
+                f"accuracy: {self.accuracy}")
 
     class Meta:
         db_table = 'dataset'
@@ -42,7 +40,7 @@ class FileHandlerModel(models.Model):
 
     # Files witch are combined in one group.
     # Of course, there is many-to-one connection, but this is for extra validation
-    group_file_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    group_file_id = models.UUIDField(default=uuid.uuid4)
 
     # Dataset model, that connection with this model. Connection: many to one.
     dataset = models.ForeignKey(DatasetModel, on_delete=models.CASCADE, null=True)
@@ -50,13 +48,7 @@ class FileHandlerModel(models.Model):
     uploaded_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return {
-            'file_name': self.file_name,
-            'group_file_id': self.group_file_id
-        }
+        return f"file_name: {self.file_name}, group_file_id: {self.group_file_id}"
 
     class Meta:
         db_table = 'file_handler'
-
-
-

@@ -1,5 +1,3 @@
-import json
-import os.path
 import uuid
 
 from rest_framework import status
@@ -15,29 +13,31 @@ from scapy.all import PcapReader
 
 class FileHandlerView(APIView):
     queryset = FileHandlerModel.objects.all()
-
     parser_classes = (MultiPartParser, FormParser)
-    serializer_class = FileHandlerSerializer
-    dataset_serializer = DatasetSerializer
-
-    multiple_serializer_class = MultipleSerializer
     permissions_classes = [permissions.IsAuthenticated]
 
     def __init__(self):
         super().__init__()
         self.id_packages = 0
+        self.multiple_serializer_class = MultipleSerializer
+        self.dataset_serializer = DatasetSerializer
+        self.serializer_class = FileHandlerSerializer
 
     def post(self, request: Request, *args, **kwargs) -> Response:
+        all_dataset = DatasetModel.objects.all()
+
+        if len(all_dataset) >= 6:
+            return Response(
+                {"message": "You cannot have more than 6 datasets"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         multiple_serializer = self.multiple_serializer_class(data=request.data)
 
         if multiple_serializer.is_valid():
-
             # File name for saving
             uploaded_file = multiple_serializer.validated_data.get('file')
             dataset_title: str = multiple_serializer.validated_data.get('dataset_title')
-
-            print(len(uploaded_file))
-            print(f"{dataset_title:$}")
 
             # UUID for dataset and files
             group_file_id = uuid.uuid4()
@@ -53,11 +53,8 @@ class FileHandlerView(APIView):
             if dataset_serializer.is_valid():
                 dataset_serializer.save()
 
-                print(dataset_serializer)
-
-                # List with packages into json format
+                # List with packages into json format. And list for response
                 packages_data = []
-
                 response_data = []
 
                 for file in uploaded_file:
@@ -86,6 +83,7 @@ class FileHandlerView(APIView):
 
                     if file_serializer.is_valid():
                         file_serializer.save()
+
                         response_data.append({
                             "file_name": file_serializer.data["file_name"],
                             "group_file_id": file_serializer.data["group_file_id"]
@@ -98,32 +96,42 @@ class FileHandlerView(APIView):
                         )
 
                 return Response(
-                    response_data,
+                    {
+                        "dataset": {
+                            "dataset_title": dataset_serializer.data["dataset_title"],
+                            "group_file_id": dataset_serializer.data["group_file_id"],
+                            "loss": dataset_serializer.data["loss"],
+                            "accuracy": dataset_serializer.data["accuracy"],
+                        },
+                        "files": response_data
+                    },
                     status=status.HTTP_201_CREATED
                 )
 
-            else:
-                return Response(
-                    dataset_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                dataset_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             multiple_serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    def delete(self, request, pk=None):
+        pass
+
     @staticmethod
     def get(*args, **kwargs) -> Response:
         queryset = DatasetModel.objects.all()
-        print(queryset)
-
         datasets = []
 
         for dataset in queryset:
             datasets.append({
                 "dataset_title": dataset.dataset_title,
-                "group_file_id": dataset.group_file_id
+                "group_file_id": dataset.group_file_id,
+                "loss": dataset.loss,
+                "accuracy": dataset.accuracy
             })
 
         return Response({"datasets": datasets}, status=status.HTTP_200_OK)
