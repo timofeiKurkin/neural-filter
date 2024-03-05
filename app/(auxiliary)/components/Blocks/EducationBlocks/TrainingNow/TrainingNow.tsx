@@ -1,60 +1,62 @@
 "use client"
 
-import React, {FC} from 'react';
+import React, {FC, useEffect} from 'react';
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 
 import styles from "./TrainingNow.module.scss";
+import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {getDatasets} from "@/app/(routers)/(withHeader)/education-ai/func";
+import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
+import {AxiosResponse} from "axios";
+import {DatasetsType, DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+import DatasetsList from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/DatasetsList/DatasetsList";
 
 
-interface DatasetType {
-    id: number;
-    title: string;
-    loss: number;
-    accuracy: number;
-}
-const datasetsExample: DatasetType[] = [
-    {
-        id: 0,
-        title: 'Dataset one',
-        loss: 0.069,
-        accuracy: 0.505
-    },
-    {
-        id: 1,
-        title: 'Dataset two',
-        loss: 0.023,
-        accuracy: 0.345
-    },
-    {
-        id: 2,
-        title: 'Dataset three',
-        loss: 0.123,
-        accuracy: 0.56
-    }
-]
-
-
-
+/**
+ * Блок с мгновенным обучением. Т.е. не нужно загружать файлы, а можно обучить уже по готовым
+ *
+ * Страница: localhost/education-ai
+ * @constructor
+ */
 const TrainingNow: FC = () => {
 
+    const dispatch = useDispatch()
+    const {datasets} = useSelector(selectorFiles)
 
+    useEffect(() => {
+        let active = true
 
-    return (
-        <MainShadow>
-            <div className={styles.trainingNowWrapper}>
-                <RegularText>Your datasets for training</RegularText>
+        const fetchData = async () => {
+            const response = await getDatasets()
 
-                <div className={styles.datasetList}>
-                    {datasetsExample.map((dataset) => (
-                        <div key={`key=${dataset.id}`}>
-                            {dataset.title}
-                        </div>
-                    ))}
+            if (active) {
+                if ((response as AxiosResponse<DatasetsType>).status === 200) {
+                    dispatch(setDatasets((response as AxiosResponse<DatasetsType>).data.datasets))
+                } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
+                }
+            }
+        }
+
+        fetchData().then()
+
+        return () => {
+            active = false
+        }
+    }, [dispatch]);
+
+    if (datasets.length) {
+        return (
+            <MainShadow>
+                <div className={styles.trainingNowWrapper}>
+                    <RegularText>Your datasets for training</RegularText>
+
+                    <DatasetsList datasets={datasets}/>
                 </div>
-            </div>
-        </MainShadow>
-    );
+            </MainShadow>
+        );
+    }
 };
 
 export default TrainingNow;

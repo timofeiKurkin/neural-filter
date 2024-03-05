@@ -1,0 +1,50 @@
+@import "@/styles/variables.module.scss";
+
+.datasetWrapper {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+	border-radius: 15px;
+	padding: 0 15px 0 14px;
+
+	user-select: none;
+	cursor: pointer;
+
+	.datasetTitle {
+		display: grid;
+		grid-template-columns: 24px 120px;
+		grid-template-rows: 1fr;
+		align-items: center;
+
+		overflow: hidden;
+
+		column-gap: 10px;
+
+	}
+
+	.datasetLine {
+		width: 1px;
+		height: 32px;
+		background-color: $color_2;
+	}
+
+	.datasetStatistics {
+		display: flex;
+		column-gap: 10px;
+	}
+}
+
+.datasetText {
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 1px;
+	line-height: 120%;
+}
+
+.datasetSimple {
+	background-color: $color_5;
+}
+
+.datasetHover {
+	background-color: $color_3;
+}

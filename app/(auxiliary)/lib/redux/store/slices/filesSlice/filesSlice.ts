@@ -1,13 +1,15 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {IUser} from "@/app/(auxiliary)/types/UserTypes/IUser";
 import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
+import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 interface InitialStateType {
-    files: FileType[]
+    files: FileType[];
+    datasets: DatasetType[];
 }
 
 const initialState: InitialStateType = {
-    files: []
+    files: [],
+    datasets: [],
 }
 
 export const filesSlice = createSlice({
@@ -16,10 +18,14 @@ export const filesSlice = createSlice({
     reducers: {
         setFiles: (state, action: PayloadAction<FileType[]>) => {
             state.files = action.payload
+        },
+        setDatasets: (state, action: PayloadAction<DatasetType[]>) => {
+            state.datasets = action.payload
         }
     }
 })
 
 export const {
     setFiles,
+    setDatasets,
 } = filesSlice.actions
