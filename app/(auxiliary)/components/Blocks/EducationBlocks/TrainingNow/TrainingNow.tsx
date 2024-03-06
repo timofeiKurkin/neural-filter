@@ -46,17 +46,15 @@ const TrainingNow: FC = () => {
         }
     }, [dispatch]);
 
-    if (datasets.length) {
-        return (
-            <MainShadow>
-                <div className={styles.trainingNowWrapper}>
-                    <RegularText>Your datasets for training</RegularText>
+    return (
+        <MainShadow>
+            <div className={styles.trainingNowWrapper}>
+                <RegularText>Your datasets for training</RegularText>
 
-                    <DatasetsList datasets={datasets}/>
-                </div>
-            </MainShadow>
-        );
-    }
+                <DatasetsList datasets={datasets}/>
+            </div>
+        </MainShadow>
+    );
 };
 
 export default TrainingNow;

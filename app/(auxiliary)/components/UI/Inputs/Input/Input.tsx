@@ -7,9 +7,13 @@ import {PropsType} from "@/app/(auxiliary)/components/UI/Inputs/InputPropsType";
 import border from "./InputBorder.module.scss"
 import fontStyle from "@/styles/FontsStyle/fontsStyle.module.scss";
 import styles from "./Input.module.scss"
+import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
 
 const Input: FC<PropsType> = ({
-                                  inputData,
+                                  value,
+                                  onChange,
+                                  onFocus,
+                                  onBlur,
                                   placeholder,
                                   type = "text",
                                   disabled,
@@ -19,16 +23,17 @@ const Input: FC<PropsType> = ({
     const [activeInput, setActiveInput] = useState(false)
 
     const activeFocusHandler = () => {
-        // if (!activeInput) {
-        setActiveInput((prev) => (!prev))
-        // }
+        onFocus()
+        setActiveInput((prevState) => (!prevState))
     }
 
     const activeBlurHandler = () => {
-        if (activeInput) {
-            setActiveInput((prev) => (!prev))
-        }
-        return inputData.onBlur()
+        onBlur()
+        setActiveInput((prevState) => (!prevState))
+    }
+
+    const changeHandler = (e: InputChangeEventHandler) => {
+        onChange(e)
     }
 
     return (
@@ -37,14 +42,14 @@ const Input: FC<PropsType> = ({
                 <input
                     className={`${fontStyle.regularTextStyle} ${styles.inputStyle}`}
                     type={type}
-                    value={inputData.value}
-                    tabIndex={tabIndex}
-                    onChange={(e) => inputData.onChange(e)}
+                    value={value}
+                    onChange={(e: InputChangeEventHandler) => changeHandler(e)}
                     onFocus={() => activeFocusHandler()}
-                    // onBlur={() => activeBlurHandler()}
+                    onBlur={() => activeBlurHandler()}
                     placeholder={placeholder}
                     maxLength={maxLength}
                     disabled={disabled ? disabled : false}
+                    tabIndex={tabIndex}
                 />
             </div>
             <span className={activeInput ? border.inputActive : border.inputBorder}></span>

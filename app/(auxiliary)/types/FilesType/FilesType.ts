@@ -1,4 +1,4 @@
 export interface FileType {
-    file: File,
-    name: string
+    file: File;
+    // name: string
 }

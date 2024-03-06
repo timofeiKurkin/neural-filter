@@ -1,4 +1,4 @@
-import React, {FC, useCallback, useEffect} from "react";
+import React, {FC, useCallback} from "react";
 
 import {FileError, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
@@ -20,11 +20,12 @@ const DropZone: FC= () => {
 
     // const [files, setFiles] = useState<File[]>([])
 
-    const onDrop = useCallback((acceptedFiles: any[]) => {
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         if (acceptedFiles.length) {
             dispatch(setFiles([
                 ...files,
-                ...acceptedFiles.map((file) => Object.assign(file, {preview: URL.createObjectURL(file)})),
+                // ...acceptedFiles.map((file) => Object.assign(file, {preview: URL.createObjectURL(file)})),
+                ...acceptedFiles.map((file) => file),
             ]))
         }
     }, [])
@@ -56,10 +57,6 @@ const DropZone: FC= () => {
     const removeFileHandler = (fileName: string) => {
         const removeFile = files.filter(file => file.name !== fileName)
         dispatch(setFiles(removeFile))
-
-        // setFiles((prevState) => {
-        //     return prevState.filter(file => file.name !== fileName)
-        // })
     }
 
     const listVariants: Variants = {

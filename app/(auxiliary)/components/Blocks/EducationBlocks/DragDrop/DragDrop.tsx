@@ -8,17 +8,30 @@ import styles from "./DragDrop.module.scss";
 import {AnimatePresence, Variants} from "framer-motion";
 import {motion} from "framer-motion";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {selectorFiles, setDatasets, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
-import axios from "axios";
+import {AxiosResponse} from "axios";
+import {UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
+import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
+import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
+import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
-    const {files}: {files: FileType[]} = useSelector(selectorFiles)
+
+    const {files, datasets}:
+        {
+            files: FileType[];
+            datasets: DatasetType[];
+        } = useSelector(selectorFiles)
+
 
     const [title, setTitle] = useState<string>('')
-
+    const titleHandler = (e: InputChangeEventHandler) => {
+        setTitle(e.target.value)
+    }
 
     /**
      * Функция для изменения состояния removeAllFiles
@@ -27,7 +40,6 @@ const DragDrop = () => {
         dispatch(setFiles([]))
     }
 
-    console.log("files", files)
 
     /**
      * Функция для отправки пакетов на сервер
@@ -36,14 +48,20 @@ const DragDrop = () => {
         let formData = new FormData()
 
         files.forEach((file) => {
-            console.log("file", file)
             formData.append("file", file)
         })
         formData.append('dataset_title', title)
 
-        console.log(formData)
+        let accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""
+        accessToken = accessToken.split('"').join('')
 
-        await uploadFiles(formData).then((r) => console.log(r)).catch((e) => console.log(e))
+        const response = await uploadFiles(formData, accessToken)
+
+        if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
+            const dataset = (response as AxiosResponse<UploadFilesResponse>).data.dataset
+            dispatch(setDatasets([...datasets, dataset]))
+        } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
+        }
     }
 
 
@@ -80,9 +98,17 @@ const DragDrop = () => {
             <AnimatePresence>
                 {
                     files.length && (
-                        <div className={styles.inputTitleDataset}>
-                            <input value={title} onChange={(e) => (setTitle(e.target.value))}/>
-                        </div>
+                        <motion.div className={styles.inputTitleDataset}>
+                            <Input value={title}
+                                   placeholder={"dataset title..."}
+                                   maxLength={20}
+                                   tabIndex={1}
+                                   onFocus={() => {
+                                   }}
+                                   onBlur={() => {
+                                   }}
+                                   onChange={titleHandler}/>
+                        </motion.div>
                     )
                 }
             </AnimatePresence>

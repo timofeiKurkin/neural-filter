@@ -95,18 +95,30 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                             {
                                 hasLogin &&
                                 <div>
-                                    <Input inputData={loginValue}
-                                           placeholder={"login"}
-                                           maxLength={10}
-                                           tabIndex={1}/>
+                                    <Input
+                                        value={loginValue.value}
+                                        placeholder={"login"}
+                                        // disabled={}
+                                        maxLength={10}
+                                        tabIndex={1}
+
+                                        onFocus={loginValue.onBlur}
+                                        onBlur={loginValue.onBlur}
+                                        onChange={loginValue.onChange}/>
                                 </div>
                             }
 
                             <div>
-                                <InputPassword inputData={passwordValue}
-                                               placeholder={"password"}
-                                               maxLength={20}
-                                               tabIndex={2}/>
+                                <InputPassword
+                                    value={passwordValue.value}
+                                    placeholder={"password"}
+                                    // disabled={}
+                                    maxLength={20}
+                                    tabIndex={2}
+
+                                    onFocus={passwordValue.onBlur}
+                                    onBlur={passwordValue.onBlur}
+                                    onChange={passwordValue.onChange}/>
                             </div>
                         </div>
 
