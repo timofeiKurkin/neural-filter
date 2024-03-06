@@ -22,11 +22,19 @@ class FileHandlerView(APIView):
         self.multiple_serializer_class = MultipleSerializer
         self.dataset_serializer = DatasetSerializer
         self.serializer_class = FileHandlerSerializer
+        self.all_dataset = DatasetModel.objects.all()
+
+    # Method for get dataset by group_file_id
+    @staticmethod
+    def get_dataset(pk):
+        try:
+            return DatasetModel.objects.get(group_file_id=pk)
+        except DatasetModel.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request: Request, *args, **kwargs) -> Response:
-        all_dataset = DatasetModel.objects.all()
 
-        if len(all_dataset) >= 6:
+        if len(self.all_dataset) >= 6:
             return Response(
                 {"message": "You cannot have more than 6 datasets"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -118,8 +126,15 @@ class FileHandlerView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    def delete(self, request, pk=None):
-        pass
+    # @staticmethod
+    def delete(self, request: Request, pk) -> Response:
+        dataset = self.get_dataset(pk)
+
+        if dataset is not Response:
+            dataset.delete()
+            return Response({"message": "delete was well"}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"message": "No dataset found"}, status=status.HTTP_404_NOT_FOUND)
 
     @staticmethod
     def get(*args, **kwargs) -> Response:
