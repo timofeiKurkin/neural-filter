@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'user',
     'education_ai',
     'file_handler',
+    'network_anomalies'
 ]
 
 CHANNEL_LAYERS = {
