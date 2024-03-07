@@ -14,4 +14,4 @@ urlpatterns = [
     path('file_handler/', include('file_handler.urls'), name='file_handler'),
 ]
 
-urlpatterns += static(settings.PACKETS_URL, document_root=settings.PACKETS_ROOT)
+# urlpatterns += static(settings.PACKETS_URL, document_root=settings.PACKETS_ROOT)

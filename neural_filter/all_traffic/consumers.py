@@ -3,7 +3,7 @@ import json
 import time
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from scapy.interfaces import get_if_list
+# from scapy.interfaces import get_if_list
 from scapy.sendrecv import AsyncSniffer
 
 
@@ -60,7 +60,7 @@ class PacketConsumer(AsyncWebsocketConsumer):
             asyncio.run(self.send_packet())
 
     # Ответное сообщение пользователю
-    async def receive(self, text_data):
+    async def receive(self, text_data=None, bytes_data=None):
         # После подключения отправляю на сервер сообщение с выбранным интерфейсом для сканирования сети
         data = json.loads(text_data)
         interface = data["interface"]

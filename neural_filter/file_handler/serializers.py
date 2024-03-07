@@ -41,13 +41,3 @@ class MultipleSerializer(serializers.Serializer):
         child=serializers.FileField()
     )
     dataset_title = serializers.CharField(max_length=100)
-
-    # def create(self, validated_data):
-    #     return FileHandlerModel.objects.create(**validated_data)
-    #
-    # def update(self, instance, validated_data):
-    #     instance.file_data = validated_data.get('file_data', instance.file_data)
-    #     instance.file_name = validated_data.get('file_name', instance.file_name)
-    #     instance.group_file_id = validated_data.get('group_file_id', instance)
-    #     instance.save()
-    #     return instance
