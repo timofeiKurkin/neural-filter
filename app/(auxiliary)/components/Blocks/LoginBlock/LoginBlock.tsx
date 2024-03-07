@@ -5,7 +5,6 @@ import React, {FC, useEffect, useState} from "react";
 import useInput from "@/app/(auxiliary)/hooks/useInput";
 
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
-import InputPassword from "@/app/(auxiliary)/components/UI/Inputs/InputPassword/InputPassword";
 import Button from "@/app/(auxiliary)/components/UI/Button/Button";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
@@ -109,10 +108,12 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                             }
 
                             <div>
-                                <InputPassword
+
+                                <Input
                                     value={passwordValue.value}
                                     placeholder={"password"}
                                     // disabled={}
+                                    type={'password'}
                                     maxLength={20}
                                     tabIndex={2}
 

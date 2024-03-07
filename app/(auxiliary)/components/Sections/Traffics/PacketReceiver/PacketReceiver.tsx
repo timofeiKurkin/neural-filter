@@ -22,7 +22,7 @@ const PacketReceiver: FC = () => {
             let socket = new WebSocket(url)
 
             /**
-             * Соединение не сработало
+             * Произошло соединение
              */
             socket.onopen = (e) => {
                 console.log('Произошло соединение\n', e)

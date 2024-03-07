@@ -6,6 +6,9 @@
 	border-radius: 15px;
 	overflow: hidden;
 
+	user-select: none;
+
+
 	display: grid;
 	grid-template-columns: repeat(2, max-content);
 	grid-template-rows: 1fr;
@@ -32,19 +35,18 @@
 	}
 
 	.currentStatus {
-        padding-left: 20px;
+		padding-left: 20px;
 
 		.currentStatusColor {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
 		}
 
 		.currentStatusText {
-            margin-left: 14px;
+			margin-left: 14px;
 		}
-
 	}
 }
 

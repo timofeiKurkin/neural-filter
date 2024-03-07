@@ -33,6 +33,7 @@ const DragDrop = () => {
         setTitle(e.target.value)
     }
 
+
     /**
      * Функция для изменения состояния removeAllFiles
      */
@@ -59,6 +60,8 @@ const DragDrop = () => {
 
         if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
             const dataset = (response as AxiosResponse<UploadFilesResponse>).data.dataset
+            setTitle('')
+            dispatch(setFiles([]))
             dispatch(setDatasets([...datasets, dataset]))
         } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
         }
