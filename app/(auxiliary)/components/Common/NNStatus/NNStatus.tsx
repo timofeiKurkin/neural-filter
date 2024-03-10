@@ -28,7 +28,7 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
-    console.log(stateStatus)
+    // console.log(stateStatus)
 
     useEffect(() => {
         const url = `${WS_URL_SERVER}/ws/get_network_status/`
@@ -40,7 +40,7 @@ const NnStatus = () => {
          * Произошло соединение
          */
         socket.onopen = (e) => {
-            console.log('Произошло соединение\n', e)
+            // console.log('Произошло соединение\n', e)
         }
 
         /**

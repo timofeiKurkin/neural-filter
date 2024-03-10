@@ -14,6 +14,7 @@ import styles from "./Header.module.scss";
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import {usePathname} from "next/navigation";
 import {color_2} from "@/styles/color";
+import ErrorsHandler from "@/app/(auxiliary)/components/Common/ErrorsHandler/ErrorsHandler";
 
 const Header: FC = () => {
     const navigation: NavigationType[] = navigationData
@@ -25,6 +26,7 @@ const Header: FC = () => {
         <header className={styles.headerWrapper}>
             <div className={styles.headerFixed}>
                 <div className={styles.header}>
+
                     <div className={styles.headerLogoWrapper}>
                         <div className={styles.headerLogo}>
                             <Link href={"/"}
@@ -66,6 +68,8 @@ const Header: FC = () => {
                             </nav>
                         </div>
                     </MainShadow>
+
+                    <ErrorsHandler/>
                 </div>
             </div>
         </header>

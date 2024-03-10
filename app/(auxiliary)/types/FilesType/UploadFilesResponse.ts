@@ -1,16 +1,16 @@
 export interface UploadFilesResponse {
-  dataset: Dataset;
-  files: File[];
+  dataset: DatasetType;
+  files: FileType[];
 }
 
-export interface Dataset {
+export interface DatasetType {
   dataset_title: string;
   group_file_id: string;
   loss: number;
   accuracy: number;
 }
 
-export interface File {
+export interface FileType {
   file_name: string;
   group_file_id: string;
 }

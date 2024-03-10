@@ -14,6 +14,7 @@ import {deleteDataset} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {startEducation} from "@/app/(auxiliary)/func/educationNeuralNetwork/startEducation";
 
 
 /**
@@ -51,7 +52,9 @@ const Dataset: FC<PropsType> = ({dataset}) => {
              onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
         >
             <div className={styles.datasetTitle}>
-                <Image src={datasetHover ? goHover : go} alt={'go'}/>
+                <div onClick={() => startEducation(dataset.group_file_id)}>
+                    <Image src={datasetHover ? goHover : go} alt={'go'}/>
+                </div>
 
                 <span className={styles.datasetText} style={{color: color_1}}>{dataset.dataset_title}</span>
             </div>

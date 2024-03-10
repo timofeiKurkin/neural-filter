@@ -1,0 +1,56 @@
+@import "@/styles/variables.module.scss";
+
+.customErrorBorder {
+	background-color: $color_white;
+	border: 2px solid $color_6;
+	border-radius: 20px;
+	cursor: pointer;
+}
+
+.customErrorWrapper {
+	//width: 100%;
+	padding: 15px 20px;
+
+	display: flex;
+	flex-direction: column;
+	row-gap: 10px;
+
+	.customErrorTitle {
+		display: flex;
+		align-items: center;
+		column-gap: 8px;
+		color: $color_1;
+
+		.customErrorTitleLine {
+			width: 2px;
+			height: 12px;
+			background-color: $color_2;
+		}
+
+		p {
+			font-size: 14px;
+		}
+	}
+
+	.customError {
+
+		.customErrorCode {
+
+		}
+
+		.customErrorMessage {
+
+		}
+
+
+	}
+
+}
+
+.customErrorHighlighting {
+	color: $color_2;
+}
+
+.customErrorText {
+	color: $color_1;
+}

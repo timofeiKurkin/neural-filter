@@ -1,4 +1,4 @@
-import React, {FC, useCallback} from "react";
+import React, {FC, useCallback, useEffect} from "react";
 
 import {FileError, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
@@ -11,30 +11,43 @@ import styles from "./DropZone.module.scss";
 import Image from "next/image";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {selectorFiles, setErrorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {ErrorFilesType} from "@/app/(auxiliary)/types/FilesType/ErrorFilesType";
+import {usePathname} from "next/navigation";
+// import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
 
 
-const DropZone: FC= () => {
+const DropZone: FC = () => {
+    const pathname = usePathname()
+    const page = `/${pathname.split('/').filter(Boolean)[0]}`
+
     const dispatch = useDispatch()
-    const {files} = useSelector(selectorFiles)
-
-    // const [files, setFiles] = useState<File[]>([])
+    const {files, errorFiles}: { files: File[]; errorFiles: ErrorFilesType[] } = useSelector(selectorFiles)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        if (acceptedFiles.length) {
+
+        const filteredFiles = acceptedFiles.filter((file) => !files.includes(file))
+
+        if (filteredFiles.length) {
             dispatch(setFiles([
                 ...files,
-                // ...acceptedFiles.map((file) => Object.assign(file, {preview: URL.createObjectURL(file)})),
-                ...acceptedFiles.map((file) => file),
+                ...filteredFiles,
             ]))
         }
     }, [])
 
     const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null => {
-        if (file.name.split('.')[1] !== 'pcap') {
+        if (file.name && file.name.split('.')[1] !== 'pcap') {
             return {
-                code: "",
-                message: "only pcap files"
+                code: 415,
+                message: "Sorry, you can upload only .pcap files."
+            }
+        }
+
+        if (files.filter((fileStore) => (fileStore.name === file.name)).length) {
+            return {
+                code: 409,
+                message: `File '${file.name}' with that name already exists. Please, rename file or upload another.`
             }
         }
 
@@ -43,7 +56,7 @@ const DropZone: FC= () => {
 
     const {
         // acceptedFiles,
-        // fileRejections,
+        fileRejections,
         getRootProps,
         getInputProps,
         isDragActive
@@ -54,10 +67,42 @@ const DropZone: FC= () => {
         maxFiles: 10
     })
 
+
     const removeFileHandler = (fileName: string) => {
         const removeFile = files.filter(file => file.name !== fileName)
         dispatch(setFiles(removeFile))
     }
+
+
+    useEffect(() => {
+        if (fileRejections.length) {
+
+            /**
+             * Ошибки от библиотеки.
+             * rejections - одна ошибка
+             */
+            fileRejections.forEach((rejections) => {
+                /**
+                 * errorFiles - Ошибки из состояния.
+                 * error - одна ошибка
+                 */
+                const filteredErrors = errorFiles.filter((error) => (error.fileName === rejections.file.name))
+
+                dispatch(setErrorFiles<ErrorFilesType[]>([
+                    ...filteredErrors,
+                    {
+                        fileName: rejections.file.name,
+                        fileSize: rejections.file.size,
+                        errors: rejections.errors,
+                        pageError: page,
+                        typeError: "Upload error"
+                    }
+                ]))
+            })
+        }
+    }, [fileRejections]);
+
+    console.log("errorFiles", errorFiles)
 
     const listVariants: Variants = {
         'visible': {

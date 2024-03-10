@@ -16,16 +16,16 @@
 
 		display: grid;
 		grid-template-columns: minmax(400px, 495px);
-		grid-template-rows: min-content;
+		//grid-template-rows: min-content;
 
 		.header {
 			display: grid;
 			justify-content: center;
 
 			@media screen and ($desktop1920), screen and ($desktop1440_1919) {
-				grid-template-columns: 300px;
-				grid-template-rows: min-content 1fr;
-				padding-top: 90px;
+				grid-template-columns: 320px;
+				grid-template-rows: min-content min-content 1fr;
+				padding: 90px 0 30px 0;
 				row-gap: 60px;
 			}
 

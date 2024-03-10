@@ -49,7 +49,7 @@ const TrainingNow: FC = () => {
     return (
         <MainShadow>
             <div className={styles.trainingNowWrapper}>
-                <RegularText>Your datasets for training</RegularText>
+                <RegularText>Your datasets:</RegularText>
 
                 <DatasetsList datasets={datasets}/>
             </div>

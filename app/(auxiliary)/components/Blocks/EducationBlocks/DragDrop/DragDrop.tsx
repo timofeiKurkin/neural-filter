@@ -10,27 +10,25 @@ import {motion} from "framer-motion";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setDatasets, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
-import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
+// import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
 import {AxiosResponse} from "axios";
-import {UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
-import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+import {DatasetType, UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
+// import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
 import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
+import {startEducation} from "@/app/(auxiliary)/func/educationNeuralNetwork/startEducation";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
 
-    const {files, datasets}:
-        {
-            files: FileType[];
-            datasets: DatasetType[];
-        } = useSelector(selectorFiles)
+    const {files, datasets} = useSelector(selectorFiles)
 
+    const [lastDataset, setLastDataset] = useState<DatasetType>({} as DatasetType)
 
-    const [title, setTitle] = useState<string>('')
+    const [datasetTitle, setDatasetTitle] = useState<string>('')
     const titleHandler = (e: InputChangeEventHandler) => {
-        setTitle(e.target.value)
+        setDatasetTitle(e.target.value)
     }
 
 
@@ -45,28 +43,31 @@ const DragDrop = () => {
     /**
      * Функция для отправки пакетов на сервер
      */
-    const uploadFilesHandler = async () => {
-        let formData = new FormData()
+    const uploadFilesHandler = async (files: File[], datasetTitle: string) => {
+        if (files.length && datasetTitle) {
+            let formData = new FormData()
 
-        files.forEach((file) => {
-            formData.append("file", file)
-        })
-        formData.append('dataset_title', title)
+            files.forEach((file) => {
+                formData.append("file", file)
+            })
+            formData.append('dataset_title', datasetTitle)
 
-        let accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""
-        accessToken = accessToken.split('"').join('')
+            let accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""
+            accessToken = accessToken.split('"').join('')
 
-        const response = await uploadFiles(formData, accessToken)
+            const response = await uploadFiles(formData, accessToken)
 
-        if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
-            const dataset = (response as AxiosResponse<UploadFilesResponse>).data.dataset
-            setTitle('')
-            dispatch(setFiles([]))
-            dispatch(setDatasets([...datasets, dataset]))
-        } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
+            if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
+                const dataset = (response as AxiosResponse<UploadFilesResponse>).data.dataset
+                setDatasetTitle('')
+                setLastDataset(() => (dataset))
+
+                dispatch(setFiles([]))
+                dispatch(setDatasets([...datasets, dataset]))
+            } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
+            }
         }
     }
-
 
     const variants: Variants = {
         'visible': {opacity: 1},
@@ -87,7 +88,7 @@ const DragDrop = () => {
                             animate={'visible'}
                             exit={'hidden'}
                         >
-                            <Button style={{backgroundColor: color_1, textColor: color_white}}
+                            <Button style={{backgroundColor: color_1, color: color_white}}
                                     onClick={() => removeAllFilesHandler()}
                             >
                                 Remove all files
@@ -102,7 +103,7 @@ const DragDrop = () => {
                 {
                     files.length && (
                         <motion.div className={styles.inputTitleDataset}>
-                            <Input value={title}
+                            <Input value={datasetTitle}
                                    placeholder={"dataset title..."}
                                    maxLength={20}
                                    tabIndex={1}
@@ -117,11 +118,23 @@ const DragDrop = () => {
             </AnimatePresence>
 
 
-            <div className={styles.dragDropButton}>
-                <Button style={{backgroundColor: color_1, textColor: color_white}} onClick={uploadFilesHandler}>
-                    Send & Start education
-                </Button>
-            </div>
+            {
+                Object.keys(lastDataset).length ? (
+                    <div className={styles.dragDropButton}>
+                        <Button style={{backgroundColor: color_1, color: color_white}}
+                                onClick={() => startEducation(lastDataset.group_file_id)}>
+                            Start education
+                        </Button>
+                    </div>
+                ) : (
+                    <div className={styles.dragDropButton}>
+                        <Button style={{backgroundColor: color_1, color: color_white}} disabled={!datasetTitle}
+                                onClick={() => uploadFilesHandler(files, datasetTitle)}>
+                            Send and save file{files.length > 1 ? "s" : ""} to dataset
+                        </Button>
+                    </div>
+                )
+            }
         </div>
     );
 };

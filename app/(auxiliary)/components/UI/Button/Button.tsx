@@ -10,12 +10,12 @@ interface buttonType {
     disabled?: boolean;
     style: {
         backgroundColor: string;
-        textColor: string;
+        color: string;
     },
     children: string;
     tabIndex?: number;
     onClick?: () => void;
-    type?: "button" | "reset" | "submit" | undefined
+    type?: "button" | "reset" | "submit"
 }
 
 const Button: FC<buttonType> = ({
@@ -24,7 +24,7 @@ const Button: FC<buttonType> = ({
                                     children,
                                     tabIndex,
                                     onClick,
-                                    type = "button"
+                                    type
                                 }) => {
     const button = useRef(null)
 
@@ -39,22 +39,19 @@ const Button: FC<buttonType> = ({
     }
 
     return (
-        <motion.button type={type}
+        <motion.button type={type ?? "button"}
                        className={`${styles.button}`}
                        ref={button}
                        tabIndex={tabIndex}
                        disabled={disabled}
                        onClick={onClick}
-                       style={{
-                           backgroundColor: style.backgroundColor,
-                           color: style.textColor
-                       }}
+                       style={style}
 
                        variants={variants}
                        initial={'initial'}
                        whileHover={'hover'}
         >
-            <span className={styles.buttonText}>
+            <span>
                 <ButtonText>{children}</ButtonText>
             </span>
         </motion.button>
