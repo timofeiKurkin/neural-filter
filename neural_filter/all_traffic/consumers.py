@@ -40,7 +40,7 @@ class PacketConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if self.traffic:
             # print(self.packages)
-            # write_to_json(self.packages, 'traffic-clean.json')
+            write_to_json(self.packages, 'traffic-clean.json')
             self.traffic.stop()
 
     def packet_callback(self, packet):
