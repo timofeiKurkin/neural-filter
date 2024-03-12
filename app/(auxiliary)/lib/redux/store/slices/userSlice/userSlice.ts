@@ -4,13 +4,11 @@ import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 
 interface InitialStateType {
     user: IUser;
-    rememberPath: string;
     isAuth: boolean;
 }
 
 const initialState: InitialStateType = {
     user: {} as IUser,
-    rememberPath: '',
     isAuth: false,
 }
 
@@ -24,14 +22,10 @@ export const userSlice = createSlice({
         setAuth: (state, action: PayloadAction<boolean>) => {
             state.isAuth = action.payload
         },
-        setPath: (state, action: PayloadAction<string>) => {
-            state.rememberPath = action.payload
-        }
     }
 })
 
 export const {
     setUser,
     setAuth,
-    setPath
 } = userSlice.actions

@@ -1,6 +1,6 @@
 import {FileError} from "react-dropzone";
 
-export interface ErrorFilesType {
+interface ErrorFilesType {
     fileName: string;
     errors: FileError[];
     fileSize?: number;

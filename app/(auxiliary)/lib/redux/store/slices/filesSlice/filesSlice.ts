@@ -6,13 +6,13 @@ interface InitialStateType {
     // files: FileType[];
     files: File[];
     datasets: DatasetType[];
-    errorFiles: ErrorFilesType[];
+    // errorFiles: ErrorFilesType[];
 }
 
 const initialState: InitialStateType = {
     files: [],
     datasets: [],
-    errorFiles: [],
+    // errorFiles: [],
 }
 
 export const filesSlice = createSlice({
@@ -25,14 +25,14 @@ export const filesSlice = createSlice({
         setDatasets: (state, action: PayloadAction<DatasetType[]>) => {
             state.datasets = action.payload
         },
-        setErrorFiles: (state, action: PayloadAction<ErrorFilesType[]>) => {
-            state.errorFiles = action.payload
-        }
+        // setErrorFiles: (state, action: PayloadAction<ErrorFilesType[]>) => {
+        //     state.errorFiles = action.payload
+        // }
     }
 })
 
 export const {
     setFiles,
     setDatasets,
-    setErrorFiles,
+    // setErrorFiles,
 } = filesSlice.actions

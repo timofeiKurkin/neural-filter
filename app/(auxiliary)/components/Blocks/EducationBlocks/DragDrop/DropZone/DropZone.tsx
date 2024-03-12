@@ -11,10 +11,10 @@ import styles from "./DropZone.module.scss";
 import Image from "next/image";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setErrorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
-import {ErrorFilesType} from "@/app/(auxiliary)/types/FilesType/ErrorFilesType";
+import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {usePathname} from "next/navigation";
-// import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
+import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {CustomErrorType, ErrorFilesType} from "@/app/(auxiliary)/types/AppTypes/Errors";
 
 
 const DropZone: FC = () => {
@@ -22,7 +22,8 @@ const DropZone: FC = () => {
     const page = `/${pathname.split('/').filter(Boolean)[0]}`
 
     const dispatch = useDispatch()
-    const {files, errorFiles}: { files: File[]; errorFiles: ErrorFilesType[] } = useSelector(selectorFiles)
+    const {files}: { files: File[] } = useSelector(selectorFiles)
+    const {errorList}: { errorList: CustomErrorType[] } = useSelector(selectorApplication)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
 
@@ -86,23 +87,26 @@ const DropZone: FC = () => {
                  * errorFiles - Ошибки из состояния.
                  * error - одна ошибка
                  */
-                const filteredErrors = errorFiles.filter((error) => (error.fileName === rejections.file.name))
+                const filteredErrors = errorList.filter((error) => ((error.expansion as ErrorFilesType).fileName === rejections.file.name))
 
-                dispatch(setErrorFiles<ErrorFilesType[]>([
+                dispatch(setError<ErrorFilesType[]>([
                     ...filteredErrors,
                     {
-                        fileName: rejections.file.name,
-                        fileSize: rejections.file.size,
-                        errors: rejections.errors,
-                        pageError: page,
-                        typeError: "Upload error"
+                        id: errorList.length,
+                        page: page,
+                        typeError: "Upload error",
+                        expansion: {
+                            fileName: rejections.file.name,
+                            fileSize: rejections.file.size,
+                            errors: rejections.errors,
+                        }
                     }
                 ]))
             })
         }
     }, [fileRejections]);
 
-    console.log("errorFiles", errorFiles)
+    console.log("errorFiles", errorList)
 
     const listVariants: Variants = {
         'visible': {

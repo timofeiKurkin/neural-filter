@@ -13,7 +13,7 @@ export const login: Login = async (login, password, csrfToken) => {
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             const typedError: AxiosErrorType = {
-                message: error.response?.data,
+                message: error.response?.data.detail,
                 statusCode: error.response?.status || 500
             }
             return typedError

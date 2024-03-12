@@ -2,9 +2,10 @@
 
 .loginBlockWrapper {
     display: grid;
-    grid-template-columns: minmax(350px, 630px);
+    grid-template-columns: minmax(350px, 570px) 1fr;
     grid-template-rows: 1fr;
     align-items: center;
+    column-gap: 70px;
     
     .loginBlock {
         display: grid;

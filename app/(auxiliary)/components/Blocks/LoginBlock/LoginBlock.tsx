@@ -16,9 +16,13 @@ import styles from "./LoginBlock.module.scss"
 import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
 import {login} from "@/app/(routers)/(withoutHeader)/login/login";
-import {AxiosResponse} from "axios";
+import {AxiosError, AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
+import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
+import ErrorsHandler from "@/app/(auxiliary)/components/Common/ErrorsHandler/ErrorsHandler";
+import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {CustomErrorType, JustErrorType} from "@/app/(auxiliary)/types/AppTypes/Errors";
 
 interface PropsType {
     csrfToken: string;
@@ -29,6 +33,10 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
     const dispatch = useDispatch()
 
     const {isAuth, user} = useSelector(selectorUser)
+    const {errorList, rememberPath}: {
+        errorList: CustomErrorType[];
+        rememberPath: string
+    } = useSelector(selectorApplication)
 
     const [hasLogin, setHasLogin] = useState<boolean>(true)
 
@@ -37,6 +45,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
     const passwordKey = "p-l"
     const passwordValue = useInput("", passwordKey, passwordValidations)
+
 
     const formHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -57,10 +66,20 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
             localStorage.setItem('access', JSON.stringify(accessToken))
             localStorage.setItem('refresh', JSON.stringify(refreshToken))
+        } else if ((response as AxiosErrorType).statusCode === 401 && (response as AxiosErrorType).message) {
 
-            // router.push('/')
+            dispatch(setError([...errorList, {
+                id: errorList.length,
+                typeError: "Login error",
+                page: "/login",
+                expansion: {
+                    code: (response as AxiosErrorType).statusCode,
+                    message: "Incorrect username or password. Please, check your data."
+                } as JustErrorType
+            }]))
         }
     }
+
 
     useEffect(() => {
         let firstAuth = localStorage.getItem("f-auth")
@@ -72,17 +91,17 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
         }
     }, []);
 
+
     useEffect(() => {
-        if (isAuth && user.username) {
+        if (isAuth && user.username && !rememberPath) {
             router.push('/')
         }
-    }, [isAuth, user.username]);
+    }, [isAuth, user.username, rememberPath]);
 
-    console.log(isAuth)
-    console.log(user)
 
     return (
         <div className={styles.loginBlockWrapper}>
+
             <MainShadow>
                 <div className={styles.loginBlock}>
                     <div className={styles.loginTitle}>
@@ -125,7 +144,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
                         <div className={styles.loginButton}
                              onClick={(e: React.MouseEvent<HTMLDivElement>) => formHandler(e)}>
-                            <Button style={{backgroundColor: color_1, textColor: color_white}}
+                            <Button style={{backgroundColor: color_1, color: color_white}}
                                     tabIndex={3}
                                     type={'submit'}
                             >Continue</Button>
@@ -133,6 +152,8 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                     </form>
                 </div>
             </MainShadow>
+
+            <ErrorsHandler/>
         </div>
     );
 };

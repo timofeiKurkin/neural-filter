@@ -33,7 +33,9 @@ const UserProfile: FC = () => {
     }
 
     const logoutHandler = () => {
-        localStorage.removeItem('authTokens')
+        localStorage.removeItem('access')
+        localStorage.removeItem('refresh')
+
         dispatch(setAuth(false))
         dispatch(setUser({} as IUser))
     }
