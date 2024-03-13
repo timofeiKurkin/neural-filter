@@ -64,7 +64,6 @@ INSTALLED_APPS = [
 
     'all_traffic',
     'user',
-    'education_ai',
     'file_handler',
     'network_anomalies'
 ]
