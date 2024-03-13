@@ -106,7 +106,7 @@ const DropZone: FC = () => {
         }
     }, [fileRejections]);
 
-    console.log("errorFiles", errorList)
+    // console.log("errorFiles", errorList)
 
     const listVariants: Variants = {
         'visible': {

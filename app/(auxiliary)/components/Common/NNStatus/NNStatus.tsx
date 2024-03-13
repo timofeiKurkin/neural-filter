@@ -50,18 +50,20 @@ const NnStatus = () => {
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data)
 
+            console.log("data", data)
+
             if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
                 const statusData: StatusRenderType = data
                 setStateStatus(() => {
                     if (statusData.statusCode === 2) {
                         statusData.colorStatus = color_6
-                        return statusData
+                        return statusData ?? {}
                     } else if (statusData.statusCode === 3) {
                         statusData.colorStatus = color_8
-                        return statusData
+                        return statusData ?? {}
                     } else if (statusData.statusCode === 4) {
                         statusData.colorStatus = color_7
-                        return statusData
+                        return statusData ?? {}
                     }
                 })
             }
@@ -85,13 +87,16 @@ const NnStatus = () => {
 
     }, []);
 
-    return (
-        <div className={styles.statusWrapper}>
-            <div className={styles.NNStatusWrapper}>
-                <RegularText>Neural network status</RegularText>
-            </div>
+    console.log("stateStatus", stateStatus)
 
-            <RegularText>
+    return (
+        (stateStatus && Object.keys(stateStatus).length) && (
+                <div className={styles.statusWrapper}>
+                    <div className={styles.NNStatusWrapper}>
+                        <RegularText>Neural network status</RegularText>
+                    </div>
+
+                    <RegularText>
                 <span className={styles.currentStatus}>
                     <span className={styles.currentStatusColor} style={{
                         backgroundColor: stateStatus.colorStatus
@@ -101,8 +106,9 @@ const NnStatus = () => {
                         {stateStatus.status}
                     </span>
                 </span>
-            </RegularText>
-        </div>
+                    </RegularText>
+                </div>
+            )
     );
 };
 

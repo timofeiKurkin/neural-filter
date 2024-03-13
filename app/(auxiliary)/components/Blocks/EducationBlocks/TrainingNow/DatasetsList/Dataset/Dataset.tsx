@@ -52,7 +52,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
              onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
         >
             <div className={styles.datasetTitle}>
-                <div onClick={() => startEducation(dataset.group_file_id)}>
+                <div
+                    onClick={() => startEducation(dataset.group_file_id)
+                        .then((r) => console.log(r))
+                        .catch((e) => console.log(e))}>
                     <Image src={datasetHover ? goHover : go} alt={'go'}/>
                 </div>
 
