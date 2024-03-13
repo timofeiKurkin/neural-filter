@@ -43,7 +43,7 @@ class FileHandlerModel(models.Model):
     group_file_id = models.UUIDField(default=uuid.uuid4)
 
     # Dataset model, that connection with this model. Connection: many to one.
-    dataset = models.ForeignKey(DatasetModel, on_delete=models.CASCADE, null=True)
+    dataset_id = models.ForeignKey(DatasetModel, on_delete=models.CASCADE, null=True, db_column="dataset_id")
 
     uploaded_on = models.DateTimeField(auto_now_add=True)
 

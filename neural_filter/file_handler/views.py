@@ -26,7 +26,7 @@ class FileHandlerView(APIView):
 
     # Method for get dataset by group_file_id
     @staticmethod
-    def get_dataset(pk):
+    def get_dataset(*, pk):
         try:
             return DatasetModel.objects.get(group_file_id=pk)
         except DatasetModel.DoesNotExist:
@@ -86,7 +86,7 @@ class FileHandlerView(APIView):
                         "file_data": packages_data,
                         "file_name": file_name,
                         "group_file_id": group_file_id,
-                        "dataset": dataset_serializer.instance.id
+                        "dataset_id": dataset_serializer.instance.id
                     })
 
                     if file_serializer.is_valid():
@@ -128,7 +128,7 @@ class FileHandlerView(APIView):
 
     # @staticmethod
     def delete(self, request: Request, pk) -> Response:
-        dataset = self.get_dataset(pk)
+        dataset = self.get_dataset(pk=pk)
 
         if dataset is not Response:
             dataset.delete()

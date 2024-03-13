@@ -28,7 +28,7 @@ class FileHandlerSerializer(serializers.ModelSerializer):
             'file_data',
             'file_name',
             'group_file_id',
-            'dataset'
+            'dataset_id'
         )
 
     def create(self, validated_data):

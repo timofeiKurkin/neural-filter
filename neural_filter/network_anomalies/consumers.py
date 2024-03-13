@@ -3,39 +3,65 @@ import time
 import asyncio
 
 from scapy.all import AsyncSniffer
-from channels.generic.websocket import AsyncWebsocketConsumer
-
-disconnection_status = {"status": "disconnection", "statusCode": 0}
-connection_status = {"status": "connection", "statusCode": 1}
-no_work_status = {"status": "no work", "statusCode": 2}
-is_studying_status = {"status": "is_studying", "statusCode": 3}
-working_status = {"status": "working", "statusCode": 4}
+from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from .serializers import NetworkAnomalySerializer
+from .models import NetworkAnomaliesModel
+from . import statuses
 
 
-class NeuralNetworkStatusConsumer(AsyncWebsocketConsumer):
+# def create_wights_model(*, dataset_id):
+#     pass
+
+
+class NeuralNetworkStatusConsumer(WebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_work_status = no_work_status
+        self.serializer = NetworkAnomalySerializer
+        # self.model = NetworkAnomaliesModel()
+        self.current_work_status = statuses.disconnection_status
+        self.status = NetworkAnomaliesModel.objects.all()
 
-    async def connect(self):
-        await self.accept()
-        await self.send_work_status(work_status=self.current_work_status)
+    # async def change_status(self, *, new_status):
+    #     self.current_work_status = new_status
+    #     await self.send_work_status(work_status=self.current_work_status)
 
-    async def disconnect(self, code):
-        pass
+    def connect(self):
+        self.accept()
+
+        # status = NetworkAnomaliesModel.objects.all()
+
+        if len(self.status.values()):
+            self.status.delete()
+
+        status = self.serializer(data={
+            "current_work_state": statuses.no_work_status
+        })
+
+        if status.is_valid():
+            status.save()
+
+            self.current_work_status = status.data['current_work_state']
+            self.send_work_status(work_status=self.current_work_status)
+        else:
+            print("no valid status")
+
+    def disconnect(self, code):
+        self.current_work_status = statuses.disconnection_status
+        self.send_work_status(work_status=self.current_work_status)
+        self.status.delete()
 
     # async def receive(self, text_data=None, bytes_data=None):
     #     pass
 
-    async def send_work_status(self, *, work_status: dict):
-        await self.send(text_data=json.dumps(work_status))
+    def send_work_status(self, *, work_status: dict):
+        self.send(text_data=json.dumps(work_status))
 
 
 class NetworkAnomalyConsumer(AsyncWebsocketConsumer):
 
     def __init__(self, *args, **kwargs):
-        super(NetworkAnomalyConsumer).__init__(*args, **kwargs)
-        self.current_work_status = no_work_status
+        super().__init__(*args, **kwargs)
+        self.current_work_status = statuses.no_work_status
         self.current_packet = None
         self.traffic = None
         pass
