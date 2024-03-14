@@ -2,6 +2,7 @@ import json
 import time
 import asyncio
 
+from asgiref.sync import sync_to_async
 from scapy.all import AsyncSniffer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 from .serializers import NetworkAnomalySerializer
@@ -14,6 +15,7 @@ from . import statuses
 
 
 class NeuralNetworkStatusConsumer(WebsocketConsumer):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.serializer = NetworkAnomalySerializer
@@ -21,9 +23,9 @@ class NeuralNetworkStatusConsumer(WebsocketConsumer):
         self.current_work_status = statuses.disconnection_status
         self.status = NetworkAnomaliesModel.objects.all()
 
-    # async def change_status(self, *, new_status):
-    #     self.current_work_status = new_status
-    #     await self.send_work_status(work_status=self.current_work_status)
+    def change_status(self, *, new_status):
+        self.current_work_status = new_status
+        self.send_work_status(work_status=self.current_work_status)
 
     def connect(self):
         self.accept()
@@ -42,16 +44,16 @@ class NeuralNetworkStatusConsumer(WebsocketConsumer):
 
             self.current_work_status = status.data['current_work_state']
             self.send_work_status(work_status=self.current_work_status)
-        else:
-            print("no valid status")
 
     def disconnect(self, code):
         self.current_work_status = statuses.disconnection_status
         self.send_work_status(work_status=self.current_work_status)
         self.status.delete()
 
-    # async def receive(self, text_data=None, bytes_data=None):
-    #     pass
+    def receive(self, text_data=None, bytes_data=None):
+        # print(text_data)
+        pass
+        # data_json = json.loads(text_data)
 
     def send_work_status(self, *, work_status: dict):
         self.send(text_data=json.dumps(work_status))
@@ -121,3 +123,72 @@ class NetworkAnomalyConsumer(AsyncWebsocketConsumer):
         # if anomaly:
         #   self.send(text_data=json.dumps(self.current_packet))
         pass
+
+
+@sync_to_async
+def get_status_from_db():
+    return NetworkAnomaliesModel.objects.get(key=0)
+
+
+@sync_to_async
+def serialize_network_anomalies():
+    return NetworkAnomalySerializer
+
+
+@sync_to_async
+def update_status_in_bd(*, new_status: dict):
+    status_from_db = NetworkAnomaliesModel.objects.get(key=0)
+
+    new_status = NetworkAnomalySerializer(instance=status_from_db, data={
+        "current_work_state": new_status
+    })
+
+    if new_status.is_valid():
+        new_status.save()
+        # return new_status.data['current_work_state']
+
+
+class NeuralNetworkConsumer(AsyncWebsocketConsumer):
+    def __init__(self):
+        super().__init__()
+        # self.serializer = sync_to_async(NetworkAnomalySerializer)
+        # self.satus_from_db = NetworkAnomaliesModel.objects.get(key=0)
+        self.current_work_status = statuses.disconnection_status
+
+    async def connect(self):
+        await self.accept()
+        self.current_work_status = statuses.no_work_status
+        await self.send_work_status(work_status=self.current_work_status)
+
+        # instance = await get_status_from_db()
+        #
+        # print("instance", instance)
+        #
+        # # serializer = await serialize_network_anomalies()
+        # connect_status = await self.serializer(instance=instance, data={
+        #     "current_work_state": statuses.no_work_status
+        # })
+        #
+        # if connect_status.is_valid():
+        #     await connect_status.save()
+        #
+        #     print("connect_status", connect_status)
+        #
+        #     self.current_work_status = connect_status.data['current_work_state']
+        #     await self.send_work_status(work_status=self.current_work_status)
+
+    async def disconnect(self, code):
+        self.current_work_status = statuses.disconnection_status
+
+    async def receive(self, text_data=None, bytes_data=None):
+        packet = json.loads(text_data)
+
+        if packet["send_type"] == "start_education":
+            self.current_work_status = statuses.is_studying_status
+            await self.send_work_status(work_status=self.current_work_status)
+
+        await self.send(text_data=json.dumps("OK"))
+        # pass
+
+    async def send_work_status(self, *, work_status: dict):
+        await self.send(text_data=json.dumps(work_status))

@@ -34,16 +34,15 @@ def start_education(request: Request) -> Response:
 
     flat_list = list(itertools.chain.from_iterable(all_files))
 
-    network_serializer = NetworkAnomalySerializer
-    current_network_status = NetworkAnomaliesModel.objects.all()
+    current_network_status = NetworkAnomaliesModel.objects.get(key=0)
+    network_serializer = NetworkAnomalySerializer(instance=current_network_status, data={
+            "current_work_state": statuses.is_studying_status
+        })
 
-    # if not current_network_status:
-    #     create_status = network_serializer(data=statuses.no_work_status)
-    #     if create_status.is_valid():
-    #         create_status.save()
+    if network_serializer.is_valid():
+        network_serializer.save()
 
-    print(current_network_status)
-
-    # network_serializer.update()
+    # status_work = consumers.NeuralNetworkStatusConsumer()
+    # status_work.change_status(new_status=network_serializer.data['current_work_state'])
 
     return Response(data=f"I get dataset {dataset_id}", status=status.HTTP_200_OK)
