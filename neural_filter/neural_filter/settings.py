@@ -28,11 +28,10 @@ SECRET_KEY = env["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = [
-#     'http://localhost:3000',
-#     "localhost",
-#     "http://127.0.0.1"
-# ]
+ALLOWED_HOSTS = [
+    "localhost",
+    "http://127.0.0.1:3000"
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -68,9 +67,18 @@ INSTALLED_APPS = [
     'network_anomalies'
 ]
 
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
+
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)]
+        }
     },
 }
 
