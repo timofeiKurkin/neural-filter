@@ -15,6 +15,8 @@ import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {startEducation} from "@/app/(auxiliary)/func/educationNeuralNetwork/startEducation";
+import {selectorNeuralNetwork, setStartEducation} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import {StateOfEducationType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
 
 
 /**
@@ -30,6 +32,8 @@ interface PropsType {
 
 const Dataset: FC<PropsType> = ({dataset}) => {
     const dispatch = useDispatch()
+
+    const {ws}: { ws: WebSocket } = useSelector(selectorNeuralNetwork)
     const {datasets}: { datasets: DatasetType[]; } = useSelector(selectorFiles)
 
     const [datasetHover, setDatasetHover] = useState<boolean>(false)
@@ -53,9 +57,24 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         >
             <div className={styles.datasetTitle}>
                 <div
-                    onClick={() => startEducation(dataset.group_file_id)
-                        .then((r) => console.log(r))
-                        .catch((e) => console.log(e))}>
+                    // onClick={() => startEducation(dataset.group_file_id)
+                    //     .then((r) => console.log(r))
+                    //     .catch((e) => console.log(e))}>
+
+                    onClick={() => {
+                        ws.send(JSON.stringify({
+                            send_type: "start_education",
+                            data: dataset.group_file_id
+                        }))
+
+                        // ws.onopen = () => {
+                        //     ws.send(JSON.stringify({
+                        //         send_type: "start_education",
+                        //         data: dataset.group_file_id
+                        //     }))
+                        // }
+                        // dispatch(setStartEducation({signal: true, datasetID: dataset.group_file_id}))
+                    }}>
                     <Image src={datasetHover ? goHover : go} alt={'go'}/>
                 </div>
 

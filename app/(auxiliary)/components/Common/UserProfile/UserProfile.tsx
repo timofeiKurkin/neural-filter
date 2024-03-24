@@ -1,5 +1,3 @@
-"use client"
-
 import React, {FC, useState} from "react";
 
 import userPhoto from "@/public/user-profile-photo.svg";
