@@ -1,5 +1,9 @@
 # File where will be neural network for scanning network
 
+from keras.models import Model
+from keras.layers import Input, Dense, Dropout
+from keras.optimizers import Adam
+
 # from sklearn.model_selection import train_test_split
 #
 #
@@ -23,3 +27,20 @@
 #
 # model.compile(optimizer=Adam(learning_rate=0.001), loss="mse", metrics=["accuracy"])
 # model.save("neural-network-for-work.keras", overwrite=True)
+
+
+async def neural_network_structure(*, x_train) -> Model:
+    input_layer = Input(shape=(x_train.shape[1],))
+
+    encoded_layer = Dense(128, activation="relu")(input_layer)
+    encoded_layer_two = Dense(62, activation="relu")(encoded_layer)
+    decoded_layer = Dense(128, activation="relu")(encoded_layer_two)
+    dropout_layer = Dropout(0.2)(decoded_layer)
+    output_layer = Dense(x_train.shape[1], activation="softmax")(dropout_layer)
+
+    model = Model(inputs=input_layer, outputs=output_layer)
+    model.compile(optimizer=Adam(learning_rate=1e-3), loss="mse", metrics=["accuracy"])
+
+    model.summary()
+
+    return model

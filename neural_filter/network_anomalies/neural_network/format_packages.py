@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.model_selection import train_test_split
 from pandas import DataFrame
 
 
-async def format_packages(*, packages: list[dict]) -> DataFrame:
+async def format_packages(*, packages: list[dict]):
     # Распаковываю протоколы и длины пакетов в два соответствующих массива
     protocols = [packet["protocol"] for packet in packages]
     lengths = [packet["length"] for packet in packages]
@@ -43,4 +44,12 @@ async def format_packages(*, packages: list[dict]) -> DataFrame:
     # Удаляем исходные столбцы с source, destination и time
     df_encoded = df_encoded.drop(["source", "destination", "time", "id"], axis=1)
 
-    return df_encoded
+    features = df_encoded.values
+    x_train, x_test = train_test_split(
+        features,
+        test_size=0.2,
+        train_size=0.8,
+        random_state=42
+    )
+
+    return x_train, x_test, features

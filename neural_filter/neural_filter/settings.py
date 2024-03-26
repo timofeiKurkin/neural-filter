@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import dotenv_values
@@ -68,7 +69,7 @@ INSTALLED_APPS = [
 ]
 
 # CHANNEL_LAYERS = {
-#     'default': {
+#     'default':
 #         'BACKEND': 'channels.layers.InMemoryChannelLayer',
 #     },
 # }
@@ -240,6 +241,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 PACKETS_URL = '/packets/'
 PACKETS_ROOT = BASE_DIR / 'packets'
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+MODELS_DIR = os.path.join(BASE_DIR, 'network_anomalies', 'models')
 
 # CSRF_COOKIE_SAMESITE = 'Strict'
 # SESSION_COOKIE_SAMESITE = 'Strict'

@@ -70,7 +70,7 @@ class FileHandlerView(APIView):
                     file_name = file.name
 
                     for packet in packages:
-                        if "IP" in packet:
+                        if "IP" in packet or "TCP" in packet:
                             data = {
                                 "id": self.id_packages,
                                 "time": '%.30f' % packet.time,
