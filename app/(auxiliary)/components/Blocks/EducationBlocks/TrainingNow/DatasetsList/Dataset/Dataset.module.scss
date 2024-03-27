@@ -16,7 +16,7 @@
 
 	.datasetTitle {
 		display: grid;
-		grid-template-columns: 24px 120px;
+		grid-template-columns: 24px 105px;
 		grid-template-rows: 1fr;
 		align-items: center;
 
@@ -63,6 +63,8 @@
 }
 
 .datasetText {
+	max-width: inherit;
+	overflow: hidden;
 	font-size: 14px;
 	font-weight: 500;
 	letter-spacing: 1px;

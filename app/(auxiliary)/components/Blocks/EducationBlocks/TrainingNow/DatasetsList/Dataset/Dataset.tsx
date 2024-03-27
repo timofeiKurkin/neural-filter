@@ -6,6 +6,7 @@ import go from "@/public/go.svg";
 import recycle from "@/public/recycle.svg";
 import accept from "@/public/accept.svg"
 import exit from "@/public/exit.svg"
+import stop from "@/public/stop.svg"
 
 import styles from "./Dataset.module.scss";
 import Image from "next/image";
@@ -39,6 +40,8 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const [datasetHover, setDatasetHover] = useState<boolean>(false)
     const [twoFactorAccept, setTwoFactorAccept] = useState<boolean>(false)
 
+    const [working, setWorking] = useState<boolean>(false)
+
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{
             borderRadius: 15
@@ -57,25 +60,23 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         >
             <div className={styles.datasetTitle}>
                 <div
-                    // onClick={() => startEducation(dataset.group_file_id)
-                    //     .then((r) => console.log(r))
-                    //     .catch((e) => console.log(e))}>
-
                     onClick={() => {
                         ws.send(JSON.stringify({
                             send_type: "start_education",
                             data: dataset.group_file_id
                         }))
-
-                        // ws.onopen = () => {
-                        //     ws.send(JSON.stringify({
-                        //         send_type: "start_education",
-                        //         data: dataset.group_file_id
-                        //     }))
-                        // }
-                        // dispatch(setStartEducation({signal: true, datasetID: dataset.group_file_id}))
+                        setWorking((prevState) => (!prevState))
                     }}>
-                    <Image src={datasetHover ? goHover : go} alt={'go'}/>
+
+                    {
+                        working ? (
+                                <Image src={stop} alt={"stop"}/>
+                            )
+                            :
+                            (
+                                <Image src={datasetHover ? goHover : go} alt={'go'}/>
+                            )
+                    }
                 </div>
 
                 <span className={styles.datasetText} style={{color: color_1}}>{dataset.dataset_title}</span>

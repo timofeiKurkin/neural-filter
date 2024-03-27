@@ -15,7 +15,7 @@ const initialState: InitialStateType = {
 }
 
 export const neuralNetworkSlice = createSlice({
-    name: "application",
+    name: "neuralNetwork",
     initialState,
     reducers: {
         setStartEducation: (state, action: PayloadAction<StateOfEducationType>) => {

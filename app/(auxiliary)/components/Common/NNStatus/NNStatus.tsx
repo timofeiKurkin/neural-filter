@@ -23,7 +23,13 @@ interface StatusRenderType extends StatusType {
 
 const NnStatus = () => {
     const dispatch = useDispatch()
-    const {startEducation}: { startEducation: StateOfEducationType } = useSelector(selectorNeuralNetwork)
+    const {
+        startEducation,
+        ws
+    }: {
+        startEducation: StateOfEducationType;
+        ws: WebSocket
+    } = useSelector(selectorNeuralNetwork)
 
     const [stateStatus, setStateStatus] = useState<StatusRenderType>({
         status: 'disconnection',
@@ -31,139 +37,92 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
-    // console.log(stateStatus)
-
-    // useEffect(() => {
-    //     const url = `${WS_URL_SERVER}/ws/get_network_status/`
-    //     let socket = new WebSocket(url)
-    //
-    //     setStateStatus(() => ({status: "connection", statusCode: 1, colorStatus: color_8}))
-    //
-    //     /**
-    //      * Произошло соединение
-    //      */
-    //     socket.onopen = (e) => {
-    //         // console.log('Произошло соединение\n', e)
-    //     }
-    //
-    //     /**
-    //      * Событие, которое срабатывает при получении сообщения
-    //      * @param event
-    //      */
-    //     socket.onmessage = (event) => {
-    //         const data = JSON.parse(event.data)
-    //
-    //         console.log("data", data)
-    //
-    //         if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
-    //             const statusData: StatusRenderType = data
-    //             setStateStatus(() => {
-    //                 if (statusData.statusCode === 2) {
-    //                     statusData.colorStatus = color_6
-    //                     return statusData ?? {}
-    //                 } else if (statusData.statusCode === 3) {
-    //                     statusData.colorStatus = color_8
-    //                     return statusData ?? {}
-    //                 } else if (statusData.statusCode === 4) {
-    //                     statusData.colorStatus = color_7
-    //                     return statusData ?? {}
-    //                 }
-    //             })
-    //         }
-    //     }
-    //
-    //     /**
-    //      * Событие с ошибкой
-    //      * @param e
-    //      */
-    //     socket.onerror = (e) => {
-    //         console.log('Произошла ошибка\n', e)
-    //     }
-    //
-    //     /**
-    //      * Соединение с сервером закрыто
-    //      * @param e
-    //      */
-    //     socket.onclose = (e) => {
-    //         console.log('Соединение с сервером закрыто\n', e)
-    //     }
-    //
-    // }, []);
-
     useEffect(() => {
-        const url = `${WS_URL_SERVER}/ws/neural_network/`
-        let socket = new WebSocket(url)
-        dispatch(setWebSocket(socket))
+        const createWebSocket = () => {
+            const url = `${WS_URL_SERVER}/ws/neural_network/`
+            let socket = new WebSocket(url)
+            dispatch(setWebSocket(socket))
 
-        setStateStatus(() => ({status: "connection", statusCode: 1, colorStatus: color_8}))
+            setStateStatus(() => ({status: "connection", statusCode: 1, colorStatus: color_8}))
 
-        /**
-         * Произошло соединение
-         */
-        socket.onopen = (e) => {
-            // console.log('Произошло соединение\n', e)
+            /**
+             * Произошло соединение
+             */
+            socket.onopen = (e) => {
+                // console.log('Произошло соединение\n', e)
 
-            // if (startEducation.signal && startEducation.datasetID) {
-            //     socket.send(JSON.stringify({
-            //         send_type: "start_education",
-            //         data: startEducation.datasetID
-            //     }))
-            // }
-        }
+                // if (startEducation.signal && startEducation.datasetID) {
+                //     socket.send(JSON.stringify({
+                //         send_type: "start_education",
+                //         data: startEducation.datasetID
+                //     }))
+                // }
+            }
 
-        /**
-         * Событие, которое срабатывает при получении сообщения
-         * @param event
-         */
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data)
+            /**
+             * Событие, которое срабатывает при получении сообщения
+             * @param event
+             */
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data)
 
-            console.log("data", data)
+                console.log("data", data)
 
-            if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
-                const statusData: StatusRenderType = data
-                setStateStatus(() => {
-                    if (statusData.statusCode === 2) {
-                        statusData.colorStatus = color_6
-                        return statusData ?? {}
-                    } else if (statusData.statusCode === 3) {
-                        statusData.colorStatus = color_8
-                        return statusData ?? {}
-                    } else if (statusData.statusCode === 4) {
-                        statusData.colorStatus = color_7
-                        return statusData ?? {}
-                    }
+                if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
+                    const statusData: StatusRenderType = data
+                    setStateStatus(() => {
+                        if (statusData.statusCode === 2) {
+                            statusData.colorStatus = color_6
+                            return statusData ?? {}
+                        } else if (statusData.statusCode === 3) {
+                            statusData.colorStatus = color_8
+                            return statusData ?? {}
+                        } else if (statusData.statusCode === 4) {
+                            statusData.colorStatus = color_7
+                            return statusData ?? {}
+                        }
+                    })
+                }
+            }
+
+            /**
+             * Событие с ошибкой
+             * @param e
+             */
+            socket.onerror = (e) => {
+                console.log('Произошла ошибка\n', e)
+                setTimeout(createWebSocket, 5000)
+            }
+
+            /**
+             * Соединение с сервером закрыто
+             * @param e
+             */
+            socket.onclose = (e) => {
+                console.log('Соединение с сервером закрыто\n', e)
+                setStateStatus({
+                    status: "disconnection",
+                    statusCode: 0,
+                    colorStatus: color_6
                 })
+                setTimeout(createWebSocket, 5000)
             }
         }
 
-        /**
-         * Событие с ошибкой
-         * @param e
-         */
-        socket.onerror = (e) => {
-            console.log('Произошла ошибка\n', e)
-        }
+        createWebSocket()
 
-        /**
-         * Соединение с сервером закрыто
-         * @param e
-         */
-        socket.onclose = (e) => {
-            console.log('Соединение с сервером закрыто\n', e)
-        }
-
-        // return () => {
-        //     socket.close()
-        // }
-
+        return () => {
+            if (ws) {
+                ws.close();
+            }
+        };
     }, [
         startEducation.signal,
         startEducation.datasetID
     ]);
 
 
-    console.log("stateStatus", stateStatus)
+    // console.log("stateStatus", stateStatus)
 
     return (
         (stateStatus && Object.keys(stateStatus).length) && (
