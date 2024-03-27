@@ -1,16 +1,15 @@
 import os
 from keras.models import Model
-from django.conf import settings
 
 
 async def save_model(
         *,
-        file_name: str,
+        file_name,
+        path_to_save,
         model: Model
 ):
     try:
-        upload_dir = os.path.join(settings.MODELS_DIR, f"{file_name}.weights.h5")
-        model.save_weights(upload_dir, overwrite=True)
-        print(f"Saved model to {upload_dir} as {file_name}.weights.h5")
+        model.save_weights(os.path.join(path_to_save, file_name), overwrite=True)
+        print(f"Saved model to {path_to_save} as {file_name}")
     except Exception as e:
         raise Exception(f"Not saving model due to {e}")

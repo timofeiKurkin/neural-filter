@@ -54,8 +54,6 @@ class FileHandlerView(APIView):
                 "dataset_title": dataset_title,
                 "group_file_id": group_file_id,
                 "count_files": len(uploaded_file),
-                "loss": 0,
-                "accuracy": 0
             })
 
             if dataset_serializer.is_valid():
@@ -109,7 +107,9 @@ class FileHandlerView(APIView):
                             "dataset_title": dataset_serializer.data["dataset_title"],
                             "group_file_id": dataset_serializer.data["group_file_id"],
                             "loss": dataset_serializer.data["loss"],
+                            "val_loss": dataset_serializer.data["val_loss"],
                             "accuracy": dataset_serializer.data["accuracy"],
+                            "val_accuracy": dataset_serializer.data["val_accuracy"]
                         },
                         "files": response_data
                     },

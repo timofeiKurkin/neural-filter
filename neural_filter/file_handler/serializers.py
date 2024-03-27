@@ -3,14 +3,15 @@ from .models import FileHandlerModel, DatasetModel
 
 
 class DatasetSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DatasetModel
         fields = (
             'dataset_title',
             'group_file_id',
             'loss',
+            'val_loss',
             'accuracy',
+            'val_accuracy',
             'count_files'
         )
         read_only_fields = ('id',)
@@ -21,7 +22,6 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 # One model item
 class FileHandlerSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FileHandlerModel
         fields = (
