@@ -15,9 +15,11 @@ import {deleteDataset} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
-import {startEducation} from "@/app/(auxiliary)/func/educationNeuralNetwork/startEducation";
-import {selectorNeuralNetwork, setStartEducation} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {StateOfEducationType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+import {selectorNeuralNetwork, setModelMetric} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import {getMetricImage} from "@/app/(auxiliary)/func/educationNeuralNetwork/getMetrics";
+import {
+    GetModelMetricResponseType, ModelMetricType
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
 
 
 /**
@@ -53,6 +55,16 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             .then((r) => (r as AxiosResponse).status === 204 && dispatch(setDatasets(datasets.filter(data => (data.group_file_id !== datasetGroupID)))))
     }
 
+    const getDatasetMetrics = async (dataset_id: string) => {
+        const response = await getMetricImage(dataset_id)
+
+        if((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
+            const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
+
+            dispatch(setModelMetric(modelMetric))
+        }
+    }
+
     return (
         <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
              onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
@@ -84,7 +96,8 @@ const Dataset: FC<PropsType> = ({dataset}) => {
 
             <div className={styles.datasetLine}></div>
 
-            <div className={styles.datasetStatistics}>
+            <div className={styles.datasetStatistics}
+                 onClick={() => getDatasetMetrics(dataset.group_file_id)}>
                 <span className={styles.datasetText}
                       style={{color: color_2}}>loss: {dataset.loss === 0 ? "0.0" : dataset.loss}</span>
                 <span className={styles.datasetText}

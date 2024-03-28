@@ -5,19 +5,15 @@ import Button from "@/app/(auxiliary)/components/UI/Button/Button";
 import {color_1, color_white} from "@/styles/color";
 import DropZone from "@/app/(auxiliary)/components/Blocks/EducationBlocks/DragDrop/DropZone/DropZone";
 import styles from "./DragDrop.module.scss";
-import {AnimatePresence, Variants} from "framer-motion";
-import {motion} from "framer-motion";
+import {AnimatePresence, motion, Variants} from "framer-motion";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorFiles, setDatasets, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
-// import {FileType} from "@/app/(auxiliary)/types/FilesType/FilesType";
 import {AxiosResponse} from "axios";
 import {DatasetType, UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
-// import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
 import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
-import {startEducation} from "@/app/(auxiliary)/func/educationNeuralNetwork/startEducation";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
@@ -121,8 +117,7 @@ const DragDrop = () => {
             {
                 Object.keys(lastDataset).length ? (
                     <div className={styles.dragDropButton}>
-                        <Button style={{backgroundColor: color_1, color: color_white}}
-                                onClick={() => startEducation(lastDataset.group_file_id)}>
+                        <Button style={{backgroundColor: color_1, color: color_white}}>
                             Start education
                         </Button>
                     </div>

@@ -2,12 +2,15 @@ import axios, {AxiosResponse} from "axios";
 import {AxiosErrorType, UnknownError} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import NetworkAnomaliesService
     from "@/app/(auxiliary)/lib/axios/services/NetworkAnomaliesService/NetworkAnomaliesService";
+import {
+    GetModelMetricResponseType
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
 
 
-type StartEducation = (groupID: string) => Promise<AxiosResponse | AxiosErrorType | UnknownError>
-export const startEducation: StartEducation = async (groupID) => {
+type GetMetricImage = (dataset_id: string) => Promise<AxiosResponse<GetModelMetricResponseType> | AxiosErrorType | UnknownError>
+export const getMetricImage: GetMetricImage = async (dataset_id) => {
     try {
-        return await NetworkAnomaliesService.startEducation(groupID)
+        return await NetworkAnomaliesService.getModelMetrics(dataset_id)
     } catch (error) {
         if (axios.isAxiosError(error)) {
             const typedError: AxiosErrorType = {

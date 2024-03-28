@@ -1,9 +1,13 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {StateOfEducationType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+import {
+    ModelMetricType,
+    StateOfEducationType
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
 
 interface InitialStateType {
     startEducation: StateOfEducationType;
     ws: WebSocket;
+    modelMetric: ModelMetricType;
 }
 
 const initialState: InitialStateType = {
@@ -12,6 +16,7 @@ const initialState: InitialStateType = {
         datasetID: ""
     },
     ws: {} as WebSocket,
+    modelMetric: {} as ModelMetricType
 }
 
 export const neuralNetworkSlice = createSlice({
@@ -23,12 +28,15 @@ export const neuralNetworkSlice = createSlice({
         },
         setWebSocket: (state, action: PayloadAction<WebSocket>) => {
             state.ws = action.payload
+        },
+        setModelMetric: (state, action: PayloadAction<ModelMetricType>) => {
+            state.modelMetric = action.payload
         }
     }
 })
 
 
 export const {
-    setStartEducation,
     setWebSocket,
+    setModelMetric
 } = neuralNetworkSlice.actions

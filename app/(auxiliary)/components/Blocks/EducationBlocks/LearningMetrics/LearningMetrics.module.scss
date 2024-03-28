@@ -1,0 +1,22 @@
+@import "@/styles/variables.module.scss";
+
+.learningMetricsWrapper {
+	display: flex;
+	justify-content: space-between;
+	//align-items: flex-end;
+
+	.learningMetrics {
+		margin-top: 30px;
+		margin-bottom: 30px;
+		margin-left: 30px;
+
+		display: flex;
+		flex-direction: column;
+		row-gap: 15px;
+
+		span {
+			color: $color_2;
+		}
+	}
+	//padding: 25px 30px;
+}

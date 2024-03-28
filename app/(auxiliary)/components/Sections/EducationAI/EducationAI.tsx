@@ -21,7 +21,7 @@ const EducationAi = () => {
             </div>
 
             <div className={styles.contentWrapper} style={{gridArea: 'metrics'}}>
-                <MainTitle>Learning Metrics # Dataset</MainTitle>
+                <MainTitle>Learning Metrics</MainTitle>
 
                 <LearningMetrics/>
             </div>

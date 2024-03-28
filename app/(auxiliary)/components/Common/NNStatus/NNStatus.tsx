@@ -6,6 +6,9 @@ import {WS_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {selectorNeuralNetwork, setWebSocket} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {StateOfEducationType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+import Image from "next/image";
+import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 
 // For response
@@ -31,13 +34,23 @@ const NnStatus = () => {
         ws: WebSocket
     } = useSelector(selectorNeuralNetwork)
 
+    const {
+        datasets
+    }: {
+        dataset: DatasetType[]
+    } = useSelector(selectorFiles)
+
     const [stateStatus, setStateStatus] = useState<StatusRenderType>({
         status: 'disconnection',
         statusCode: 0,
         colorStatus: color_6
     })
 
+    console.log("datasets", datasets)
+
     useEffect(() => {
+        let timeOut
+
         const createWebSocket = () => {
             const url = `${WS_URL_SERVER}/ws/neural_network/`
             let socket = new WebSocket(url)
@@ -69,6 +82,28 @@ const NnStatus = () => {
                 console.log("data", data)
 
                 if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
+
+                    if (data.type === "start_education") {
+                        const newMetrics: {
+                            dataset_id: string;
+                            loss: string;
+                            accuracy: string;
+                        } = data.data
+
+                        const updatedDataset: DatasetType[] = datasets.map((dataset: DatasetType) => {
+                            if (dataset.group_file_id === newMetrics.dataset_id) {
+                                return {
+                                    ...dataset,
+                                    loss: newMetrics.loss,
+                                    accuracy: newMetrics.accuracy
+                                }
+                            }
+                            return dataset
+                        })
+
+                        dispatch(setDatasets(updatedDataset))
+                    }
+
                     const statusData: StatusRenderType = data
                     setStateStatus(() => {
                         if (statusData.statusCode === 2) {
@@ -112,11 +147,14 @@ const NnStatus = () => {
         createWebSocket()
 
         return () => {
-            if (ws) {
+            if (ws && typeof ws === "function") {
                 ws.close();
             }
         };
     }, [
+        // ws,
+        datasets,
+        dispatch,
         startEducation.signal,
         startEducation.datasetID
     ]);
@@ -125,25 +163,28 @@ const NnStatus = () => {
     // console.log("stateStatus", stateStatus)
 
     return (
-        (stateStatus && Object.keys(stateStatus).length) && (
-            <div className={styles.statusWrapper}>
-                <div className={styles.NNStatusWrapper}>
-                    <RegularText>Neural network status</RegularText>
-                </div>
-
-                <RegularText>
-                <span className={styles.currentStatus}>
-                    <span className={styles.currentStatusColor} style={{
-                        backgroundColor: stateStatus.colorStatus
-                    }}></span>
-
-                    <span className={styles.currentStatusText}>
-                        {stateStatus.status}
-                    </span>
-                </span>
-                </RegularText>
+        <div className={styles.statusWrapper}>
+            <div className={styles.NNStatusWrapper}>
+                <RegularText>Neural network status</RegularText>
             </div>
-        )
+
+            {
+                (stateStatus && Object.keys(stateStatus).length) && (
+                    <RegularText>
+                        <span className={styles.currentStatus}>
+                            <span className={styles.currentStatusColor} style={{
+                                backgroundColor: stateStatus.colorStatus
+                            }}></span>
+
+                            <span className={styles.currentStatusText}>
+                                {stateStatus.status}
+                            </span>
+                        </span>
+                    </RegularText>
+                )
+            }
+        </div>
+
     );
 };
 
