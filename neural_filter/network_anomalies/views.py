@@ -1,48 +1,77 @@
-import asyncio
-import itertools
+import base64
+import os
+import io
+
+from django.conf import settings
+
+from PIL import Image
+from django.http import FileResponse
 
 from rest_framework import status
-from rest_framework.request import Request
+from rest_framework import permissions, authentication
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework import permissions
-
-from file_handler.models import FileHandlerModel
-from file_handler.serializers import FileHandlerSerializer
-from .serializers import NetworkAnomalySerializer
-from .models import NetworkAnomaliesModel
-
-from . import consumers
-from . import statuses
+from rest_framework.views import APIView
+from rest_framework.request import Request
+from file_handler.models import DatasetModel
 
 
-@api_view(["POST"])
-@permission_classes((permissions.IsAuthenticatedOrReadOnly,))
-def start_education(request: Request) -> Response:
-    dataset_id = request.data.get("dataset_ID")
+class ModelMetricsView(APIView):
+    queryset = DatasetModel.objects.all()
+    # authentication_classes = [authentication.TokenAuthentication]
+    permissions_classes = [permissions.IsAuthenticated]
 
-    if not dataset_id:
-        return Response("Dataset_ID hasn't set or empty", status=status.HTTP_400_BAD_REQUEST)
+    @staticmethod
+    def get(request: Request) -> Response:
+        dataset_id = request.query_params.get('dataset_id', None)
 
-    files_from_model = FileHandlerModel.objects.filter(group_file_id=dataset_id).values()
+        if not dataset_id:
+            return Response(
+                data={"message": "dataset_id is empty"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    all_files = []
+        dataset_info = list(DatasetModel.objects.filter(group_file_id=dataset_id).values())[0]
 
-    for file in files_from_model:
-        file_serializer = FileHandlerSerializer(file)
-        all_files.append(file_serializer.data["file_data"])
+        if dataset_info:
+            image_metric = f"{dataset_id}.webp"
+            image_metric_path = os.path.join(settings.MODELS_DIR, dataset_id, image_metric)
+            dataset_info["image_metric_exist"] = os.path.exists(image_metric_path)
 
-    flat_list = list(itertools.chain.from_iterable(all_files))
+            return Response(
+                data={"metric": dataset_info},
+                status=status.HTTP_200_OK
+            )
 
-    current_network_status = NetworkAnomaliesModel.objects.get(key=0)
-    network_serializer = NetworkAnomalySerializer(instance=current_network_status, data={
-            "current_work_state": statuses.is_studying_status
-        })
+        else:
+            return Response(
+                data={"message": f"No find dataset with id {dataset_id}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    if network_serializer.is_valid():
-        network_serializer.save()
 
-    # status_work = consumers.NeuralNetworkStatusConsumer()
-    # status_work.change_status(new_status=network_serializer.data['current_work_state'])
+class ImageMetricsView(APIView):
+    queryset = DatasetModel.objects.all()
+    permissions_classes = [permissions.IsAuthenticated]
 
-    return Response(data=f"I get dataset {dataset_id}", status=status.HTTP_200_OK)
+    @staticmethod
+    def get(request: Request, filename: str = None, *args, **kwargs):
+        if not filename:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        dataset_id = filename
+        image_metric = f"{dataset_id}.webp"
+        image_metric_path = os.path.join(settings.MODELS_DIR, dataset_id, image_metric)
+
+        try:
+            if os.path.exists(image_metric_path):
+                image_metric_file = Image.open(image_metric_path, "r")
+
+                image_metric_buffer = io.BytesIO()
+                image_metric_file.save(image_metric_buffer, format="webp")
+                image_metric_buffer.seek(0)
+
+                return FileResponse(image_metric_buffer, content_type="image/webp")
+
+        except Exception as e:
+            print("Error:", e)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

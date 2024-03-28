@@ -7,13 +7,14 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from .serializers import FileHandlerSerializer, MultipleSerializer, DatasetSerializer
 from .models import FileHandlerModel, DatasetModel
-from rest_framework import permissions
+from rest_framework import permissions, authentication
 from scapy.all import PcapReader
 
 
 class FileHandlerView(APIView):
     queryset = FileHandlerModel.objects.all()
     parser_classes = (MultiPartParser, FormParser)
+    # authentication_classes = [authentication.TokenAuthentication]
     permissions_classes = [permissions.IsAuthenticated]
 
     def __init__(self):

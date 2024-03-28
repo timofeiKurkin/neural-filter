@@ -82,16 +82,20 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         self.current_work_status = statuses.is_studying_status
         await self.send_work_status(work_status=self.current_work_status)
 
+        # Directory for savings datasets and figure
         dataset_directory = os.path.join(settings.MODELS_DIR, dataset_id)
 
+        # If dataset_directory isn't exist - create
         if not os.path.exists(dataset_directory):
             os.makedirs(dataset_directory)
 
+        # Searching models
         files_from_dataset_directory = os.listdir(str(dataset_directory))
         file_extensions = [".".join(file.split(".")[1:]) for file in files_from_dataset_directory]
 
         starting_education = True if 'weights.h5' in file_extensions and "webp" in file_extensions else False
 
+        # If current dataset_id models isn't exit - start education
         if not starting_education:
             await self.get_files(dataset_id)
 
@@ -113,13 +117,21 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 )
 
                 average_loss = sum(history.history["loss"]) / len(history.history["loss"])
+                average_val_loss = sum(history.history["val_loss"]) / len(history.history["val_loss"])
+
                 average_accuracy = sum(history.history["accuracy"]) / len(history.history["accuracy"])
+                average_val_accuracy = sum(history.history["val_accuracy"]) / len(history.history["val_accuracy"])
+
                 average_loss_round = round(average_loss, 3)
+                average_val_loss_round = round(average_val_loss, 3)
                 average_accuracy_round = round(average_accuracy, 3)
+                average_val_accuracy_round = round(average_val_accuracy, 3)
 
                 dataset = await self.get_dataset_from_db(dataset_id)
                 dataset[0].loss = average_loss_round
+                dataset[0].val_loss = average_val_loss_round
                 dataset[0].accuracy = average_accuracy_round
+                dataset[0].val_accuracy = average_val_accuracy_round
 
                 await sync_to_async(dataset[0].save)()
 
@@ -137,16 +149,18 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     file_name=dataset_id,
                     path_to_save=dataset_directory
                 )
+
+                await self.send(text_data=json.dumps({
+                    "status": "success",
+                    "type": "start_education",
+                    "data": {
+                        "dataset_id": dataset_id,
+                        "loss": dataset[0].loss,
+                        "accuracy": dataset[0].accuracy,
+                    }
+                }))
         else:
             model_weights_file = list(filter(lambda file: "weights.h5" in file, files_from_dataset_directory))[0]
-
-        dataset = await self.get_dataset_from_db(dataset_id)
-
-        await self.send(text_data=json.dumps({
-            "status": "success",
-            "type": "start_education",
-            "newMetrics": {"loss": dataset[0].loss, "accuracy": dataset[0].accuracy}
-        }))
 
     async def send_work_status(self, *, work_status: dict):
         await self.send(text_data=json.dumps(work_status))

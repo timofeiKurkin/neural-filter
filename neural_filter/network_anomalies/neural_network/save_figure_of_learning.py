@@ -32,4 +32,4 @@ async def save_figure_of_learning(
     plt.legend(loc="upper right")
     plt.title("Training and Validation Loss")
 
-    plt.savefig(f"{os.path.join(path_to_save, file_name)}.webp", format="webp")
+    plt.savefig(f"{os.path.join(path_to_save, file_name)}.webp", format="webp", dpi=300)

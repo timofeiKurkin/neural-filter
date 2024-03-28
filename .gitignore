@@ -1,3 +1,7 @@
+docker-compose.yml
+Dockerfile
+
+
 .idea
 db.sqlite3
 venv
@@ -5,7 +9,7 @@ neural_filter/neural_filter/__pycache__
 
 neural_filter/.env
 neural_filter/packets
-neural_filter/network_anomalies/models
+models
 
 neural_filter/traffic.json
 neural_filter/traffic-clean.json
