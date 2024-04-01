@@ -1,23 +1,30 @@
 import json
 import itertools
 import os
+import asyncio
+import time
 
 from asgiref.sync import sync_to_async
+from scapy.sendrecv import AsyncSniffer
 
 from file_handler.models import FileHandlerModel, DatasetModel
 from file_handler.serializers import FileHandlerSerializer
+from file_handler.pcap_package_to_json import pcap_package_to_json
 
 from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 from django.conf import settings
 
 from . import statuses
-from network_anomalies.neural_network.format_packages import format_packages
-from network_anomalies.neural_network.neural_network_structure import neural_network_structure
-from network_anomalies.neural_network.neural_network_fit import neural_network_fit
-from network_anomalies.neural_network.save_model import save_model
-from network_anomalies.neural_network.save_figure_of_learning import save_figure_of_learning
+
+from .neural_network.format_packages import format_packages
+from .neural_network.neural_network_structure import neural_network_structure
+from .neural_network.neural_network_fit import neural_network_fit
+from .neural_network.save_model import save_model
+from .neural_network.save_figure_of_learning import save_figure_of_learning
+from .neural_network.train_data_split import train_data_split
 
 
 class NeuralNetworkConsumer(AsyncWebsocketConsumer):
@@ -25,6 +32,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         super().__init__()
         self.current_work_status = statuses.disconnection_status
         self.datasets_files = None
+        self.asyncSniffer = None
+        self.package_id = 0
+        self.anomaly_packages = []
 
     # Get dataset from database
     @database_sync_to_async
@@ -49,22 +59,56 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, code):
         self.current_work_status = statuses.disconnection_status
+        self.asyncSniffer.stop()
 
     # Get any massages from user
     async def receive(self, text_data=None, bytes_data=None):
         packet = json.loads(text_data)
         packet_type = packet["send_type"]
 
+        if packet_type == "echo":
+            await self.send(text_data="Hello, this is echo")
+
         if packet_type == "start_education":
             dataset_id = packet["data"]
-
             if dataset_id:
                 await self.start_education(dataset_id=dataset_id)
 
-        if packet_type == "stop_work":
-            pass
+        if packet_type == "start_scanning":
+            interface = packet["interface"]
+            await self.start_scanning(interface)
 
-    async def scanning_interface(self):
+        if packet_type == "stop_scanning":
+            await self.stop_scanning()
+
+    async def stop_scanning(self):
+        if self.asyncSniffer:
+            self.asyncSniffer.stop()
+            print("==== Sniffer stopped ====")
+
+    def packet_callback(self, packet):
+        # protocols = ["IP"]
+        if "IP" in packet:
+            package = pcap_package_to_json(
+                pcap_package=packet,
+                package_id=self.package_id
+            )
+            self.package_id += 1
+            time.sleep(0.5)
+            print(f"{package=}")
+            features = asyncio.run(format_packages(packages=[package]))
+            print("formatted_package", features)
+
+    async def start_scanning(self, interface: str = None):
+        self.asyncSniffer = AsyncSniffer(
+            prn=self.packet_callback,
+            iface=interface,
+            store=1
+        )
+        self.asyncSniffer.start()
+        print("==== Sniffer started ====")
+
+    async def start_sniffing(self):
         pass
 
     async def get_files(self, selected_dataset_id):
@@ -101,7 +145,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             if self.datasets_files:
                 # Dataset
-                x_train, x_test, features = await format_packages(packages=self.datasets_files)
+                features = await format_packages(packages=self.datasets_files)
+                x_train, x_test = await train_data_split(
+                    features=features,
+                    test_size=0.2,
+                    train_size=0.8,
+                    random_state=42
+                )
 
                 model = await neural_network_structure(x_train=x_train)
 

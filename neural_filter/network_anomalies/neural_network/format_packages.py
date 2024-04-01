@@ -3,7 +3,6 @@ import numpy as np
 
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
-from pandas import DataFrame
 
 
 async def format_packages(*, packages: list[dict]):
@@ -38,18 +37,18 @@ async def format_packages(*, packages: list[dict]):
 
     # Добавить ip адреса обратно в DataFrame
     df_encoded = pd.concat(
-        [df, pd.DataFrame(ip_encoded, columns=encoder.get_feature_names_out(["source", "destination"]))],
+        [
+            df,
+            pd.DataFrame(
+                ip_encoded,
+                columns=encoder.get_feature_names_out(["source", "destination"])
+            )
+        ],
         axis=1)
 
     # Удаляем исходные столбцы с source, destination и time
     df_encoded = df_encoded.drop(["source", "destination", "time", "id"], axis=1)
 
-    features = df_encoded.values
-    x_train, x_test = train_test_split(
-        features,
-        test_size=0.2,
-        train_size=0.8,
-        random_state=42
-    )
-
-    return x_train, x_test, features
+    print("in format_packages.py", df_encoded.values[0])
+    print(f"{df_encoded=}")
+    return df_encoded.values

@@ -5,9 +5,13 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.request import Request
+from rest_framework import permissions, authentication
+
 from .serializers import FileHandlerSerializer, MultipleSerializer, DatasetSerializer
 from .models import FileHandlerModel, DatasetModel
-from rest_framework import permissions, authentication
+
+from .pcap_package_to_json import pcap_package_to_json
+
 from scapy.all import PcapReader
 
 
@@ -70,14 +74,11 @@ class FileHandlerView(APIView):
 
                     for packet in packages:
                         if "IP" in packet or "TCP" in packet:
-                            data = {
-                                "id": self.id_packages,
-                                "time": '%.30f' % packet.time,
-                                "source": packet["IP"].src,
-                                "destination": packet["IP"].dst,
-                                "protocol": packet['IP'].proto,
-                                "length": len(packet)
-                            }
+                            data = pcap_package_to_json(
+                                pcap_package=packet,
+                                package_id=self.id_packages,
+                                time_format='%.30f' % packet.time
+                            )
                             self.id_packages += 1
                             packages_data.append(data)
 

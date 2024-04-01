@@ -4,6 +4,9 @@ import time
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 # from scapy.interfaces import get_if_list
+
+from file_handler.pcap_package_to_json import pcap_package_to_json
+
 from scapy.sendrecv import AsyncSniffer
 
 
@@ -45,15 +48,10 @@ class PacketConsumer(AsyncWebsocketConsumer):
 
     def packet_callback(self, packet):
         if "IP" in packet:
-            data = {
-                "id": self.id_packages,
-                "time": packet.time,
-                "source": packet["IP"].src,
-                "destination": packet["IP"].dst,
-                # "protocol": ip_proto_convert(packet['IP']),
-                "protocol": packet['IP'].proto,
-                "length": len(packet)
-            }
+            data = pcap_package_to_json(
+                pcap_package=packet,
+                package_id=self.id_packages
+            )
             self.id_packages += 1
             time.sleep(0.2)
             self.packages.append(data)
