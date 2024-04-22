@@ -244,7 +244,7 @@ PACKETS_URL = '/packets/'
 PACKETS_ROOT = BASE_DIR / 'packets'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-MODELS_DIR = os.path.join(BASE_DIR, '../models')
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
 # CSRF_COOKIE_SAMESITE = 'Strict'
 # SESSION_COOKIE_SAMESITE = 'Strict'

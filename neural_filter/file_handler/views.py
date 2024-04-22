@@ -1,18 +1,23 @@
 import uuid
+import subprocess
+import shutil
+import os
 
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.request import Request
-from rest_framework import permissions, authentication
+from rest_framework import permissions
+
+from django.conf import settings
 
 from .serializers import FileHandlerSerializer, MultipleSerializer, DatasetSerializer
 from .models import FileHandlerModel, DatasetModel
 
-from .pcap_package_to_json import pcap_package_to_json
+from network_anomalies.new_neural_network.split_cap import split_cap
 
-from scapy.all import PcapReader
+from scapy.all import PcapReader, PcapWriter
 
 
 class FileHandlerView(APIView):
@@ -49,41 +54,54 @@ class FileHandlerView(APIView):
 
         if multiple_serializer.is_valid():
             # File name for saving
-            uploaded_file = multiple_serializer.validated_data.get('file')
+            uploaded_files = multiple_serializer.validated_data.get('file')
             dataset_title: str = multiple_serializer.validated_data.get('dataset_title')
 
             # UUID for dataset and files
             group_file_id = uuid.uuid4()
+            dataset_directory = os.path.join(settings.MODELS_DIR, str(group_file_id))
+            os.mkdir(dataset_directory)
 
             dataset_serializer = self.dataset_serializer(data={
                 "dataset_title": dataset_title,
                 "group_file_id": group_file_id,
-                "count_files": len(uploaded_file),
+                "count_files": len(uploaded_files),
             })
 
             if dataset_serializer.is_valid():
                 dataset_serializer.save()
 
-                # List with packages into json format. And list for response
-                packages_data = []
                 response_data = []
 
-                for file in uploaded_file:
+                # Array for write all pcap data from files
+                packets_from_files = []
+                pcap_file_path = os.path.join(
+                    dataset_directory,
+                    "Packages.pcap"
+                )
+                write_file = PcapWriter(filename=pcap_file_path)
+
+                for file in uploaded_files:
                     packages = PcapReader(file)
+                    packets_from_files.extend(packages)
+
+                    # List with packages into json format. And list for response
+                    # packages_data = []
+
                     file_name = file.name
 
-                    for packet in packages:
-                        if "IP" in packet or "TCP" in packet:
-                            data = pcap_package_to_json(
-                                pcap_package=packet,
-                                package_id=self.id_packages,
-                                time_format='%.30f' % packet.time
-                            )
-                            self.id_packages += 1
-                            packages_data.append(data)
+                    # for packet in packages:
+                    #     if "IP" in packet or "TCP" in packet:
+                    #         data = pcap_package_to_json(
+                    #             pcap_package=packet,
+                    #             package_id=self.id_packages,
+                    #             time_format='%.30f' % packet.time
+                    #         )
+                    #         self.id_packages += 1
+                    #         packages_data.append(data)
 
                     file_serializer = self.serializer_class(data={
-                        "file_data": packages_data,
+                        "file_data": [],
                         "file_name": file_name,
                         "group_file_id": group_file_id,
                         "dataset_id": dataset_serializer.instance.id
@@ -102,6 +120,23 @@ class FileHandlerView(APIView):
                             file_serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST
                         )
+
+                write_file.write(packets_from_files)
+                write_file.flush()
+
+                # shutil.copy2(
+                #     src=f"{settings.BASE_DIR}/network_anomalies/new_neural_network/SplitCap.exe",
+                #     dst=f"{settings.MODELS_DIR}/{group_file_id}/SplitCap.exe"
+                # )
+
+                # shutil.copy2(
+                #     src=f"{settings.BASE_DIR}/network_anomalies/new_neural_network/split_cap.py",
+                #     dst=f"{settings.MODELS_DIR}/{group_file_id}/split_cap.py"
+                # )
+
+                # subprocess.run([f"../../venv/bin/python3 ../models/{group_file_id}/split_cap.py"])
+
+                split_cap(model_id=group_file_id)
 
                 return Response(
                     {

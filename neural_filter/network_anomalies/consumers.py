@@ -59,7 +59,8 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, code):
         self.current_work_status = statuses.disconnection_status
-        self.asyncSniffer.stop()
+        if self.asyncSniffer:
+            self.asyncSniffer.stop()
 
     # Get any massages from user
     async def receive(self, text_data=None, bytes_data=None):
@@ -131,7 +132,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
         # If dataset_directory isn't exist - create
         if not os.path.exists(dataset_directory):
-            os.makedirs(dataset_directory)
+            os.mkdir(dataset_directory)
 
         # Searching models
         files_from_dataset_directory = os.listdir(str(dataset_directory))

@@ -9,7 +9,7 @@ neural_filter/neural_filter/__pycache__
 
 neural_filter/.env
 neural_filter/packets
-models
+neural_filter/models
 
 neural_filter/traffic.json
 neural_filter/traffic-clean.json
