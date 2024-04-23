@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import FileHandlerModel, DatasetModel
+from .models import DatasetModel
 
 
 class DatasetSerializer(serializers.ModelSerializer):
@@ -8,6 +8,7 @@ class DatasetSerializer(serializers.ModelSerializer):
         fields = (
             'dataset_title',
             'group_file_id',
+            'sessions_count',
             'loss',
             'val_loss',
             'accuracy',
@@ -21,18 +22,18 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 
 # One model item
-class FileHandlerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FileHandlerModel
-        fields = (
-            'file_data',
-            'file_name',
-            'group_file_id',
-            'dataset_id'
-        )
-
-    def create(self, validated_data):
-        return FileHandlerModel.objects.create(**validated_data)
+# class FileHandlerSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = FileHandlerModel
+#         fields = (
+#             # 'file_data',
+#             'file_name',
+#             'group_file_id',
+#             'dataset_id'
+#         )
+#
+#     def create(self, validated_data):
+#         return FileHandlerModel.objects.create(**validated_data)
 
 
 # Multiple items model

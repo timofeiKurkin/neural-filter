@@ -1,40 +1,53 @@
-import json
-import itertools
-import os
 import asyncio
+# import itertools
+import json
+import os
 import time
+import numpy as np
 
-from asgiref.sync import sync_to_async
-from scapy.sendrecv import AsyncSniffer
-
-from file_handler.models import FileHandlerModel, DatasetModel
-from file_handler.serializers import FileHandlerSerializer
-from file_handler.pcap_package_to_json import pcap_package_to_json
-
+# from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
-
 from django.conf import settings
+from scapy.sendrecv import AsyncSniffer
 
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+
+from file_handler.models import DatasetModel
+from file_handler.pcap_package_to_json import pcap_package_to_json
 from . import statuses
-
 from .neural_network.format_packages import format_packages
-from .neural_network.neural_network_structure import neural_network_structure
-from .neural_network.neural_network_fit import neural_network_fit
-from .neural_network.save_model import save_model
-from .neural_network.save_figure_of_learning import save_figure_of_learning
-from .neural_network.train_data_split import train_data_split
+
+from .new_neural_network.pcap_to_dataset import array_split, pcap_file_to_dataset
+from .new_neural_network.model import classification_traffic_nn
+
+
+# from .neural_network.neural_network_fit import neural_network_fit
+# from .neural_network.neural_network_structure import neural_network_structure
+# from .neural_network.save_figure_of_learning import save_figure_of_learning
+# from .neural_network.save_model import save_model
+# from .neural_network.train_data_split import train_data_split
 
 
 class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     def __init__(self):
         super().__init__()
         self.current_work_status = statuses.disconnection_status
-        self.datasets_files = None
+        # self.datasets_files = None
         self.asyncSniffer = None
         self.package_id = 0
+
+        self.model = None
         self.anomaly_packages = []
+        self.sessions = {}
+
+        self.mms = None
+        self.label_encoder = None
+
+        self.current_dataset_id = None
+        self.dataset_packages = None
+        self.dataset_labels = None
 
     # Get dataset from database
     @database_sync_to_async
@@ -44,18 +57,17 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         except DatasetModel.DoesNotExist:
             raise DenyConnection("No dataset found")
 
-    @database_sync_to_async
-    def get_files_from_db(self, selected_dataset_id):
-        try:
-            return list(FileHandlerModel.objects.filter(group_file_id=selected_dataset_id).values())
-        except FileHandlerModel.DoesNotExist:
-            raise DenyConnection("No file found")
+    # @database_sync_to_async
+    # def get_files_from_db(self, selected_dataset_id):
+    #     try:
+    #         return list(FileHandlerModel.objects.filter(group_file_id=selected_dataset_id).values())
+    #     except FileHandlerModel.DoesNotExist:
+    #         raise DenyConnection("No file found")
 
     # Connect with user
     async def connect(self):
         await self.accept()
-        self.current_work_status = statuses.no_work_status
-        await self.send_work_status(work_status=self.current_work_status)
+        await self.send_work_status(new_status=statuses.no_work_status)
 
     async def disconnect(self, code):
         self.current_work_status = statuses.disconnection_status
@@ -73,7 +85,8 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if packet_type == "start_education":
             dataset_id = packet["data"]
             if dataset_id:
-                await self.start_education(dataset_id=dataset_id)
+                self.current_dataset_id = dataset_id
+                await self.start_education()
 
         if packet_type == "start_scanning":
             interface = packet["interface"]
@@ -89,6 +102,38 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
     def packet_callback(self, packet):
         # protocols = ["IP"]
+        package_array = np.array([])
+
+        if packet.haslayer("IP") and (packet.haslayer("TCP") or packet.haslayer("UDP")):
+            src_ip = packet["IP"].src
+            dst_ip = packet["IP"].dst
+            packet_proto = packet['IP'].proto
+            packet_len = packet['IP'].len
+
+            src_port = ""
+            dst_port = ""
+
+            if packet.haslayer("TCP"):
+                src_port = packet["TCP"].sport
+                dst_port = packet["TCP"].dport
+            elif packet.haslayer("UDP"):
+                src_port = packet["UDP"].sport
+                dst_port = packet["UDP"].dport
+
+            session_key = f"{'-'.join(src_ip.split('.'))}_{src_port}_{'-'.join(dst_ip.split('.'))}_{dst_port}"
+
+            package_array = np.append(package_array, [
+                src_ip,
+                src_port,
+                dst_ip,
+                dst_port,
+                packet_proto,
+                packet_len
+            ])
+
+            if session_key not in self.sessions:
+                self.sessions[session_key] = []
+
         if "IP" in packet:
             package = pcap_package_to_json(
                 pcap_package=packet,
@@ -112,106 +157,194 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     async def start_sniffing(self):
         pass
 
-    async def get_files(self, selected_dataset_id):
-        all_files = []
+    # async def get_files(self, selected_dataset_id):
+    #     all_files = []
+    #     # files = await self.get_files_from_db(selected_dataset_id)
+    #     # for file in files:
+    #     #     file_serializer = FileHandlerSerializer(file)
+    #     #     all_files.append(file_serializer.data["file_data"])
+    #     self.datasets_files = list(itertools.chain.from_iterable(all_files)) or []
 
-        files = await self.get_files_from_db(selected_dataset_id)
-
-        for file in files:
-            file_serializer = FileHandlerSerializer(file)
-            all_files.append(file_serializer.data["file_data"])
-
-        self.datasets_files = list(itertools.chain.from_iterable(all_files)) or []
-
-    async def start_education(self, *, dataset_id):
-        self.current_work_status = statuses.is_studying_status
-        await self.send_work_status(work_status=self.current_work_status)
-
+    async def pcap_files_to_dataset(self):
         # Directory for savings datasets and figure
-        dataset_directory = os.path.join(settings.MODELS_DIR, dataset_id)
+        if self.current_dataset_id:
+            models_directory = str(os.path.join(settings.MODELS_DIR, self.current_dataset_id))
+            pcap_sessions_path = str(os.path.join(models_directory, "pcap-sessions"))
 
-        # If dataset_directory isn't exist - create
-        if not os.path.exists(dataset_directory):
-            os.mkdir(dataset_directory)
+            # All files from sessions directory
+            pcap_files_path = [
+                os.path.join(pcap_sessions_path, package_file)
+                for package_file in os.listdir(pcap_sessions_path)
+            ]
 
-        # Searching models
-        files_from_dataset_directory = os.listdir(str(dataset_directory))
-        file_extensions = [".".join(file.split(".")[1:]) for file in files_from_dataset_directory]
+            dataset_packages = []
+            dataset_labels = []
 
-        starting_education = True if 'weights.h5' in file_extensions and "webp" in file_extensions else False
+            for pcap_file in pcap_files_path:
+                packages, label = await pcap_file_to_dataset(pcap_file_path=pcap_file)
 
-        # If current dataset_id models isn't exit - start education
-        if not starting_education:
-            await self.get_files(dataset_id)
+                if len(packages) != 0 and len(label) != 0:
+                    dataset_packages.append(packages)
+                    dataset_labels.append(label)
 
-            if self.datasets_files:
-                # Dataset
-                features = await format_packages(packages=self.datasets_files)
-                x_train, x_test = await train_data_split(
-                    features=features,
-                    test_size=0.2,
-                    train_size=0.8,
-                    random_state=42
+            self.dataset_packages = dataset_packages
+            self.dataset_labels = dataset_labels
+
+    async def mms_layer(self, *, fit_data):
+        mms = MinMaxScaler(feature_range=(0, 1))
+        mms.fit(fit_data)
+        self.mms = mms
+
+    async def label_encoder_layer(self, *, fit_data):
+        encoder = LabelEncoder()
+        encoder.fit(fit_data)
+        self.label_encoder = encoder
+
+    async def start_education(self):
+        await self.send_work_status(new_status=statuses.preprocessing_status)
+        await asyncio.sleep(1)
+        await self.pcap_files_to_dataset()
+
+        if self.dataset_packages and self.dataset_labels:
+
+            # Directory for saving dataset
+            dataset_path = str(os.path.join(
+                settings.MODELS_DIR,
+                self.current_dataset_id,
+                "dataset"
+            ))
+            os.mkdir(dataset_path)
+            dataset_file_npz = str(os.path.join(dataset_path, "dataset.npz"))
+
+            if len(self.dataset_packages) != 0 and len(self.dataset_labels) != 0:
+                (X_train, y_train), (X_test, y_test) = await array_split(
+                    data=self.dataset_packages,
+                    labels=self.dataset_labels,
+                    train_size=0.8
                 )
 
-                model = await neural_network_structure(x_train=x_train)
-
-                epochs = 5
-                history = await neural_network_fit(
-                    neural_model=model,
-                    x_train=x_train,
-                    x_test=x_train,
-                    epochs=epochs,
-                    batch_size=32,
-                    shuffle=True,
-                    validation_data=(x_test, x_test)
+                await self.label_encoder_layer(
+                    fit_data=np.concatenate([y_train, y_test])
                 )
 
-                average_loss = sum(history.history["loss"]) / len(history.history["loss"])
-                average_val_loss = sum(history.history["val_loss"]) / len(history.history["val_loss"])
+                if self.label_encoder:
+                    y_train = self.label_encoder.transform(y_train)
+                    y_test = self.label_encoder.transform(y_test)
 
-                average_accuracy = sum(history.history["accuracy"]) / len(history.history["accuracy"])
-                average_val_accuracy = sum(history.history["val_accuracy"]) / len(history.history["val_accuracy"])
+                    # encoded_train = encoded_data(input_length=len(y_train))
+                    # y_train = encoded_train.predict(tf.constant(y_train))
+                    # encoded_test = encoded_data(input_length=len(y_test))
+                    # y_test = encoded_test.predict(tf.constant(y_test))
 
-                average_loss_round = round(average_loss, 3)
-                average_val_loss_round = round(average_val_loss, 3)
-                average_accuracy_round = round(average_accuracy, 3)
-                average_val_accuracy_round = round(average_val_accuracy, 3)
+                    await self.mms_layer(
+                        fit_data=np.concatenate([y_train, y_test]).reshape(-1, 1)
+                    )
 
-                dataset = await self.get_dataset_from_db(dataset_id)
-                dataset[0].loss = average_loss_round
-                dataset[0].val_loss = average_val_loss_round
-                dataset[0].accuracy = average_accuracy_round
-                dataset[0].val_accuracy = average_val_accuracy_round
+                    if self.mms:
+                        encoded_y_train = self.mms.transform(y_train.reshape(-1, 1))
+                        y_train = encoded_y_train.reshape(1, -1)[0]
 
-                await sync_to_async(dataset[0].save)()
+                        encoded_y_test = self.mms.transform(y_test.reshape(-1, 1))
+                        y_test = encoded_y_test.reshape(1, -1)[0]
 
-                model_file_name = f"{dataset_id}.weights.h5"
+                        print(f"{y_train}")
+                        print(f"{y_test}")
 
-                await save_model(
-                    file_name=model_file_name,
-                    model=model,
-                    path_to_save=dataset_directory
-                )
+                        dataset_for_save = {
+                            "X_train": X_train,
+                            "y_train": y_train,
+                            "X_test": X_test,
+                            "y_test": y_test
+                        }
 
-                await save_figure_of_learning(
-                    history=history,
-                    epochs=epochs,
-                    file_name=dataset_id,
-                    path_to_save=dataset_directory
-                )
+                        np.savez(dataset_file_npz, **dataset_for_save)
 
-                await self.send(text_data=json.dumps({
-                    "status": "success",
-                    "type": "start_education",
-                    "data": {
-                        "dataset_id": dataset_id,
-                        "loss": dataset[0].loss,
-                        "accuracy": dataset[0].accuracy,
-                    }
-                }))
-        else:
-            model_weights_file = list(filter(lambda file: "weights.h5" in file, files_from_dataset_directory))[0]
+            if os.path.exists(dataset_file_npz):
+                await self.send_work_status(new_status=statuses.is_studying_status)
+                await asyncio.sleep(1)
 
-    async def send_work_status(self, *, work_status: dict):
-        await self.send(text_data=json.dumps(work_status))
+                dataset = np.load(dataset_file_npz)
+                model = await classification_traffic_nn(dataset=dataset)
+
+        # # Searching models
+        # files_from_dataset_directory = os.listdir(str(dataset_directory))
+        # file_extensions = [".".join(file.split(".")[1:]) for file in files_from_dataset_directory]
+        # starting_education = True if 'weights.h5' in file_extensions and "webp" in file_extensions else False
+
+        # # If current dataset_id models isn't exit - start education
+        # if not starting_education:
+        #     # await self.get_files(dataset_id)
+        #
+        #     if self.datasets_files:
+        #         # Dataset
+        #         features = await format_packages(packages=self.datasets_files)
+        #         x_train, x_test = await train_data_split(
+        #             features=features,
+        #             test_size=0.2,
+        #             train_size=0.8,
+        #             random_state=42
+        #         )
+        #
+        #         model = await neural_network_structure(x_train=x_train)
+        #
+        #         epochs = 5
+        #         history = await neural_network_fit(
+        #             neural_model=model,
+        #             x_train=x_train,
+        #             x_test=x_train,
+        #             epochs=epochs,
+        #             batch_size=32,
+        #             shuffle=True,
+        #             validation_data=(x_test, x_test)
+        #         )
+        #
+        #         average_loss = sum(history.history["loss"]) / len(history.history["loss"])
+        #         average_val_loss = sum(history.history["val_loss"]) / len(history.history["val_loss"])
+        #
+        #         average_accuracy = sum(history.history["accuracy"]) / len(history.history["accuracy"])
+        #         average_val_accuracy = sum(history.history["val_accuracy"]) / len(history.history["val_accuracy"])
+        #
+        #         average_loss_round = round(average_loss, 3)
+        #         average_val_loss_round = round(average_val_loss, 3)
+        #         average_accuracy_round = round(average_accuracy, 3)
+        #         average_val_accuracy_round = round(average_val_accuracy, 3)
+        #
+        #         dataset = await self.get_dataset_from_db(dataset_id)
+        #         dataset[0].loss = average_loss_round
+        #         dataset[0].val_loss = average_val_loss_round
+        #         dataset[0].accuracy = average_accuracy_round
+        #         dataset[0].val_accuracy = average_val_accuracy_round
+        #
+        #         await sync_to_async(dataset[0].save)()
+        #
+        #         model_file_name = f"{dataset_id}.weights.h5"
+        #
+        #         await save_model(
+        #             file_name=model_file_name,
+        #             model=model,
+        #             path_to_save=dataset_directory
+        #         )
+        #
+        #         await save_figure_of_learning(
+        #             history=history,
+        #             epochs=epochs,
+        #             file_name=dataset_id,
+        #             path_to_save=dataset_directory
+        #         )
+        #
+        #         await self.send(text_data=json.dumps({
+        #             "status": "success",
+        #             "type": "start_education",
+        #             "data": {
+        #                 "dataset_id": dataset_id,
+        #                 "loss": dataset[0].loss,
+        #                 "accuracy": dataset[0].accuracy,
+        #             }
+        #         }))
+        # else:
+        #     model_weights_file = list(filter(lambda file: "weights.h5" in file, files_from_dataset_directory))[0]
+
+    async def send_work_status(self, *, new_status: dict):
+        self.current_work_status = new_status
+        # print(f"Sending work status is {self.current_work_status}")
+        await self.send(text_data=json.dumps(self.current_work_status))

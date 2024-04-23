@@ -1,7 +1,16 @@
-import json
+import keras
+import keras_cv
 import numpy as np
 import tensorflow as tf
-import keras
+
+from sklearn.preprocessing import MinMaxScaler
+
+# from schedule_of_learning_outcomes import schedule_of_learning_outcomes
+# from pcap_to_dataset import encoded_data
+
+tf.random.set_seed(0)
+np.set_printoptions(suppress=True)
+
 
 # model = Sequential([
 #     LSTM(),
@@ -21,12 +30,13 @@ import keras
 # ])
 
 
-def encoded_data(*, input_length):
+async def encoded_data(*, input_length):
     encoded_model = keras.Sequential([
         keras.layers.Embedding(
-            input_dim=input_length,
+            input_dim=input_length + 1,
             output_dim=1,
-        )
+        ),
+        keras.layers.Dense(units=1, activation='relu')
     ])
     encoded_model.compile(
         optimizer=keras.optimizers.Adam(),
@@ -35,116 +45,114 @@ def encoded_data(*, input_length):
     return encoded_model
 
 
-dataset = np.load("dataset.npz")
+async def classification_traffic_nn(*, dataset):
+    if dataset:
+        (X_train, y_train), (X_test, y_test) = (
+            (dataset["X_train"], dataset["y_train"]),
+            (dataset["X_test"], dataset["y_test"]))
 
-if dataset:
-    (X_train, y_train), (X_test, y_test) = (
-        (dataset["X_train"], dataset["y_train"]),
-        (dataset["X_test"], dataset["y_test"]))
+        model = keras.Sequential([
+            keras.layers.ConvLSTM2D(
+                filters=32,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                input_shape=X_train.shape[1:],
+                return_sequences=False,
+                name="ConvLSTM"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite1"),
+            keras.layers.Conv2D(
+                filters=64,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv2"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite2"),
+            keras.layers.Conv2D(
+                filters=64,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv3"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite3"),
+            keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-    # print(y_train[0])
-    # print(y_train.shape)
-    # print(y_test.shape)
+            keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite"),
 
-    encoded_train = encoded_data(input_length=len(y_train))
-    y_train = encoded_train.predict(tf.constant(y_train))
+            keras.layers.Conv2D(
+                filters=32,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv4"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite4"),
+            keras.layers.Conv2D(
+                filters=32,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv5"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite5"),
+            keras.layers.Conv2D(
+                filters=16,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv6"
+            ),
+            # keras_cv.layers.SqueezeAndExcite2D(filters=16, name="SqueezeAndExcite6"),
+            keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-    encoded_test = encoded_data(input_length=len(y_test))
-    y_test = encoded_test.predict(tf.constant(y_test))
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.2),
+            keras.layers.Flatten(),
+            keras.layers.Dense(
+                units=1024,
+                activation=keras.activations.relu
+            ),
+            keras.layers.Dense(
+                units=1,
+                activation=keras.activations.sigmoid
+            ),
+        ], name="traffic_classification")
 
-    # print(len(X_train))
-    # print(X_train[:6])
+        adam = keras.optimizers.Adam(learning_rate=0.001)
+        model.compile(
+            optimizer=adam,
+            # loss=keras.losses.binary_crossentropy,
+            loss=keras.losses.BinaryCrossentropy(),
+            metrics=[
+                'recall',
+                'precision'
+            ]
+        )
 
-    model = keras.Sequential([
-        keras.layers.ConvLSTM2D(
-            filters=32,
-            kernel_size=3,
-            activation="relu",
-            input_shape=X_train.shape[1:],
-            return_sequences=False,
-            name="ConvLSTM"
-        ),
+        model.summary()
 
-        keras.layers.Conv2D(
-            filters=64,
-            kernel_size=3,
-            activation="relu",
-            padding="same",
-            name="Conv2"
-        ),
-        keras.layers.Conv2D(
-            filters=64,
-            kernel_size=3,
-            activation="relu",
-            padding="same",
-            name="Conv3"
-        ),
-        keras.layers.MaxPooling2D(padding="same", pool_size=(2, 2)),
+        epochs = 150
 
-        keras.layers.Conv2D(
-            filters=32,
-            kernel_size=3,
-            activation="relu",
-            padding="same",
-            name="Conv4"
-        ),
-        keras.layers.Conv2D(
-            filters=32,
-            kernel_size=3,
-            activation="relu",
-            padding="same",
-            name="Conv5"
-        ),
-        keras.layers.Conv2D(
-            filters=16,
-            kernel_size=3,
-            activation="relu",
-            padding="same",
-            name="Conv6"
-        ),
-        keras.layers.MaxPooling2D(padding="same", pool_size=(2, 2)),
+        history = model.fit(
+            x=X_train,
+            y=y_train,
+            epochs=epochs,
+            batch_size=32,
+            validation_data=(X_test, y_test),
+            # validation_freq=[1, 5, 10]
+        )
 
-        keras.layers.Flatten(),
-        keras.layers.Dense(1024, activation="relu"),
-        keras.layers.Dense(1, activation="sigmoid"),
-        # keras.layers.Dense(1, activation="sigmoid")
-        # keras.layers.Conv2D(
-        #     filters=64,
-        #     kernel_size=(3, 3),
-        #     activation="relu",
-        #     name="Conv3"
-        # )
-    ], name="traffic_classification")
+        predictions = model.predict(
+            x=X_test,
+            batch_size=32
+        )
+        print(f"{predictions=}")
+        print(f"{predictions.shape=}")
 
-    # model.compile(
-    #     optimizer=keras.optimizers.Adam(learning_rate=1e-3),
-    #     loss="categorical_crossentropy",
-    #     metrics=["accuracy"]
-    # )
-
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-    model.summary()
-
-    model.fit(
-        x=X_train,
-        y=y_train,
-        epochs=10,
-        batch_size=32,
-        validation_data=(X_test, y_test)
-    )
-
-    predictions = model.predict(
-        x=X_test,
-        batch_size=32
-    )
-
-    prediction_one = model.predict(
-        x=np.array([X_train[0]])
-    )
-
-    print(f"{prediction_one=}")
-    print(f"{len(prediction_one)=}")
-
-    print(predictions)
-    print(len(predictions))
+        return {
+            "model": model,
+            "history": history,
+            "epochs": epochs
+        }
