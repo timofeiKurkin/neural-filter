@@ -91,19 +91,30 @@ async def put_label_on_packages(*, packages, label):
     # return packages, np.array([label])
 
 
-async def encoded_data(*, input_length):
+async def encoded_embedding_model(*, input_length):
     encoded_model = keras.Sequential([
         keras.layers.Embedding(
             input_dim=input_length+1,
             output_dim=6,
         ),
-        # keras.layers.Dense(units=6, activation='relu')
+        keras.layers.Dense(units=6, activation=keras.activations.leaky_relu),
     ])
     encoded_model.compile(
         optimizer=keras.optimizers.Adam(),
         loss=keras.losses.MeanSquaredError()
     )
     return encoded_model
+
+
+async def expand_dimension(*, encoded_packages):
+    new_encoded_packages = []
+
+    for packages in encoded_packages:
+        package_data = [[np.expand_dims(package_item, axis=0) for package_item in package]
+                        for package in packages]
+        new_encoded_packages.append(np.array(package_data))
+
+    return np.array(new_encoded_packages)
 
 
 async def pcap_file_to_dataset(*, pcap_file_path):
@@ -114,17 +125,11 @@ async def pcap_file_to_dataset(*, pcap_file_path):
     if read_package is not None:
         transformed_packages = await formated_packages(package=read_package)
 
-        encoded_model = await encoded_data(input_length=len(read_package))
+        encoded_model = await encoded_embedding_model(input_length=len(read_package))
+        # encoded_model.fit(x=transformed_packages, y=package_label)
         encoded_packages = encoded_model.predict(transformed_packages)
 
-        new_encoded_packages = []
-
-        for packages in encoded_packages:
-            package_data = [[np.expand_dims(package_item, axis=0) for package_item in package]
-                            for package in packages]
-            new_encoded_packages.append(np.array(package_data))
-
-        new_encoded_packages = np.array(new_encoded_packages)
+        new_encoded_packages = await expand_dimension(encoded_packages=encoded_packages)
 
         packages, label = await put_label_on_packages(
             packages=new_encoded_packages,

@@ -45,7 +45,11 @@ async def encoded_data(*, input_length):
     return encoded_model
 
 
-async def classification_traffic_nn(*, dataset):
+async def classification_traffic_nn(
+        *,
+        dataset,
+        save_model_path
+):
     if dataset:
         (X_train, y_train), (X_test, y_test) = (
             (dataset["X_train"], dataset["y_train"]),
@@ -55,7 +59,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.ConvLSTM2D(
                 filters=32,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 input_shape=X_train.shape[1:],
                 return_sequences=False,
                 name="ConvLSTM"
@@ -64,7 +68,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Conv2D(
                 filters=64,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 padding="same",
                 name="Conv2"
             ),
@@ -72,7 +76,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Conv2D(
                 filters=64,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 padding="same",
                 name="Conv3"
             ),
@@ -84,7 +88,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Conv2D(
                 filters=32,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 padding="same",
                 name="Conv4"
             ),
@@ -92,7 +96,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Conv2D(
                 filters=32,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 padding="same",
                 name="Conv5"
             ),
@@ -100,7 +104,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Conv2D(
                 filters=16,
                 kernel_size=3,
-                activation=keras.activations.relu,
+                activation=keras.activations.leaky_relu,
                 padding="same",
                 name="Conv6"
             ),
@@ -112,7 +116,7 @@ async def classification_traffic_nn(*, dataset):
             keras.layers.Flatten(),
             keras.layers.Dense(
                 units=1024,
-                activation=keras.activations.relu
+                activation=keras.activations.leaky_relu
             ),
             keras.layers.Dense(
                 units=1,
@@ -133,7 +137,7 @@ async def classification_traffic_nn(*, dataset):
 
         model.summary()
 
-        epochs = 150
+        epochs = 30
 
         history = model.fit(
             x=X_train,
@@ -150,6 +154,9 @@ async def classification_traffic_nn(*, dataset):
         )
         print(f"{predictions=}")
         print(f"{predictions.shape=}")
+
+        model.save(save_model_path)
+        print(f"Model saved successfully to: {save_model_path}")
 
         return {
             "model": model,
