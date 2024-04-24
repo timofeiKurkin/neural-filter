@@ -1,12 +1,11 @@
 import React, {FC} from "react";
 
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
-import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 
 import styles from "./AllTraffic.module.scss";
 import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
-import InterfaceHandler from "@/app/(auxiliary)/components/Sections/Traffics/AllTraffic/InterfaceHandler/InterfaceHandler";
-import PacketReceiver from "@/app/(auxiliary)/components/Sections/Traffics/PacketReceiver/PacketReceiver";
+import InterfaceHandler from "@/app/(auxiliary)/components/Sections/Traffics/InterfaceHandler/InterfaceHandler";
+import PacketReceiver from "@/app/(auxiliary)/components/Sections/Traffics/Receivers/PacketReceiver/PacketReceiver";
 import SaveTraffic from "@/app/(auxiliary)/components/Sections/Traffics/SaveTraffic/SaveTraffic";
 
 const AllTraffic: FC = () => {
@@ -20,9 +19,9 @@ const AllTraffic: FC = () => {
                 <InterfaceHandler/>
             </div>
 
-            <div className={styles.allTrafficSave}>
-                <SaveTraffic/>
-            </div>
+            {/*<div className={styles.allTrafficSave}>*/}
+            {/*    <SaveTraffic/>*/}
+            {/*</div>*/}
 
             <div className={styles.allTrafficSearch}>
                 <Search/>

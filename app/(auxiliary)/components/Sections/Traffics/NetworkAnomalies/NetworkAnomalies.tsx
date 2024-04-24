@@ -3,7 +3,10 @@ import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
 
 import styles from "./NetworkAnomalies.module.scss";
-import PacketReceiver from "@/app/(auxiliary)/components/Sections/Traffics/PacketReceiver/PacketReceiver";
+import PacketAnomalyReceiver
+    from "@/app/(auxiliary)/components/Sections/Traffics/Receivers/PacketAnomalyReceiver/PacketAnomalyReceiver";
+import InterfaceHandler
+    from "@/app/(auxiliary)/components/Sections/Traffics/InterfaceHandler/InterfaceHandler";
 
 const NetworkAnomalies: FC = () => {
     return (
@@ -14,12 +17,16 @@ const NetworkAnomalies: FC = () => {
                 </MainTitle>
             </div>
 
+            <div className={styles.networkAnomaliesInterface}>
+                <InterfaceHandler/>
+            </div>
+
             <div className={styles.networkAnomaliesSearch}>
                 <Search/>
             </div>
 
             <div className={styles.networkAnomalies}>
-                <PacketReceiver/>
+                <PacketAnomalyReceiver/>
             </div>
         </div>
     );

@@ -8,7 +8,7 @@ import styles from "./PackageList.module.scss";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import Scrollbar from "@/app/(auxiliary)/components/UI/Scrollbar/Scrollbar";
 import PackageItem
-    from "@/app/(auxiliary)/components/Sections/Traffics/PacketReceiver/PackageList/PackageItem/PackageItem";
+    from "@/app/(auxiliary)/components/Sections/Traffics/PackageList/PackageItem/PackageItem";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 
 interface PropsType {

@@ -3,7 +3,7 @@
     width: 100%;
     
     display: grid;
-    grid-template-columns: min-content min-content max-content 170px;
+    grid-template-columns: min-content max-content 170px;
     grid-template-rows: min-content 1fr;
     grid-template-areas: "title interface save search" "all-trafic all-trafic all-trafic all-trafic";
     align-items: center;
@@ -21,9 +21,9 @@
         grid-area: interface;
     }
 
-    .allTrafficSave {
-        grid-area: save;
-    }
+    //.allTrafficSave {
+    //    grid-area: save;
+    //}
     
     .allTrafficSearch {
         grid-area: search;

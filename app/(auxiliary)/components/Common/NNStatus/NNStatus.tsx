@@ -13,7 +13,12 @@ import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 // For response
 interface StatusType {
-    status: "no work" | "connection" | "is studying" | "working" | "disconnection";
+    status: "no work" |
+        "connection" |
+        "studying" |
+        "working" |
+        "disconnection" |
+        "preprocessing";
     statusCode: 0 | 1 | 2 | 3;
 }
 
@@ -46,7 +51,7 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
-    console.log("datasets", datasets)
+    // console.log("datasets", datasets)
 
     useEffect(() => {
         let timeOut
@@ -79,7 +84,7 @@ const NnStatus = () => {
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data)
 
-                console.log("data", data)
+                // console.log("data: ", data)
 
                 if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
 
@@ -147,8 +152,8 @@ const NnStatus = () => {
         createWebSocket()
 
         return () => {
-            if (ws && typeof ws === "function") {
-                ws.close();
+            if (ws && Object.keys(ws).length) {
+                (ws as WebSocket).close();
             }
         };
     }, [
