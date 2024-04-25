@@ -4,7 +4,7 @@ import NetworkAnomaliesService
     from "@/app/(auxiliary)/lib/axios/services/NetworkAnomaliesService/NetworkAnomaliesService";
 import {
     GetModelMetricResponseType
-} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/EducationTypes";
 
 
 type GetMetricImage = (dataset_id: string) => Promise<AxiosResponse<GetModelMetricResponseType> | AxiosErrorType | UnknownError>

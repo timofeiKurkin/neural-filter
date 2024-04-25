@@ -1,14 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import styles from "./NNStatus.module.scss"
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
-import {color_6, color_8, color_7} from "@/styles/color";
+import {color_6, color_7, color_8} from "@/styles/color";
 import {WS_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorNeuralNetwork, setWebSocket} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {StateOfEducationType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
-import Image from "next/image";
-import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {
+    InitialNeuralNetworkStateType,
+    selectorNeuralNetwork,
+    setCurrentModelStatus,
+    setWebSocket
+} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import {selectorFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+import {NeuralNetworkWorkResponseType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
 
 
 // For response
@@ -32,12 +36,9 @@ interface StatusRenderType extends StatusType {
 const NnStatus = () => {
     const dispatch = useDispatch()
     const {
-        startEducation,
+        currentModelStatus,
         ws
-    }: {
-        startEducation: StateOfEducationType;
-        ws: WebSocket
-    } = useSelector(selectorNeuralNetwork)
+    }: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     const {
         datasets
@@ -51,6 +52,7 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
+    // console.log("stateStatus: ", stateStatus)
     // console.log("datasets", datasets)
 
     useEffect(() => {
@@ -84,44 +86,55 @@ const NnStatus = () => {
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data)
 
-                // console.log("data: ", data)
+                if (data && Object.keys(data).length) {
 
-                if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
-
-                    if (data.type === "start_education") {
-                        const newMetrics: {
-                            dataset_id: string;
-                            loss: string;
-                            accuracy: string;
-                        } = data.data
-
-                        const updatedDataset: DatasetType[] = datasets.map((dataset: DatasetType) => {
-                            if (dataset.group_file_id === newMetrics.dataset_id) {
-                                return {
-                                    ...dataset,
-                                    loss: newMetrics.loss,
-                                    accuracy: newMetrics.accuracy
-                                }
-                            }
-                            return dataset
-                        })
-
-                        dispatch(setDatasets(updatedDataset))
-                    }
+                    // if (data.type === "start_education") {
+                    //     const newMetrics: {
+                    //         dataset_id: string;
+                    //         loss: string;
+                    //         accuracy: string;
+                    //     } = data.data
+                    //
+                    //     const updatedDataset: DatasetType[] = datasets.map((dataset: DatasetType) => {
+                    //         if (dataset.group_file_id === newMetrics.dataset_id) {
+                    //             return {
+                    //                 ...dataset,
+                    //                 loss: newMetrics.loss,
+                    //                 accuracy: newMetrics.accuracy
+                    //             }
+                    //         }
+                    //         return dataset
+                    //     })
+                    //
+                    //     dispatch(setDatasets(updatedDataset))
+                    // }
 
                     const statusData: StatusRenderType = data
-                    setStateStatus(() => {
+
+                    if ((statusData as NeuralNetworkWorkResponseType).send_type) {
+                        const workResponse: NeuralNetworkWorkResponseType = data
+
+                        if (workResponse.send_type === "model_work" &&
+                            workResponse.data.status === "success") {
+                            dispatch(setCurrentModelStatus({
+                                workStatus: true,
+                                modelID: workResponse.data.modelID || ""
+                            }))
+                        }
+                    }
+
+                    if (statusData.status) {
                         if (statusData.statusCode === 2) {
                             statusData.colorStatus = color_6
-                            return statusData ?? {}
+                            setStateStatus(statusData)
                         } else if (statusData.statusCode === 3) {
                             statusData.colorStatus = color_8
-                            return statusData ?? {}
+                            setStateStatus(statusData)
                         } else if (statusData.statusCode === 4) {
                             statusData.colorStatus = color_7
-                            return statusData ?? {}
+                            setStateStatus(statusData)
                         }
-                    })
+                    }
                 }
             }
 
@@ -158,10 +171,10 @@ const NnStatus = () => {
         };
     }, [
         // ws,
-        datasets,
-        dispatch,
-        startEducation.signal,
-        startEducation.datasetID
+        // datasets,
+        // dispatch,
+        // currentModelID.signal,
+        // currentModelID.modelID
     ]);
 
 

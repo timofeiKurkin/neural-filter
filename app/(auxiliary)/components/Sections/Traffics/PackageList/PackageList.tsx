@@ -10,12 +10,15 @@ import Scrollbar from "@/app/(auxiliary)/components/UI/Scrollbar/Scrollbar";
 import PackageItem
     from "@/app/(auxiliary)/components/Sections/Traffics/PackageList/PackageItem/PackageItem";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
+import {InitialTrafficStateType, selectorTraffic, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 
 interface PropsType {
     packages: TrafficPackageType[]
 }
 
 const PackageList: FC<PropsType> = ({packages}) => {
+
+    const {currentSearchQuery}: InitialTrafficStateType = useSelector(selectorTraffic)
 
     const packagesMemo = useMemo(
         () => packages, [packages]

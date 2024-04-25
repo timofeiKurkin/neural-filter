@@ -1,18 +1,20 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
-interface InitialStateType {
+export interface InitialTrafficStateType {
     allTraffic: TrafficPackageType[];
     anomaliesTraffic: TrafficPackageType[];
     currentInterface: string;
-    savingStatus: boolean;
+    currentSearchQuery: string;
+    // savingStatus: boolean;
 }
 
-const initialState: InitialStateType = {
+const initialState: InitialTrafficStateType = {
     allTraffic: [],
     anomaliesTraffic: [],
-    currentInterface: '',
-    savingStatus: false,
+    currentInterface: "",
+    currentSearchQuery: ""
+    // savingStatus: false,
 }
 
 export const trafficSlice = createSlice({
@@ -24,6 +26,9 @@ export const trafficSlice = createSlice({
         },
         setSavingStatus: (state, action: PayloadAction<boolean>) => {
             state.savingStatus = action.payload
+        },
+        setCurrentSearchQuery: (state, action: PayloadAction<string>) => {
+            state.currentSearchQuery = action.payload
         }
     }
 })
@@ -31,4 +36,5 @@ export const trafficSlice = createSlice({
 export const {
     setInterface,
     setSavingStatus,
+    setCurrentSearchQuery
 } = trafficSlice.actions

@@ -1,4 +1,4 @@
-import React, {FC, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 import goHover from "@/public/go-hover.svg";
@@ -14,12 +14,21 @@ import {color_1, color_2} from "@/styles/color";
 import {deleteDataset} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
-import {selectorNeuralNetwork, setModelMetric} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {
+    InitialNeuralNetworkStateType,
+    selectorNeuralNetwork,
+    setCurrentModelStatus,
+    setModelMetric
+} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {getMetricImage} from "@/app/(auxiliary)/func/educationNeuralNetwork/getMetrics";
 import {
     GetModelMetricResponseType, ModelMetricType
-} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/EducationTypes";
+import {
+    startEducationInstruction, stopEducationInstruction
+} from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/DatasetsList/Dataset/modelWorkInstructions";
+import {NeuralNetworkWorkResponseType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
 
 
 /**
@@ -36,13 +45,16 @@ interface PropsType {
 const Dataset: FC<PropsType> = ({dataset}) => {
     const dispatch = useDispatch()
 
-    const {ws}: { ws: WebSocket } = useSelector(selectorNeuralNetwork)
-    const {datasets}: { datasets: DatasetType[]; } = useSelector(selectorFiles)
+    const {currentModelStatus, ws}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
+    const {datasets}: InitialFilesStateType = useSelector(selectorFiles)
 
-    const [datasetHover, setDatasetHover] = useState<boolean>(false)
-    const [twoFactorAccept, setTwoFactorAccept] = useState<boolean>(false)
+    const [datasetHover, setDatasetHover] =
+        useState<boolean>(() => false)
+    const [twoFactorAccept, setTwoFactorAccept] =
+        useState<boolean>(() => false)
 
-    const [working, setWorking] = useState<boolean>(false)
+    const [working, setWorking] =
+        useState<boolean>(() => currentModelStatus.workStatus)
 
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{
@@ -58,12 +70,32 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const getDatasetMetrics = async (dataset_id: string) => {
         const response = await getMetricImage(dataset_id)
 
-        if((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
+        if ((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
             const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
 
             dispatch(setModelMetric(modelMetric))
         }
     }
+
+    const modelWordHandler = (args: {
+        modelID: string,
+        workStatus: boolean
+    }) => {
+        if (!args.workStatus) {
+            ws.send(JSON.stringify({
+                ...startEducationInstruction,
+                data: args.modelID
+            }))
+        } else {
+            ws.send(JSON.stringify({
+                ...stopEducationInstruction,
+            }))
+        }
+    }
+
+    // useEffect(() => {
+    //
+    // }, [])
 
     return (
         <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
@@ -72,14 +104,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         >
             <div className={styles.datasetTitle}>
                 <div
-                    onClick={() => {
-                        ws.send(JSON.stringify({
-                            send_type: "start_education",
-                            data: dataset.group_file_id
-                        }))
-                        setWorking((prevState) => (!prevState))
-                    }}>
-
+                    onClick={() => modelWordHandler({
+                        modelID: dataset.group_file_id,
+                        workStatus: working
+                    })}>
                     {
                         working ? (
                                 <Image src={stop} alt={"stop"}/>
@@ -91,7 +119,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                     }
                 </div>
 
-                <span className={styles.datasetText} style={{color: color_1}}>{dataset.dataset_title}</span>
+                <span className={styles.datasetText}
+                      style={{color: color_1}}>
+                    {dataset.dataset_title}
+                </span>
             </div>
 
             <div className={styles.datasetLine}></div>
@@ -99,9 +130,13 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetStatistics}
                  onClick={() => getDatasetMetrics(dataset.group_file_id)}>
                 <span className={styles.datasetText}
-                      style={{color: color_2}}>loss: {dataset.loss === 0 ? "0.0" : dataset.loss}</span>
+                      style={{color: color_2}}>
+                    loss: {dataset.loss === 0 ? "0.0" : dataset.loss}
+                </span>
                 <span className={styles.datasetText}
-                      style={{color: color_2}}>accuracy: {dataset.accuracy === 0 ? "0.0" : dataset.accuracy}</span>
+                      style={{color: color_2}}>
+                    accuracy: {dataset.accuracy === 0 ? "0.0" : dataset.accuracy}
+                </span>
             </div>
 
             {

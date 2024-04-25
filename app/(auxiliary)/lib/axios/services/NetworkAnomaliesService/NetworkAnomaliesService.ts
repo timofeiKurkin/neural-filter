@@ -2,7 +2,7 @@ import {AxiosResponse} from "axios";
 import $api from "@/app/(auxiliary)/lib/axios";
 import {
     GetModelMetricResponseType
-} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork&EducationTypes";
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/EducationTypes";
 
 export default class NetworkAnomaliesService {
     static networkAnomalies = "network_anomalies/"

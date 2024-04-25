@@ -9,9 +9,18 @@ import styles from "./Search.module.scss"
 import inputStyle from "../Input/Input.module.scss";
 import fontStyle from "@/styles/FontsStyle/fontsStyle.module.scss";
 import border from "@/app/(auxiliary)/components/UI/Inputs/Input/InputBorder.module.scss";
+import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
+import {setCurrentSearchQuery, useDispatch} from "@/app/(auxiliary)/lib/redux/store";
 
 const Search: FC = () => {
-    const [activeInput, setActiveInput] = useState(false)
+    const dispatch = useDispatch()
+    const [activeInput, setActiveInput] = useState<boolean>(false)
+    const [inputValue, setInputValue] = useState<string>("")
+
+    const inputSearchHandler = (e: InputChangeEventHandler) => {
+        setInputValue(() => (e.target.value))
+        dispatch(setCurrentSearchQuery(e.target.value))
+    }
 
     return (
         <div className={styles.search}>
@@ -23,8 +32,9 @@ const Search: FC = () => {
                     <input
                         className={`${fontStyle.regularTextStyle} ${inputStyle.inputStyle}`}
                         type={"text"}
+                        value={inputValue}
                         tabIndex={1}
-                        onChange={() => console.log("input's")}
+                        onChange={(e) => inputSearchHandler(e)}
                         onFocus={() => setActiveInput((prevState) => (!prevState))}
                         onBlur={() => setActiveInput((prevState) => (!prevState))}
                         placeholder={"Search"}

@@ -3,11 +3,14 @@
     width: 100%;
     
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: min-content max-content 170px;
     grid-template-rows: min-content 1fr;
     grid-template-areas: "title interface search" "content content content";
     align-items: center;
     row-gap: 35px;
+
+    white-space: nowrap;
+    justify-content: space-between;
     
     .networkAnomaliesTitle {
         grid-area: title;

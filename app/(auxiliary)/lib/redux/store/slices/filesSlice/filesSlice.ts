@@ -2,14 +2,14 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 // import {ErrorFilesType} from "@/app/(auxiliary)/types/FilesType/ErrorFilesType";
 
-interface InitialStateType {
+export interface InitialFilesStateType {
     // files: FileType[];
     files: File[];
     datasets: DatasetType[];
     // errorFiles: ErrorFilesType[];
 }
 
-const initialState: InitialStateType = {
+const initialState: InitialFilesStateType = {
     files: [],
     datasets: [],
     // errorFiles: [],
