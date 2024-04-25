@@ -1,63 +1,58 @@
 import asyncio
-# import itertools
 import json
 import os
-import time
 
 import keras.saving
 import numpy as np
-
-# from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from scapy.sendrecv import AsyncSniffer
-
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 from file_handler.models import DatasetModel
-from file_handler.pcap_package_to_json import pcap_package_to_json
 from . import statuses
-from .neural_network.format_packages import format_packages
-
+from .new_neural_network.model import classification_traffic_nn
 from .new_neural_network.pcap_to_dataset import (array_split,
                                                  pcap_file_to_dataset,
                                                  formated_packages,
                                                  encoded_embedding_model,
                                                  expand_dimension)
-from .new_neural_network.model import classification_traffic_nn
-
-
-# from .neural_network.neural_network_fit import neural_network_fit
-# from .neural_network.neural_network_structure import neural_network_structure
-# from .neural_network.save_figure_of_learning import save_figure_of_learning
-# from .neural_network.save_model import save_model
-# from .neural_network.train_data_split import train_data_split
 
 
 class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     def __init__(self):
         super().__init__()
         self.current_work_status = statuses.disconnection_status
-        # self.datasets_files = None
+        # Async Sniffer for scanning traffic in the interface
         self.asyncSniffer = None
+        # Package id for all the sessions in traffic-sniffing
         self.package_id = 0
 
+        # Current model in Web-Socket session
         self.model = None
-        self.anomaly_packages = []
 
+        self.anomaly_packages_for_send_client = {}
+
+        # All sessions in traffic-sniffing
         self.sessions = {}
+        # The same sessions, only they have encoded format
         self.sessions_encoded = {}
 
+        # MinMaxScaler Trained Model
         self.mms = None
+        # LabelEncoder Trained Model
         self.label_encoder = None
 
-        self.mean_traffic_predict = 0.0
-        self.mean_traffic_predict_list = []
+        # Mean traffic predicted separate for sessions
+        self.mean_traffic_predict_sessions = {}
 
-        self.current_dataset_id = None
+        # Current model-id in Web-Socket session
+        self.current_model_id = None
+        # Dataset packages for education model. They aren't separated for X_train, X_test.
         self.dataset_packages = None
+        # Dataset labels for education model. They aren't separated for y_train, y_test.
         self.dataset_labels = None
 
     # Get dataset from database
@@ -78,7 +73,10 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     # Connect with user
     async def connect(self):
         await self.accept()
-        await self.send_work_status(new_status=statuses.no_work_status)
+        if self.current_work_status == statuses.disconnection_status:
+            await self.send_work_status(new_status=statuses.no_work_status)
+        else:
+            await self.send_work_status(new_status=self.current_work_status)
 
     async def disconnect(self, code):
         await self.send_work_status(new_status=statuses.disconnection_status)
@@ -88,25 +86,28 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
     # Get any massages from user
     async def receive(self, text_data=None, bytes_data=None):
-        packet = json.loads(text_data)
-        packet_type = packet["send_type"]
+        message = json.loads(text_data)
+        send_type = message["send_type"]
 
-        if packet_type == "echo":
+        if send_type == "echo":
             await self.send(text_data="Hello, this is echo")
 
-        if packet_type == "start_education":
-            dataset_id = packet["data"]
+        if send_type == "start_education":
+            dataset_id = message["data"]
             if dataset_id:
-                self.current_dataset_id = dataset_id
+                self.current_model_id = dataset_id
                 await self.start_education()
 
-        if packet_type == "start_scanning":
-            interface = packet["interface"]
-            dataset_id = packet["dataset_id"]
-            self.current_dataset_id = dataset_id
+        if send_type == "stop_education":
+            await self.stop_education()
+
+        if send_type == "start_scanning":
+            interface = message["interface"]
+            # dataset_id = message["dataset_id"]
+            # self.current_dataset_id = dataset_id
             await self.start_scanning(interface=interface)
 
-        if packet_type == "stop_scanning":
+        if send_type == "stop_scanning":
             await self.stop_scanning()
 
     async def stop_scanning(self):
@@ -114,11 +115,10 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             self.asyncSniffer.stop()
             print("==== Sniffer stopped ====")
 
-    def packet_callback(self, packet):
-        # protocols = ["IP"]
+    async def stop_education(self):
+        pass
 
-        # if len(self.sessions) == 3:
-        #     asyncio.run(self.stop_scanning())
+    def packet_callback(self, packet):
 
         if (packet.haslayer("IP") and
                 (packet.haslayer("TCP") or packet.haslayer("UDP"))):
@@ -139,16 +139,14 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             session_key = f"{'-'.join(src_ip.split('.'))}_{src_port}_{'-'.join(dst_ip.split('.'))}_{dst_port}"
 
-            normal_package = np.array([
-                {
-                    "id": self.package_id,
-                    "time": packet.time,
-                    "source": src_ip,
-                    "destination": dst_ip,
-                    "protocol": packet_proto,
-                    "length": packet_len
-                }
-            ])
+            normal_package = {
+                "id": self.package_id,
+                "time": packet.time,
+                "source": src_ip,
+                "destination": dst_ip,
+                "protocol": packet_proto,
+                "length": packet_len
+            }
 
             if session_key not in self.sessions:
                 self.sessions[session_key] = []
@@ -171,9 +169,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=encoded_packages))
 
-            # print(f"{new_encoded_packages_dimension=}")
-            # print(f"{new_encoded_packages_dimension.shape=}")
-
             if session_key not in self.sessions_encoded:
                 self.sessions_encoded[session_key] = []
             self.sessions_encoded[session_key].append(new_encoded_packages_dimension)
@@ -181,12 +176,35 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             if self.model is not None:
                 session_for_predict = np.array(self.sessions_encoded[session_key])
                 session_predict = self.model.predict(session_for_predict)
-                print()
-                print("==== Predict ====")
-                print(f"{session_predict=}")
-                print(f"{session_predict.shape=}")
-                print("==== Predict ====")
-                print()
+                session_predict_mean = np.mean(session_predict)
+
+                if session_key in self.mean_traffic_predict_sessions:
+                    last_predict_package = session_predict[-1][0]
+                    # mean_predict_max = (self.mean_traffic_predict_sessions[session_key] +
+                    #                     self.mean_traffic_predict_sessions[session_key] * 0.3)
+                    last_predict_min = (self.mean_traffic_predict_sessions[session_key] -
+                                        self.mean_traffic_predict_sessions[session_key] * 0.5)
+
+                    anomaly_traffic = True if last_predict_package <= last_predict_min else False
+
+                    if anomaly_traffic:
+                        if session_key not in self.anomaly_packages_for_send_client:
+                            self.anomaly_packages_for_send_client[session_key] = []
+                        self.anomaly_packages_for_send_client[session_key].append(normal_package)
+                    else:
+                        self.mean_traffic_predict_sessions[session_key] = session_predict_mean
+                else:
+                    self.mean_traffic_predict_sessions[session_key] = session_predict_mean
+
+                print("")
+                print("==== Predict start ====")
+                print(f"Session key: {session_key}")
+                # print(f"{session_predict=}")
+                # print(f"{session_predict.shape=}")
+                print(f"{session_predict_mean=}")
+                print(f"{self.anomaly_packages_for_send_client=}")
+                print("==== Predict end ====")
+                print("")
         # if "IP" in packet:
         #     package = pcap_package_to_json(
         #         pcap_package=packet,
@@ -199,38 +217,31 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         #     print("formatted_package", features)
 
     async def start_scanning(self, *, interface: str = None):
-        if self.model is None:
-            model_path = str(os.path.join(
-                settings.MODELS_DIR,
-                self.current_dataset_id,
-                "model",
-                "model.keras"
-            ))
-            self.model = keras.saving.load_model(model_path)
+        # if self.model is None:
+        #     model_path = str(os.path.join(
+        #         settings.MODELS_DIR,
+        #         self.current_dataset_id,
+        #         "model",
+        #         "model.keras"
+        #     ))
+        #     self.model = keras.saving.load_model(model_path)
 
-        self.asyncSniffer = AsyncSniffer(
-            prn=self.packet_callback,
-            iface=interface,
-            store=1
-        )
-        self.asyncSniffer.start()
-        print("==== Sniffer started ====")
+        if self.model is not None:
+            self.asyncSniffer = AsyncSniffer(
+                prn=self.packet_callback,
+                iface=interface,
+                store=1
+            )
+            self.asyncSniffer.start()
+            print("==== Sniffer started ====")
 
     async def start_sniffing(self):
         pass
 
-    # async def get_files(self, selected_dataset_id):
-    #     all_files = []
-    #     # files = await self.get_files_from_db(selected_dataset_id)
-    #     # for file in files:
-    #     #     file_serializer = FileHandlerSerializer(file)
-    #     #     all_files.append(file_serializer.data["file_data"])
-    #     self.datasets_files = list(itertools.chain.from_iterable(all_files)) or []
-
     async def pcap_files_to_dataset(self):
         # Directory for savings datasets and figure
-        if self.current_dataset_id:
-            models_directory = str(os.path.join(settings.MODELS_DIR, self.current_dataset_id))
+        if self.current_model_id:
+            models_directory = str(os.path.join(settings.MODELS_DIR, self.current_model_id))
             pcap_sessions_path = str(os.path.join(models_directory, "pcap-sessions"))
 
             # All files from sessions directory
@@ -263,10 +274,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         self.label_encoder = encoder
 
     async def start_education(self):
-
         current_model_path = str(os.path.join(
             settings.MODELS_DIR,
-            self.current_dataset_id
+            self.current_model_id
         ))
 
         model_path = os.path.join(
@@ -277,7 +287,16 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
         if os.path.exists(model_path):
             self.model = keras.saving.load_model(model_path)
+            await self.send_work_status(new_status=statuses.working_status)
+            await self.send(text_data=json.dumps({
+                "send_type": "model_work",
+                "data": {
+                    "status": "success",
+                    "modelID": self.current_model_id,
+                }
+            }))
             print("==== Model already is exist and loaded ====")
+
         else:
             await self.send_work_status(new_status=statuses.preprocessing_status)
             await asyncio.sleep(1)
@@ -345,14 +364,22 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         current_model_path,
                         "model",
                     ))
+
                     model = await classification_traffic_nn(
                         dataset=dataset,
                         save_model_path=model_path
                     )
-
                     self.model = model["model"]
 
                     await self.send_work_status(new_status=statuses.working_status)
+                    await self.send(text_data=json.dumps({
+                        "send_type": "model_work",
+                        "data": {
+                            "status": "success",
+                            "modelID": self.current_model_id,
+                        }
+                    }))
+                    print("==== Model has been trained and is ready to work ====")
 
         # # Searching models
         # files_from_dataset_directory = os.listdir(str(dataset_directory))
