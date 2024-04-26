@@ -81,16 +81,14 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, code):
         await self.send_work_status(new_status=statuses.disconnection_status)
         self.model = None
-        if self.asyncSniffer:
+        if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
+            self.asyncSniffer = None
 
     # Get any massages from user
     async def receive(self, text_data=None, bytes_data=None):
         message = json.loads(text_data)
         send_type = message["send_type"]
-
-        if send_type == "echo":
-            await self.send(text_data="Hello, this is echo")
 
         if send_type == "start_education":
             dataset_id = message["data"]
@@ -103,6 +101,12 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
         if send_type == "start_scanning":
             interface = message["interface"]
+
+            self.anomaly_packages_for_send_client = {}
+            self.sessions = {}
+            self.sessions_encoded = {}
+            self.mean_traffic_predict_sessions = {}
+
             # dataset_id = message["dataset_id"]
             # self.current_dataset_id = dataset_id
             await self.start_scanning(interface=interface)
@@ -111,8 +115,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             await self.stop_scanning()
 
     async def stop_scanning(self):
-        if self.asyncSniffer:
+        if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
+            self.asyncSniffer = None
             print("==== Sniffer stopped ====")
 
     async def stop_education(self):
@@ -180,30 +185,40 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
                 if session_key in self.mean_traffic_predict_sessions:
                     last_predict_package = session_predict[-1][0]
+
                     # mean_predict_max = (self.mean_traffic_predict_sessions[session_key] +
                     #                     self.mean_traffic_predict_sessions[session_key] * 0.3)
-                    last_predict_min = (self.mean_traffic_predict_sessions[session_key] -
-                                        self.mean_traffic_predict_sessions[session_key] * 0.5)
+                    # last_predict_min = (self.mean_traffic_predict_sessions[session_key] -
+                    #                     self.mean_traffic_predict_sessions[session_key] * 0.5)
+                    # anomaly_traffic = True if last_predict_package <= last_predict_min else False
 
-                    anomaly_traffic = True if last_predict_package <= last_predict_min else False
+                    anomaly_traffic = True if last_predict_package <= 0.65 else False
 
                     if anomaly_traffic:
                         if session_key not in self.anomaly_packages_for_send_client:
                             self.anomaly_packages_for_send_client[session_key] = []
                         self.anomaly_packages_for_send_client[session_key].append(normal_package)
+                        asyncio.run(self.send_work_data(
+                            send_type="found_anomaly_traffic",
+                            data={
+                                "status": "success",
+                                "session": session_key,
+                                "anomaly_package": normal_package
+                            }
+                        ))
                     else:
                         self.mean_traffic_predict_sessions[session_key] = session_predict_mean
                 else:
                     self.mean_traffic_predict_sessions[session_key] = session_predict_mean
 
                 print("")
-                print("==== Predict start ====")
+                # print("==== Predict start ====")
                 print(f"Session key: {session_key}")
                 # print(f"{session_predict=}")
                 # print(f"{session_predict.shape=}")
                 print(f"{session_predict_mean=}")
-                print(f"{self.anomaly_packages_for_send_client=}")
-                print("==== Predict end ====")
+                # print(f"{self.anomaly_packages_for_send_client=}")
+#                 print("==== Predict end ====")
                 print("")
         # if "IP" in packet:
         #     package = pcap_package_to_json(
@@ -288,13 +303,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if os.path.exists(model_path):
             self.model = keras.saving.load_model(model_path)
             await self.send_work_status(new_status=statuses.working_status)
-            await self.send(text_data=json.dumps({
-                "send_type": "model_work",
-                "data": {
+            await self.send_work_data(
+                send_type="model_work",
+                data={
                     "status": "success",
                     "modelID": self.current_model_id,
                 }
-            }))
+            )
             print("==== Model already is exist and loaded ====")
 
         else:
@@ -343,9 +358,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                             encoded_y_test = self.mms.transform(y_test.reshape(-1, 1))
                             y_test = encoded_y_test.reshape(1, -1)[0]
 
-                            print(f"{y_train}")
-                            print(f"{y_test}")
-
                             dataset_for_save = {
                                 "X_train": X_train,
                                 "y_train": y_train,
@@ -372,13 +384,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     self.model = model["model"]
 
                     await self.send_work_status(new_status=statuses.working_status)
-                    await self.send(text_data=json.dumps({
-                        "send_type": "model_work",
-                        "data": {
+                    await self.send_work_data(
+                        send_type="model_work",
+                        data={
                             "status": "success",
                             "modelID": self.current_model_id,
                         }
-                    }))
+                    )
                     print("==== Model has been trained and is ready to work ====")
 
         # # Searching models
@@ -458,6 +470,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         #         }))
         # else:
         #     model_weights_file = list(filter(lambda file: "weights.h5" in file, files_from_dataset_directory))[0]
+
+    async def send_work_data(self, *, send_type: str, data: dict):
+        send_data = {
+            "send_type": send_type,
+            "data": data
+        }
+        await self.send(text_data=json.dumps(send_data))
 
     async def send_work_status(self, *, new_status: dict):
         self.current_work_status = new_status
