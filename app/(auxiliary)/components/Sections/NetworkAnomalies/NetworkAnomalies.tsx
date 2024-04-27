@@ -4,9 +4,9 @@ import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
 
 import styles from "./NetworkAnomalies.module.scss";
 import PacketAnomalyReceiver
-    from "@/app/(auxiliary)/components/Sections/Traffics/Receivers/PacketAnomalyReceiver/PacketAnomalyReceiver";
+    from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PacketAnomalyReceiver/PacketAnomalyReceiver";
 import InterfaceHandler
-    from "@/app/(auxiliary)/components/Sections/Traffics/InterfaceHandler/InterfaceHandler";
+    from "@/app/(auxiliary)/components/Blocks/TrafficBlock/InterfaceHandler/InterfaceHandler";
 
 const NetworkAnomalies: FC = () => {
     return (

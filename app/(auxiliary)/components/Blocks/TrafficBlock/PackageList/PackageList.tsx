@@ -4,19 +4,26 @@ import _headerItems from "@/data/trafficData/headerItems.json"
 
 import {HeaderItemsType, TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
+import checkMark from "@/public/check-mark.svg"
+
 import styles from "./PackageList.module.scss";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import Scrollbar from "@/app/(auxiliary)/components/UI/Scrollbar/Scrollbar";
-import PackageItem
-    from "@/app/(auxiliary)/components/Sections/Traffics/PackageList/PackageItem/PackageItem";
-import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
+import PackageItem from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PackageList/PackageItem/PackageItem";
 import {InitialTrafficStateType, selectorTraffic, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import Image from "next/image";
+import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
+
 
 interface PropsType {
-    packages: TrafficPackageType[]
+    packages: TrafficPackageType[],
+    anomalyTraffic?: boolean;
 }
 
-const PackageList: FC<PropsType> = ({packages}) => {
+const PackageList: FC<PropsType> = ({
+                                        packages,
+                                        anomalyTraffic = false
+                                    }) => {
 
     const {currentSearchQuery}: InitialTrafficStateType = useSelector(selectorTraffic)
 
@@ -47,9 +54,15 @@ const PackageList: FC<PropsType> = ({packages}) => {
                             </div>
                         ))
                         :
-                        <div className={styles.packageListIsEmpty}>
-                            <MainTitle>No packages</MainTitle>
-                        </div>
+                        (anomalyTraffic ? (
+                            <div className={styles.noAnomaliesFound}>
+                                <Image src={checkMark} alt={"check-mark"}/> <MainTitle>no anomalies found</MainTitle>
+                            </div>
+                        ) : (
+                            <div>
+
+                            </div>
+                        ))
                     }
                 </div>
             </Scrollbar>

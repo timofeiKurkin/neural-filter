@@ -3,7 +3,6 @@ import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic"
 
 export interface InitialTrafficStateType {
     allTraffic: TrafficPackageType[];
-    anomaliesTraffic: TrafficPackageType[];
     currentInterface: string;
     currentSearchQuery: string;
     // savingStatus: boolean;
@@ -11,7 +10,6 @@ export interface InitialTrafficStateType {
 
 const initialState: InitialTrafficStateType = {
     allTraffic: [],
-    anomaliesTraffic: [],
     currentInterface: "",
     currentSearchQuery: ""
     // savingStatus: false,

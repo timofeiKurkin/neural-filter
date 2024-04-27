@@ -4,9 +4,8 @@ import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 
 import styles from "./AllTraffic.module.scss";
 import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
-import InterfaceHandler from "@/app/(auxiliary)/components/Sections/Traffics/InterfaceHandler/InterfaceHandler";
-import PacketReceiver from "@/app/(auxiliary)/components/Sections/Traffics/Receivers/PacketReceiver/PacketReceiver";
-import SaveTraffic from "@/app/(auxiliary)/components/Sections/Traffics/SaveTraffic/SaveTraffic";
+import InterfaceHandler from "@/app/(auxiliary)/components/Blocks/TrafficBlock/InterfaceHandler/InterfaceHandler";
+import PacketReceiver from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PacketReceiver/PacketReceiver";
 
 const AllTraffic: FC = () => {
     return (
@@ -18,10 +17,6 @@ const AllTraffic: FC = () => {
             <div className={styles.allTrafficInter}>
                 <InterfaceHandler/>
             </div>
-
-            {/*<div className={styles.allTrafficSave}>*/}
-            {/*    <SaveTraffic/>*/}
-            {/*</div>*/}
 
             <div className={styles.allTrafficSearch}>
                 <Search/>

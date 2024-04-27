@@ -53,8 +53,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const [twoFactorAccept, setTwoFactorAccept] =
         useState<boolean>(() => false)
 
-    const [working, setWorking] =
-        useState<boolean>(() => currentModelStatus.workStatus)
+    const working = dataset.group_file_id === currentModelStatus.modelID && currentModelStatus.workStatus
 
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{

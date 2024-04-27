@@ -4,7 +4,7 @@ import React, {FC, useEffect, useState} from 'react';
 
 import {WS_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
 
-import PackageList from "@/app/(auxiliary)/components/Sections/Traffics/PackageList/PackageList";
+import PackageList from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PackageList/PackageList";
 
 import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 

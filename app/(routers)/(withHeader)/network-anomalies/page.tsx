@@ -1,6 +1,6 @@
 import React from 'react';
 
-import NetworkAnomalies from "@/app/(auxiliary)/components/Sections/Traffics/NetworkAnomalies/NetworkAnomalies";
+import NetworkAnomalies from "@/app/(auxiliary)/components/Sections/NetworkAnomalies/NetworkAnomalies";
 
 const Page = () => {
     return <NetworkAnomalies/>

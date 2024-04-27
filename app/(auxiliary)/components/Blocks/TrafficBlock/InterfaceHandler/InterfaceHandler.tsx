@@ -37,8 +37,8 @@ const InterfaceHandler: FC = () => {
                 if ((response as AxiosResponse<TrafficResponse>).status === 200) {
                     const responseData = (response as AxiosResponse<TrafficResponse>).data.network_interfaces
                     setAllInterface(responseData)
-                    setSelectedInterface(responseData[0])
-                    dispatch(setInterface(responseData[0].title))
+                    setSelectedInterface(responseData[1])
+                    dispatch(setInterface(responseData[1].title))
                 }
             }
         }

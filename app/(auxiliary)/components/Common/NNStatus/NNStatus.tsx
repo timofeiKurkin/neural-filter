@@ -7,12 +7,15 @@ import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork,
-    setCurrentModelStatus,
+    setCurrentModelStatus, setNewAnomalyTraffic,
     setWebSocket
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {selectorFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
-import {NeuralNetworkWorkResponseType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
+import {
+    NeuralNetworkFoundAnomalyResponseType,
+    NeuralNetworkWorkResponseType
+} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
 
 
 // For response
@@ -111,7 +114,18 @@ const NnStatus = () => {
 
                     const statusData: StatusRenderType = data
 
-                    if ((statusData as NeuralNetworkWorkResponseType).send_type) {
+                    console.log("statusData", statusData)
+
+                    if ((statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
+                        const newAnomalyTraffic: NeuralNetworkFoundAnomalyResponseType = data
+                        const anomalyTrafficSession = newAnomalyTraffic.data.session
+
+                        dispatch(setNewAnomalyTraffic({
+                            [anomalyTrafficSession]: newAnomalyTraffic.data.anomaly_package
+                        }))
+                    }
+
+                    if ((statusData as NeuralNetworkWorkResponseType).send_type === 'model_work') {
                         const workResponse: NeuralNetworkWorkResponseType = data
 
                         if (workResponse.send_type === "model_work" &&
