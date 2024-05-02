@@ -55,68 +55,61 @@ async def classification_traffic_nn(
             (dataset["X_train"], dataset["y_train"]),
             (dataset["X_test"], dataset["y_test"]))
 
+        print(f"{X_train.shape}")
+        print(f"{y_train.shape}")
+        print(f"{X_test.shape}")
+        print(f"{y_test.shape}")
+        print(X_test)
+
         model = keras.Sequential([
             keras.layers.ConvLSTM2D(
-                filters=32,
+                filters=16,
                 kernel_size=3,
-                activation=keras.activations.leaky_relu,
+                activation=keras.activations.relu,
                 input_shape=X_train.shape[1:],
                 return_sequences=False,
                 name="ConvLSTM"
             ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite1"),
             keras.layers.Conv2D(
-                filters=64,
+                filters=32,
                 kernel_size=3,
-                activation=keras.activations.leaky_relu,
+                activation=keras.activations.relu,
                 padding="same",
                 name="Conv2"
             ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite2"),
             keras.layers.Conv2D(
-                filters=64,
+                filters=32,
                 kernel_size=3,
-                activation=keras.activations.leaky_relu,
+                activation=keras.activations.relu,
                 padding="same",
                 name="Conv3"
             ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite3"),
             keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-            keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite"),
+            keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite"),
 
-            keras.layers.Conv2D(
-                filters=32,
-                kernel_size=3,
-                activation=keras.activations.leaky_relu,
-                padding="same",
-                name="Conv4"
-            ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite4"),
-            keras.layers.Conv2D(
-                filters=32,
-                kernel_size=3,
-                activation=keras.activations.leaky_relu,
-                padding="same",
-                name="Conv5"
-            ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite5"),
             keras.layers.Conv2D(
                 filters=16,
                 kernel_size=3,
-                activation=keras.activations.leaky_relu,
+                activation=keras.activations.relu,
                 padding="same",
-                name="Conv6"
+                name="Conv4"
             ),
-            # keras_cv.layers.SqueezeAndExcite2D(filters=16, name="SqueezeAndExcite6"),
+            keras.layers.Conv2D(
+                filters=16,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv5"
+            ),
             keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.2),
             keras.layers.Flatten(),
             keras.layers.Dense(
-                units=1024,
-                activation=keras.activations.leaky_relu
+                units=64,
+                activation=keras.activations.relu
             ),
             keras.layers.Dense(
                 units=1,
@@ -127,17 +120,17 @@ async def classification_traffic_nn(
         adam = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(
             optimizer=adam,
-            # loss=keras.losses.binary_crossentropy,
             loss=keras.losses.BinaryCrossentropy(),
             metrics=[
-                'recall',
-                'precision'
+                keras.metrics.BinaryAccuracy(),
+                keras.metrics.Recall(),
+                keras.metrics.Precision()
             ]
         )
 
         model.summary()
 
-        epochs = 30
+        epochs = 50
 
         history = model.fit(
             x=X_train,
@@ -145,7 +138,6 @@ async def classification_traffic_nn(
             epochs=epochs,
             batch_size=32,
             validation_data=(X_test, y_test),
-            # validation_freq=[1, 5, 10]
         )
 
         predictions = model.predict(
@@ -154,6 +146,8 @@ async def classification_traffic_nn(
         )
         print(f"{predictions=}")
         print(f"{predictions.shape=}")
+        print(f"{np.max(predictions)=}")
+        print(f"{np.min(predictions)=}")
 
         model.save(save_model_path)
         print(f"Model saved successfully to: {save_model_path}")

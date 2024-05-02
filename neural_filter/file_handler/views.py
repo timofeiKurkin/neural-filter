@@ -15,6 +15,7 @@ from .serializers import MultipleSerializer, DatasetSerializer
 from .models import DatasetModel
 
 from network_anomalies.new_neural_network.split_sessions import split_sessions
+import network_anomalies.directories as directories
 
 from scapy.all import PcapReader
 
@@ -58,8 +59,21 @@ class FileHandlerView(APIView):
 
             # UUID for dataset and files
             group_file_id = uuid.uuid4()
-            dataset_directory = os.path.join(settings.MODELS_DIR, str(group_file_id))
-            os.mkdir(dataset_directory)
+            model_directory = os.path.join(settings.MODELS_DIR, str(group_file_id))
+            os.mkdir(model_directory)
+
+            sessions_directory = os.path.join(model_directory, directories.sessions_directory)
+            os.mkdir(sessions_directory)
+
+            directories_to_create = [
+                directories.dataset_directory,
+                directories.model_directory,
+                directories.helpful_directory
+            ]
+
+            for directory_name in directories_to_create:
+                directory_path = os.path.join(model_directory, directory_name)
+                os.mkdir(directory_path)
 
             # Array for write all pcap data from files
             packets_from_files = []
@@ -68,44 +82,9 @@ class FileHandlerView(APIView):
                 packages = PcapReader(file)
                 packets_from_files.extend(packages)
 
-                # List with packages into json format. And list for response
-                # packages_data = []
-                # file_name = file.name
-                # for packet in packages:
-                #     if "IP" in packet or "TCP" in packet:
-                #         data = pcap_package_to_json(
-                #             pcap_package=packet,
-                #             package_id=self.id_packages,
-                #             time_format='%.30f' % packet.time
-                #         )
-                #         self.id_packages += 1
-                #         packages_data.append(data)
-
-                # file_serializer = self.serializer_class(data={
-                #     "file_name": file_name,
-                #     "group_file_id": group_file_id,
-                #     "dataset_id": dataset_serializer.instance.id
-                # })
-
-                # if file_serializer.is_valid():
-                #     file_serializer.save()
-                #
-                #     response_data.append({
-                #         "file_name": file_serializer.data["file_name"],
-                #         "group_file_id": file_serializer.data["group_file_id"]
-                #     })
-                # else:
-                #     return Response(
-                #         file_serializer.errors,
-                #         status=status.HTTP_400_BAD_REQUEST
-                #     )
-
-            output_directory = os.path.join(dataset_directory, "pcap-sessions")
-            os.mkdir(output_directory)
-
             sessions_count = split_sessions(
                 pcap_file=packets_from_files,
-                output_directory=output_directory
+                output_directory=sessions_directory
             )
 
             dataset_serializer = self.dataset_serializer(data={

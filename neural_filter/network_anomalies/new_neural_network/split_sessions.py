@@ -9,25 +9,24 @@ def split_sessions(
     sessions = {}
 
     for packet in pcap_file:
-        if packet.haslayer("IP") and (packet.haslayer("TCP") or packet.haslayer("UDP")):
+        if packet.haslayer("IP") and packet.haslayer("TCP"):
             src_ip = "-".join(packet["IP"].src.split("."))
+            src_port = packet["TCP"].sport
+            src_key = f"{src_ip}_{src_port}"
+
             dst_ip = "-".join(packet["IP"].dst.split("."))
+            dst_port = packet["TCP"].dport
+            dst_key = f"{dst_ip}_{dst_port}"
 
-            src_port = ""
-            dst_port = ""
+            keys_with_sessions = [key for key in sessions.keys() if src_key in key and dst_key in key]
 
-            if packet.haslayer("TCP"):
-                src_port = packet["TCP"].sport
-                dst_port = packet["TCP"].dport
-            elif packet.haslayer("UDP"):
-                src_port = packet["UDP"].sport
-                dst_port = packet["UDP"].dport
-
-            session_key = f"{src_ip}_{src_port}_{dst_ip}_{dst_port}"
-
-            if session_key not in sessions:
-                sessions[session_key] = []
-            sessions[session_key].append(packet)
+            if len(keys_with_sessions) == 1:
+                sessions[keys_with_sessions[0]].append(packet)
+            else:
+                session_key = f"{dst_key}_{src_key}"
+                if session_key not in sessions:
+                    sessions[session_key] = []
+                sessions[session_key].append(packet)
 
     for session_key, sessions_packets in sessions.items():
         write_pcap = PcapWriter(filename=f"{output_directory}/{session_key}.pcap")

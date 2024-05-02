@@ -17,87 +17,63 @@ async def read_pcap(*, pcap_path):
         package_array = np.array([])
 
         if (
-                "IP" in package_data and
-                ("TCP" in package_data or
-                 "UDP" in package_data)
+                package_data.haslayer("IP") and package_data.haslayer("TCP")
         ):
-            package_array = np.append(package_array, [
-                package_data['IP'].src,
-                package_data['TCP'].sport if package_data.haslayer("TCP") else package_data['UDP'].sport,
-                package_data['IP'].dst,
-                package_data['TCP'].dport if package_data.haslayer("TCP") else package_data['UDP'].dport,
-                package_data['IP'].proto,
-                package_data['IP'].len,
+            # # Header
+            # mac_dst = int(package_data.fields["dst"].replace(":", ""), 16)
+            # mac_src = int(package_data.fields["src"].replace(":", ""), 16)
+
+            # # IP layer
+            # ip_src = int(ipaddress.IPv4Address(package_data['IP'].src))
+            # ip_dst = int(ipaddress.IPv4Address(package_data['IP'].dst))
+
+            (ip_src, ip_dst), (mac_dst, mac_src) = await formated_package(
+                ip_addresses=[package_data['IP'].dst, package_data['IP'].src],
+                mac_addresses=[package_data.fields["dst"], package_data.fields["src"]])
+
+            ip_len = package_data['IP'].len
+            ip_proto = package_data['IP'].proto
+
+            # TCP layer
+            tcp_sport = package_data['TCP'].sport
+            tcp_dport = package_data['TCP'].dport
+
+            package_new_array = np.array([
+                mac_dst,
+                mac_src,
+                ip_src,
+                ip_dst,
+                tcp_sport,
+                tcp_dport,
+                ip_len,
+                ip_proto
             ])
 
-        if len(package_array) == 6:
+            package_array = np.append(package_array, package_new_array)
+
+        if len(package_array) == 8:
             packages_list.add(tuple(package_array))
 
     if len(packages_list) != 0:
         return np.array(list(packages_list))
+    else:
+        return []
 
 
-# async def pcap_files_to_dataset(*, pcap_files_path):
-#     dataset_packages = []
-#     dataset_labels = []
-#
-#     for pcap_file in pcap_files_path:
-#         packages, label = await pcap_file_to_dataset(pcap_file_path=pcap_file)
-#
-#         if len(packages) != 0 and len(label) != 0:
-#             dataset_packages.append(packages)
-#             dataset_labels.append(label)
-#
-#     return dataset_packages, dataset_labels
+async def formated_package(*, ip_addresses, mac_addresses):
+    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) for ip in ip_addresses]
+    mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) for mac_address in mac_addresses]
 
-
-async def formated_packages(*, package):
-    encoded_package = []
-
-    for pack in package:
-        ip_src, port_src, ip_dst, port_dst, ip_proto, ip_len = pack
-
-        encoded_ip_addresses = (
-            np.array([int(ipaddress.IPv4Address(ip)) for ip in (ip_src, ip_dst)])
-        )
-        other_data_int = (
-            np.array([int(data) for data in (ip_proto, ip_len, port_src, port_dst)])
-        )
-        combined_array = (
-            np.concatenate([encoded_ip_addresses, other_data_int])
-        )
-
-        mms = MinMaxScaler(feature_range=(0, 1))
-        encoded_test = mms.fit_transform(combined_array.reshape(-1, 1))
-        encoded_test = encoded_test.reshape(1, -1)[0]
-
-        # combined_array = np.array([np.expand_dims(x, axis=0) for x in combined_array])
-
-        encoded_package.append(combined_array)
-
-    encoded_package = np.array(encoded_package)
-
-    # mms = MinMaxScaler(feature_range=(0, 1))
-    # mms.fit(encoded_package)
-    # encoded_test = mms.fit_transform(encoded_package)
-    # print(f"{encoded_package=}")
-    # print(f"{encoded_test=}")
-
-    return encoded_package
-
-
-async def put_label_on_packages(*, packages, label):
-    return packages, label
-    # return packages, np.array([label])
+    return ip_addresses_encoded, mac_addresses_encoded
 
 
 async def encoded_embedding_model(*, input_length):
     encoded_model = keras.Sequential([
         keras.layers.Embedding(
-            input_dim=input_length+1,
-            output_dim=6,
+            input_dim=input_length + 1,
+            output_dim=8,
         ),
-        keras.layers.Dense(units=6, activation=keras.activations.leaky_relu),
+        keras.layers.Dense(units=8, activation=keras.activations.relu),
     ])
     encoded_model.compile(
         optimizer=keras.optimizers.Adam(),
@@ -117,26 +93,25 @@ async def expand_dimension(*, encoded_packages):
     return np.array(new_encoded_packages)
 
 
-async def pcap_file_to_dataset(*, pcap_file_path):
+async def pcap_file_to_dataset(*, pcap_file_path, pcap_files_count):
     package_label = pcap_file_path.split("/")[-1].split(".")[0]
 
     read_package = await read_pcap(pcap_path=pcap_file_path)
 
-    if read_package is not None:
-        transformed_packages = await formated_packages(package=read_package)
+    if len(read_package) != 0:
+        # Encoded data to format 0 - 1
+        encoded_model = await encoded_embedding_model(input_length=pcap_files_count * 8)
+        encoded_packages = encoded_model.predict(read_package, verbose=0)
 
-        encoded_model = await encoded_embedding_model(input_length=len(read_package))
-        # encoded_model.fit(x=transformed_packages, y=package_label)
-        encoded_packages = encoded_model.predict(transformed_packages)
+        # Change 0 to mean value of column
+        means = np.nanmean(encoded_packages, axis=(0, 2))
+        encoded_packages[encoded_packages == 0] = np.nan
+        encoded_packages = np.nan_to_num(encoded_packages, nan=means)
 
+        # Add expand
         new_encoded_packages = await expand_dimension(encoded_packages=encoded_packages)
 
-        packages, label = await put_label_on_packages(
-            packages=new_encoded_packages,
-            label=package_label
-        )
-
-        return packages, label
+        return new_encoded_packages, package_label
     else:
         return [], []
 
@@ -165,15 +140,21 @@ async def array_split(
 
         data_test = np.array(
             [np.concatenate(
-                (lst, np.zeros([int(data_test_max_length - len(lst)), 6, 6, 1]))
+                (lst, np.zeros([int(data_test_max_length - len(lst)), 8, 8, 1]))
             ) for lst in data_test]
         )
 
         data_train = np.array(
             [np.concatenate(
-                (lst, np.zeros([int(data_train_max_length - len(lst)), 6, 6, 1]))
+                (lst, np.zeros([int(data_train_max_length - len(lst)), 8, 8, 1]))
             ) for lst in data_train]
         )
+
+        mean_value_test = np.mean(data_test, axis=(0, 1, 2, 3))
+        data_test[data_test == 0] = mean_value_test
+
+        mean_value_test = np.mean(data_train, axis=(0, 1, 2, 3))
+        data_train[data_train == 0] = mean_value_test
 
         return ((data_test, labels_test_first_part),
                 (data_train, labels_train_second_part))

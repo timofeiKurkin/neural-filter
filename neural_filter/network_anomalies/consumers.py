@@ -1,6 +1,8 @@
 import asyncio
 import json
 import os
+import pickle
+import time
 
 import keras.saving
 import numpy as np
@@ -12,11 +14,12 @@ from scapy.sendrecv import AsyncSniffer
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 from file_handler.models import DatasetModel
+from . import directories
 from . import statuses
 from .new_neural_network.model import classification_traffic_nn
 from .new_neural_network.pcap_to_dataset import (array_split,
                                                  pcap_file_to_dataset,
-                                                 formated_packages,
+                                                 formated_package,
                                                  encoded_embedding_model,
                                                  expand_dimension)
 
@@ -50,6 +53,8 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
         # Current model-id in Web-Socket session
         self.current_model_id = None
+        self.current_model_path = None
+
         # Dataset packages for education model. They aren't separated for X_train, X_test.
         self.dataset_packages = None
         # Dataset labels for education model. They aren't separated for y_train, y_test.
@@ -94,6 +99,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             dataset_id = message["data"]
             if dataset_id:
                 self.current_model_id = dataset_id
+                self.current_model_path = str(os.path.join(settings.MODELS_DIR, dataset_id))
                 await self.start_education()
 
         if send_type == "stop_education":
@@ -107,8 +113,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             self.sessions_encoded = {}
             self.mean_traffic_predict_sessions = {}
 
-            # dataset_id = message["dataset_id"]
-            # self.current_dataset_id = dataset_id
             await self.start_scanning(interface=interface)
 
         if send_type == "stop_scanning":
@@ -124,62 +128,84 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         pass
 
     def packet_callback(self, packet):
+        if packet.haslayer("IP") and packet.haslayer("TCP"):
+            # Header
+            mac_src = packet.fields["src"]
+            mac_dst = packet.fields["dst"]
 
-        if (packet.haslayer("IP") and
-                (packet.haslayer("TCP") or packet.haslayer("UDP"))):
-            src_ip = packet["IP"].src
-            dst_ip = packet["IP"].dst
-            packet_proto = packet['IP'].proto
-            packet_len = packet['IP'].len
+            # IP layer
+            ip_src = packet['IP'].src
+            ip_dst = packet['IP'].dst
+            ip_len = packet['IP'].len
+            ip_proto = packet['IP'].proto
 
-            src_port = ""
-            dst_port = ""
+            # TCP layer
+            tcp_sport = packet['TCP'].sport
+            tcp_dport = packet['TCP'].dport
 
-            if packet.haslayer("TCP"):
-                src_port = packet["TCP"].sport
-                dst_port = packet["TCP"].dport
-            elif packet.haslayer("UDP"):
-                src_port = packet["UDP"].sport
-                dst_port = packet["UDP"].dport
+            ip_src_key = "-".join(packet["IP"].src.split("."))
+            ip_dst_key = "-".join(packet["IP"].dst.split("."))
+            session_key = f"{ip_src_key}_{ip_dst_key}"
 
-            session_key = f"{'-'.join(src_ip.split('.'))}_{src_port}_{'-'.join(dst_ip.split('.'))}_{dst_port}"
+            keys_with_sessions = (
+                [key for key in self.sessions.keys() if ip_src_key in key and ip_dst_key in key]
+            )
+            if len(keys_with_sessions) == 1:
+                session_key = keys_with_sessions[0]
 
             normal_package = {
                 "id": self.package_id,
                 "time": packet.time,
-                "source": src_ip,
-                "destination": dst_ip,
-                "protocol": packet_proto,
-                "length": packet_len
+                "source": ip_src,
+                "destination": ip_dst,
+                "protocol": ip_proto,
+                "length": ip_len
             }
+            self.package_id += 1
+
+            (ip_src, ip_dst), (mac_dst, mac_src) = asyncio.run(formated_package(
+                ip_addresses=[ip_src, ip_dst],
+                mac_addresses=[mac_dst, mac_src]
+            ))
+            package_array = np.array([
+                mac_dst,
+                mac_src,
+                ip_src,
+                ip_dst,
+                tcp_sport,
+                tcp_dport,
+                ip_len,
+                ip_proto
+            ])
+
+            package_len = 1
+
+            if len(self.sessions_encoded) and session_key in self.sessions_encoded:
+                package_len = len(self.sessions_encoded[session_key])
+
+            encoded_model = asyncio.run(encoded_embedding_model(
+                input_length=package_len * 8
+            ))
+            encoded_packages = encoded_model.predict(package_array, verbose=0)
+
+            new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=[encoded_packages]))
 
             if session_key not in self.sessions:
                 self.sessions[session_key] = []
             self.sessions[session_key].append(normal_package)
-
-            package_array = [
-                src_ip,
-                src_port,
-                dst_ip,
-                dst_port,
-                packet_proto,
-                packet_len
-            ]
-
-            transformed_packages = asyncio.run(formated_packages(
-                package=np.array([package_array])
-            ))
-            encoded_model = asyncio.run(encoded_embedding_model(input_length=1))
-            encoded_packages = encoded_model.predict(transformed_packages)
-
-            new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=encoded_packages))
-
             if session_key not in self.sessions_encoded:
                 self.sessions_encoded[session_key] = []
             self.sessions_encoded[session_key].append(new_encoded_packages_dimension)
 
             if self.model is not None:
+                print("")
+                print("==== Predict start ====")
+
                 session_for_predict = np.array(self.sessions_encoded[session_key])
+
+                mean_value_test = np.mean(session_for_predict, axis=(0, 1, 2, 3))
+                session_for_predict[session_for_predict == 0] = mean_value_test
+
                 session_predict = self.model.predict(session_for_predict)
                 session_predict_mean = np.mean(session_predict)
 
@@ -187,12 +213,14 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     last_predict_package = session_predict[-1][0]
 
                     # mean_predict_max = (self.mean_traffic_predict_sessions[session_key] +
-                    #                     self.mean_traffic_predict_sessions[session_key] * 0.3)
-                    # last_predict_min = (self.mean_traffic_predict_sessions[session_key] -
-                    #                     self.mean_traffic_predict_sessions[session_key] * 0.5)
-                    # anomaly_traffic = True if last_predict_package <= last_predict_min else False
+                    #                     self.mean_traffic_predict_sessions[session_key] * 0.05)
 
-                    anomaly_traffic = True if last_predict_package <= 0.65 else False
+                    mean_predict_min = (self.mean_traffic_predict_sessions[session_key] -
+                                        self.mean_traffic_predict_sessions[session_key] * 0.2)
+
+                    print(mean_predict_min, last_predict_package)
+
+                    anomaly_traffic = False if mean_predict_min < last_predict_package else True
 
                     if anomaly_traffic:
                         if session_key not in self.anomaly_packages_for_send_client:
@@ -210,45 +238,34 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         self.mean_traffic_predict_sessions[session_key] = session_predict_mean
                 else:
                     self.mean_traffic_predict_sessions[session_key] = session_predict_mean
+                time.sleep(0.1)
 
-                print("")
-                # print("==== Predict start ====")
-                print(f"Session key: {session_key}")
-                # print(f"{session_predict=}")
-                # print(f"{session_predict.shape=}")
-                print(f"{session_predict_mean=}")
-                # print(f"{self.anomaly_packages_for_send_client=}")
-#                 print("==== Predict end ====")
-                print("")
-        # if "IP" in packet:
-        #     package = pcap_package_to_json(
-        #         pcap_package=packet,
-        #         package_id=self.package_id
-        #     )
-        #     self.package_id += 1
-        #     time.sleep(0.5)
-        #     print(f"{package=}")
-        #     features = asyncio.run(format_packages(packages=[package]))
-        #     print("formatted_package", features)
+            # print(f"Session key: {session_key}")
+            # print(f"{self.sessions_encoded}")
+            # print(f"{session_predict=}")
+            # print(f"{session_for_predict=}")
+            # print(f"{session_predict.shape=}")
+            # print(f"{session_predict_mean=}")
+            # print(f"{self.anomaly_packages_for_send_client=}")
+            print("==== Predict end ====")
+            print("")
 
     async def start_scanning(self, *, interface: str = None):
-        # if self.model is None:
-        #     model_path = str(os.path.join(
-        #         settings.MODELS_DIR,
-        #         self.current_dataset_id,
-        #         "model",
-        #         "model.keras"
-        #     ))
-        #     self.model = keras.saving.load_model(model_path)
+        if self.model is None:
+            model_path = str(os.path.join(
+                self.current_model_path,
+                directories.model_directory,
+                "model.keras"
+            ))
+            self.model = keras.saving.load_model(model_path)
 
-        if self.model is not None:
-            self.asyncSniffer = AsyncSniffer(
-                prn=self.packet_callback,
-                iface=interface,
-                store=1
-            )
-            self.asyncSniffer.start()
-            print("==== Sniffer started ====")
+        self.asyncSniffer = AsyncSniffer(
+            prn=self.packet_callback,
+            iface=interface,
+            store=1
+        )
+        self.asyncSniffer.start()
+        print("==== Sniffer started ====")
 
     async def start_sniffing(self):
         pass
@@ -256,20 +273,25 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     async def pcap_files_to_dataset(self):
         # Directory for savings datasets and figure
         if self.current_model_id:
-            models_directory = str(os.path.join(settings.MODELS_DIR, self.current_model_id))
-            pcap_sessions_path = str(os.path.join(models_directory, "pcap-sessions"))
+            sessions_path = str(os.path.join(
+                self.current_model_path,
+                directories.sessions_directory
+            ))
 
             # All files from sessions directory
             pcap_files_path = [
-                os.path.join(pcap_sessions_path, package_file)
-                for package_file in os.listdir(pcap_sessions_path)
+                os.path.join(sessions_path, package_file)
+                for package_file in os.listdir(sessions_path)
             ]
 
             dataset_packages = []
             dataset_labels = []
 
             for pcap_file in pcap_files_path:
-                packages, label = await pcap_file_to_dataset(pcap_file_path=pcap_file)
+                packages, label = await pcap_file_to_dataset(
+                    pcap_file_path=pcap_file,
+                    pcap_files_count=len(pcap_files_path)
+                )
 
                 if len(packages) != 0 and len(label) != 0:
                     dataset_packages.append(packages)
@@ -277,11 +299,20 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             self.dataset_packages = dataset_packages
             self.dataset_labels = dataset_labels
+            print("==== Datasets successfully loaded ====")
 
-    async def mms_layer(self, *, fit_data):
+    async def mms_layer(self, *, fit_data, ):
         mms = MinMaxScaler(feature_range=(0, 1))
         mms.fit(fit_data)
         self.mms = mms
+
+        # helpful_files = str(os.path.join(
+        #     self.current_model_path,
+        #     directories.helpful_directory,
+        #     "min_max_scaler.pkl"
+        # ))
+        # with open(helpful_files, "wb") as file:
+        #     pickle.dump(mms, file)
 
     async def label_encoder_layer(self, *, fit_data):
         encoder = LabelEncoder()
@@ -289,14 +320,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         self.label_encoder = encoder
 
     async def start_education(self):
-        current_model_path = str(os.path.join(
-            settings.MODELS_DIR,
-            self.current_model_id
-        ))
-
         model_path = os.path.join(
-            current_model_path,
-            "model",
+            self.current_model_path,
+            directories.model_directory,
             "model.keras"
         )
 
@@ -321,10 +347,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
                 # Directory for saving dataset
                 dataset_path = str(os.path.join(
-                    current_model_path,
-                    "dataset"
+                    self.current_model_path,
+                    directories.dataset_directory
                 ))
-                os.mkdir(dataset_path)
                 dataset_file_npz = str(os.path.join(dataset_path, "dataset.npz"))
 
                 if len(self.dataset_packages) != 0 and len(self.dataset_labels) != 0:
@@ -372,10 +397,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     await asyncio.sleep(1)
 
                     dataset = np.load(dataset_file_npz)
-                    os.mkdir(os.path.join(
-                        current_model_path,
-                        "model",
-                    ))
 
                     model = await classification_traffic_nn(
                         dataset=dataset,
