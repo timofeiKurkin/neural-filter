@@ -11,7 +11,7 @@ import styles from "./DropZone.module.scss";
 import Image from "next/image";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {InitialFilesStateType, selectorFiles, setFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {usePathname} from "next/navigation";
 import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {CustomErrorType, ErrorFilesType} from "@/app/(auxiliary)/types/AppTypes/Errors";
@@ -22,7 +22,7 @@ const DropZone: FC = () => {
     const page = `/${pathname.split('/').filter(Boolean)[0]}`
 
     const dispatch = useDispatch()
-    const {files}: { files: File[] } = useSelector(selectorFiles)
+    const {files}: InitialFilesStateType = useSelector(selectorFiles)
     const {errorList}: { errorList: CustomErrorType[] } = useSelector(selectorApplication)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -105,6 +105,12 @@ const DropZone: FC = () => {
             })
         }
     }, [fileRejections]);
+
+    // useEffect(() => {
+    //     if(!files.length) {
+    //
+    //     }
+    // }, [files])
 
     // console.log("errorFiles", errorList)
 

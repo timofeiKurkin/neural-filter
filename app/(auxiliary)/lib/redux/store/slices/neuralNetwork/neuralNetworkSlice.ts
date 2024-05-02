@@ -24,7 +24,7 @@ const initialState: InitialNeuralNetworkStateType = {
     },
     ws: {} as WebSocket,
     modelMetric: {} as ModelMetricType,
-    anomalyTraffic: []
+    anomalyTraffic: [],
 }
 
 export const neuralNetworkSlice = createSlice({

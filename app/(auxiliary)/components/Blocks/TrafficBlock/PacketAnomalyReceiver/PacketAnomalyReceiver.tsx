@@ -16,30 +16,10 @@ import PackageAnomalyList from "@/app/(auxiliary)/components/Blocks/TrafficBlock
 
 
 const PacketAnomalyReceiver = () => {
-
-    const {currentInterface}: InitialTrafficStateType = useSelector(selectorTraffic)
-
     const {
         currentModelStatus,
         ws,
     }: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
-
-    useEffect(() => {
-        if (ws && ws instanceof WebSocket && currentInterface) {
-            // ws.send(JSON.stringify({
-            //     ...startScanningInstruction,
-            //     interface: currentInterface
-            // }))
-        }
-
-        return () => {
-            if (ws && ws instanceof WebSocket) {
-                ws.send(JSON.stringify({
-                    ...stopScanningInstruction
-                }))
-            }
-        }
-    }, [currentInterface])
 
     return (
         ws && ws instanceof WebSocket && (

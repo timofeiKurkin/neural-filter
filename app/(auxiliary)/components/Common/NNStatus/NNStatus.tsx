@@ -114,7 +114,7 @@ const NnStatus = () => {
 
                     const statusData: StatusRenderType = data
 
-                    console.log("statusData", statusData)
+                    // console.log("statusData", statusData)
 
                     if ((statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
                         const newAnomalyTraffic: NeuralNetworkFoundAnomalyResponseType = data
@@ -172,6 +172,10 @@ const NnStatus = () => {
                     statusCode: 0,
                     colorStatus: color_6
                 })
+                dispatch(setCurrentModelStatus({
+                    workStatus: false,
+                    modelID: ""
+                }))
                 setTimeout(createWebSocket, 5000)
             }
         }

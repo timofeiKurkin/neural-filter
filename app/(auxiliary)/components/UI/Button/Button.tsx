@@ -1,6 +1,6 @@
-import React, {FC, useRef} from "react";
+"use client"
 
-import {motion, Variants} from "framer-motion";
+import React, {FC, useRef} from "react";
 
 import ButtonText from "@/app/(auxiliary)/components/UI/TextTemplates/ButtonText";
 
@@ -28,18 +28,8 @@ const Button: FC<buttonType> = ({
                                 }) => {
     const button = useRef(null)
 
-    const variants: Variants = {
-        "initial": {
-            opacity: 1,
-            userSelect: "none"
-        },
-        "hover": {
-            opacity: .8
-        }
-    }
-
     return (
-        <motion.button type={type ?? "button"}
+        <button type={type ?? "button"}
                        className={`${styles.button}`}
                        ref={button}
                        tabIndex={tabIndex}
@@ -47,14 +37,14 @@ const Button: FC<buttonType> = ({
                        onClick={onClick}
                        style={style}
 
-                       variants={variants}
-                       initial={'initial'}
-                       whileHover={'hover'}
+                       // variants={variants}
+                       // initial={'initial'}
+                       // whileHover={'hover'}
         >
             <span>
                 <ButtonText>{children}</ButtonText>
             </span>
-        </motion.button>
+        </button>
     );
 };
 

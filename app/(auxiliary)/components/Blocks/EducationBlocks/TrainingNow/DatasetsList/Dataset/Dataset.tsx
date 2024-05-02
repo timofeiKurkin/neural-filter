@@ -18,7 +18,6 @@ import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliar
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork,
-    setCurrentModelStatus,
     setModelMetric
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {getMetricImage} from "@/app/(auxiliary)/func/educationNeuralNetwork/getMetrics";
@@ -28,7 +27,6 @@ import {
 import {
     startEducationInstruction, stopEducationInstruction
 } from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/DatasetsList/Dataset/modelWorkInstructions";
-import {NeuralNetworkWorkResponseType} from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
 
 
 /**
@@ -63,7 +61,14 @@ const Dataset: FC<PropsType> = ({dataset}) => {
 
     const deleteDatasetHandler = async (datasetGroupID: string) => {
         await deleteDataset(datasetGroupID)
-            .then((r) => (r as AxiosResponse).status === 204 && dispatch(setDatasets(datasets.filter(data => (data.group_file_id !== datasetGroupID)))))
+            .then((r) => (r as AxiosResponse).status === 204 &&
+                dispatch(setDatasets(
+                    datasets.filter(data =>
+                        (data.group_file_id !== datasetGroupID)
+                    )
+                )))
+        setDatasetHover(false)
+        setTwoFactorAccept(false)
     }
 
     const getDatasetMetrics = async (dataset_id: string) => {

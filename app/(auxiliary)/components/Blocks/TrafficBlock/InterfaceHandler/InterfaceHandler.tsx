@@ -61,7 +61,7 @@ const InterfaceHandler: FC = () => {
         return (
             <div className={styles.interfaceHandlerWrapper}>
                 <RegularText>
-                    Current interface:
+                    Interface:
                 </RegularText>
 
                 <div className={styles.interfaceHandler} onClick={() => setSelectStatus((prevState) => (!prevState))}>

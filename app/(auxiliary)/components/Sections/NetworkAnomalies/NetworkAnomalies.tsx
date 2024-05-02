@@ -7,6 +7,7 @@ import PacketAnomalyReceiver
     from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PacketAnomalyReceiver/PacketAnomalyReceiver";
 import InterfaceHandler
     from "@/app/(auxiliary)/components/Blocks/TrafficBlock/InterfaceHandler/InterfaceHandler";
+import ScanningControl from "@/app/(auxiliary)/components/Blocks/TrafficBlock/ScanningControl/ScanningControl";
 
 const NetworkAnomalies: FC = () => {
     return (
@@ -23,6 +24,10 @@ const NetworkAnomalies: FC = () => {
 
             <div className={styles.networkAnomaliesSearch}>
                 <Search/>
+            </div>
+
+            <div className={styles.networkAnomaliesControl}>
+                <ScanningControl/>
             </div>
 
             <div className={styles.networkAnomalies}>
