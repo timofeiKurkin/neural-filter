@@ -1,7 +1,7 @@
 import asyncio
+import joblib
 import json
 import os
-import pickle
 import time
 
 import keras.saving
@@ -11,17 +11,24 @@ from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from scapy.sendrecv import AsyncSniffer
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from file_handler.models import DatasetModel
 from . import directories
 from . import statuses
 from .new_neural_network.model import classification_traffic_nn
-from .new_neural_network.pcap_to_dataset import (array_split,
-                                                 pcap_file_to_dataset,
-                                                 formated_package,
-                                                 encoded_embedding_model,
-                                                 expand_dimension)
+from .new_neural_network.pcap_to_dataset import (
+    array_split,
+    pcap_file_to_dataset,
+    formated_package,
+    encoded_embedding_model,
+    expand_dimension
+)
+from .new_neural_network.pcap_to_dataset_v2 import (
+    read_pcap,
+    formated_packages,
+    dataset_split
+)
 
 
 class NeuralNetworkConsumer(AsyncWebsocketConsumer):
@@ -42,11 +49,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         self.sessions = {}
         # The same sessions, only they have encoded format
         self.sessions_encoded = {}
+        # Sessions of mms model
+        self.sessions_mms = {}
 
         # MinMaxScaler Trained Model
-        self.mms = None
+        # self.mms = None
         # LabelEncoder Trained Model
-        self.label_encoder = None
+        # self.label_encoder = None
 
         # Mean traffic predicted separate for sessions
         self.mean_traffic_predict_sessions = {}
@@ -68,13 +77,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         except DatasetModel.DoesNotExist:
             raise DenyConnection("No dataset found")
 
-    # @database_sync_to_async
-    # def get_files_from_db(self, selected_dataset_id):
-    #     try:
-    #         return list(FileHandlerModel.objects.filter(group_file_id=selected_dataset_id).values())
-    #     except FileHandlerModel.DoesNotExist:
-    #         raise DenyConnection("No file found")
-
     # Connect with user
     async def connect(self):
         await self.accept()
@@ -86,6 +88,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, code):
         await self.send_work_status(new_status=statuses.disconnection_status)
         self.model = None
+        self.sessions_mms = {}
         if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
             self.asyncSniffer = None
@@ -118,6 +121,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if send_type == "stop_scanning":
             await self.stop_scanning()
 
+        if send_type == "stop_working":
+            pass
+
     async def stop_scanning(self):
         if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
@@ -125,6 +131,10 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             print("==== Sniffer stopped ====")
 
     async def stop_education(self):
+        model_path = ""
+        dataset_path = ""
+        helpful_files = ""
+        self.current_model_id = ''
         pass
 
     def packet_callback(self, packet):
@@ -143,13 +153,11 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             tcp_sport = packet['TCP'].sport
             tcp_dport = packet['TCP'].dport
 
-            ip_src_key = "-".join(packet["IP"].src.split("."))
-            ip_dst_key = "-".join(packet["IP"].dst.split("."))
-            session_key = f"{ip_src_key}_{ip_dst_key}"
+            src_key = f"{'-'.join(packet['IP'].src.split('.'))}_{tcp_sport}"
+            dst_key = f"{'-'.join(packet['IP'].dst.split('.'))}_{tcp_dport}"
+            session_key = f"{src_key}_{dst_key}"
 
-            keys_with_sessions = (
-                [key for key in self.sessions.keys() if ip_src_key in key and ip_dst_key in key]
-            )
+            keys_with_sessions = [key for key in self.sessions.keys() if src_key in key and dst_key in key]
             if len(keys_with_sessions) == 1:
                 session_key = keys_with_sessions[0]
 
@@ -178,51 +186,55 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 ip_proto
             ])
 
-            package_len = 1
+            session_mms_key = [key for key in self.sessions_mms.keys() if src_key in key and dst_key in key]
 
-            if len(self.sessions_encoded) and session_key in self.sessions_encoded:
-                package_len = len(self.sessions_encoded[session_key])
+            if len(session_mms_key) == 1:
+                session_mms = self.sessions_mms[session_mms_key[0]]
+                package_array = session_mms.transform(package_array.reshape(-1, 1))
+            else:
+                mms = asyncio.run(self.mms_layer(
+                    fit_data=package_array.reshape(-1, 1),
+                    session_key=session_key
+                ))
+                package_array = mms.transform(package_array.reshape(-1, 1))
 
-            encoded_model = asyncio.run(encoded_embedding_model(
-                input_length=package_len * 8
-            ))
-            encoded_packages = encoded_model.predict(package_array, verbose=0)
+            # package_len = 1
+            # if len(self.sessions_encoded) and session_key in self.sessions_encoded:
+            #     package_len = len(self.sessions_encoded[session_key])
+            #
+            # encoded_model = asyncio.run(encoded_embedding_model(
+            #     input_length=package_len * 8
+            # ))
+            # encoded_packages = encoded_model.predict(package_array, verbose=0)
+            # new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=[encoded_packages]))
 
-            new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=[encoded_packages]))
+            # encoded_packages = []
 
             if session_key not in self.sessions:
                 self.sessions[session_key] = []
             self.sessions[session_key].append(normal_package)
+
             if session_key not in self.sessions_encoded:
                 self.sessions_encoded[session_key] = []
-            self.sessions_encoded[session_key].append(new_encoded_packages_dimension)
+            self.sessions_encoded[session_key].append(package_array)
 
             if self.model is not None:
-                print("")
-                print("==== Predict start ====")
+                # print("")
+                # print("==== Predict start ====")
 
-                session_for_predict = np.array(self.sessions_encoded[session_key])
+                session_for_predict = np.array([self.sessions_encoded[session_key]])
 
-                mean_value_test = np.mean(session_for_predict, axis=(0, 1, 2, 3))
-                session_for_predict[session_for_predict == 0] = mean_value_test
+                if session_for_predict.shape[1] >= 8:
+                    session_for_predict, _ = asyncio.run(formated_packages(packages=session_for_predict))
 
-                session_predict = self.model.predict(session_for_predict)
-                session_predict_mean = np.mean(session_predict)
+                    mean_value_test = np.mean(session_for_predict, axis=(0, 1, 2, 3))
+                    session_for_predict[session_for_predict == 0] = mean_value_test
 
-                if session_key in self.mean_traffic_predict_sessions:
-                    last_predict_package = session_predict[-1][0]
+                    session_predict = self.model.predict(session_for_predict, verbose=0)
+                    session_predict = session_predict[0][0]
+                    print(f"{session_predict}")
 
-                    # mean_predict_max = (self.mean_traffic_predict_sessions[session_key] +
-                    #                     self.mean_traffic_predict_sessions[session_key] * 0.05)
-
-                    mean_predict_min = (self.mean_traffic_predict_sessions[session_key] -
-                                        self.mean_traffic_predict_sessions[session_key] * 0.2)
-
-                    print(mean_predict_min, last_predict_package)
-
-                    anomaly_traffic = False if mean_predict_min < last_predict_package else True
-
-                    if anomaly_traffic:
+                    if 0.08 < session_predict < 0.14:
                         if session_key not in self.anomaly_packages_for_send_client:
                             self.anomaly_packages_for_send_client[session_key] = []
                         self.anomaly_packages_for_send_client[session_key].append(normal_package)
@@ -230,15 +242,44 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                             send_type="found_anomaly_traffic",
                             data={
                                 "status": "success",
+
                                 "session": session_key,
                                 "anomaly_package": normal_package
                             }
                         ))
-                    else:
-                        self.mean_traffic_predict_sessions[session_key] = session_predict_mean
-                else:
-                    self.mean_traffic_predict_sessions[session_key] = session_predict_mean
-                time.sleep(0.1)
+
+            #
+            #     if session_key in self.mean_traffic_predict_sessions:
+            #         last_predict_package = session_predict[-1][0]
+            #
+            #         # mean_predict_max = (self.mean_traffic_predict_sessions[session_key] +
+            #         #                     self.mean_traffic_predict_sessions[session_key] * 0.05)
+            #
+            #         mean_predict_min = (self.mean_traffic_predict_sessions[session_key] -
+            #                             self.mean_traffic_predict_sessions[session_key] * 0.2)
+            #
+            #         print(mean_predict_min, last_predict_package)
+            #
+            #         anomaly_traffic = False if mean_predict_min < last_predict_package else True
+            #
+            #         if anomaly_traffic:
+            #             if session_key not in self.anomaly_packages_for_send_client:
+            #                 self.anomaly_packages_for_send_client[session_key] = []
+            #             self.anomaly_packages_for_send_client[session_key].append(normal_package)
+            #             asyncio.run(self.send_work_data(
+            #                 send_type="found_anomaly_traffic",
+            #                 data={
+            #                     "status": "success",
+            #                     "session": session_key,
+            #                     "anomaly_package": normal_package
+            #                 }
+            #             ))
+            #         else:
+            #             self.mean_traffic_predict_sessions[session_key] = session_predict_mean
+            #     else:
+            #         self.mean_traffic_predict_sessions[session_key] = session_predict_mean
+
+            time.sleep(0.1)
 
             # print(f"Session key: {session_key}")
             # print(f"{self.sessions_encoded}")
@@ -247,9 +288,12 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             # print(f"{session_predict.shape=}")
             # print(f"{session_predict_mean=}")
             # print(f"{self.anomaly_packages_for_send_client=}")
-            print("==== Predict end ====")
-            print("")
 
+            # print("==== Predict end ====")
+            # print("")
+
+    #
+    # Start scanning traffic
     async def start_scanning(self, *, interface: str = None):
         if self.model is None:
             model_path = str(os.path.join(
@@ -267,9 +311,60 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         self.asyncSniffer.start()
         print("==== Sniffer started ====")
 
-    async def start_sniffing(self):
-        pass
+    #
+    # Pcap files to dataset V2
+    async def pcap_files_to_dataset_v2(self):
+        if self.current_model_id:
+            sessions_path = str(os.path.join(
+                self.current_model_path,
+                directories.sessions_directory
+            ))
 
+            # All files from sessions directory
+            pcap_files_path = [
+                os.path.join(sessions_path, package_file)
+                for package_file in os.listdir(sessions_path)
+            ]
+
+            dataset_packages = []
+            dataset_labels = np.array([])
+
+            for pcap_file in pcap_files_path:
+                array, label = await read_pcap(
+                    pcap_path=pcap_file,
+                )
+
+                mms = await self.mms_layer(
+                    fit_data=array.reshape(-1, 8),
+                    session_key=label
+                )
+                array = mms.transform(array)
+
+                if len(array) != 0:
+                    dataset_packages.append(array)
+                    dataset_labels = np.append(dataset_labels, label)
+
+            data_train_max_length = max(len(lst) for lst in dataset_packages)
+
+            dataset_packages = np.array(
+                [np.concatenate(
+                    (lst, np.zeros([int(data_train_max_length - len(lst)), 8]))
+                ) for lst in dataset_packages]
+            )
+
+            # Change 0 to mean value
+            dataset_packages[dataset_packages == 0] = np.mean(dataset_packages, axis=(0, 1, 2))
+            dataset_packages = await expand_dimension(encoded_packages=dataset_packages)
+
+            dataset_packages, dataset_labels = await formated_packages(
+                packages=dataset_packages,
+                labels=dataset_labels
+            )
+            self.dataset_packages = dataset_packages
+            self.dataset_labels = dataset_labels
+
+    #
+    # Pcap files to dataset V1
     async def pcap_files_to_dataset(self):
         # Directory for savings datasets and figure
         if self.current_model_id:
@@ -301,33 +396,34 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             self.dataset_labels = dataset_labels
             print("==== Datasets successfully loaded ====")
 
-    async def mms_layer(self, *, fit_data, ):
+    #
+    # MinMaxLayer for encoded packages
+    async def mms_layer(self, *, fit_data, session_key):
         mms = MinMaxScaler(feature_range=(0, 1))
         mms.fit(fit_data)
-        self.mms = mms
+        self.sessions_mms[session_key] = mms
+        return mms
 
-        # helpful_files = str(os.path.join(
-        #     self.current_model_path,
-        #     directories.helpful_directory,
-        #     "min_max_scaler.pkl"
-        # ))
-        # with open(helpful_files, "wb") as file:
-        #     pickle.dump(mms, file)
-
-    async def label_encoder_layer(self, *, fit_data):
-        encoder = LabelEncoder()
-        encoder.fit(fit_data)
-        self.label_encoder = encoder
-
+    # Start education model or run saved model
     async def start_education(self):
         model_path = os.path.join(
             self.current_model_path,
             directories.model_directory,
             "model.keras"
         )
+        helpful_files = str(os.path.join(
+            self.current_model_path,
+            directories.helpful_directory,
+            "min_max_sessions_scaler.pkl"
+        ))
 
-        if os.path.exists(model_path):
+        if os.path.exists(model_path) and os.path.exists(helpful_files):
             self.model = keras.saving.load_model(model_path)
+
+            if len(self.sessions_mms.keys()):
+                self.sessions_mms = {}
+            self.sessions_mms = joblib.load(helpful_files)
+
             await self.send_work_status(new_status=statuses.working_status)
             await self.send_work_data(
                 send_type="model_work",
@@ -339,11 +435,12 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             print("==== Model already is exist and loaded ====")
 
         else:
+            print("==== Start education ====")
             await self.send_work_status(new_status=statuses.preprocessing_status)
             await asyncio.sleep(1)
-            await self.pcap_files_to_dataset()
+            await self.pcap_files_to_dataset_v2()
 
-            if self.dataset_packages and self.dataset_labels:
+            if len(self.dataset_packages) and len(self.dataset_labels):
 
                 # Directory for saving dataset
                 dataset_path = str(os.path.join(
@@ -353,66 +450,85 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 dataset_file_npz = str(os.path.join(dataset_path, "dataset.npz"))
 
                 if len(self.dataset_packages) != 0 and len(self.dataset_labels) != 0:
-                    (X_train, y_train), (X_test, y_test) = await array_split(
+                    (X_train, y_train), (X_test, y_test) = await dataset_split(
                         data=self.dataset_packages,
                         labels=self.dataset_labels,
                         train_size=0.8
                     )
 
-                    await self.label_encoder_layer(
-                        fit_data=np.concatenate([y_train, y_test])
-                    )
+                    dataset_for_save = {
+                        "X_train": X_train,
+                        "y_train": y_train,
+                        "X_test": X_test,
+                        "y_test": y_test
+                    }
 
-                    if self.label_encoder:
-                        y_train = self.label_encoder.transform(y_train)
-                        y_test = self.label_encoder.transform(y_test)
+                    np.savez(dataset_file_npz, **dataset_for_save)
 
-                        # encoded_train = encoded_data(input_length=len(y_train))
-                        # y_train = encoded_train.predict(tf.constant(y_train))
-                        # encoded_test = encoded_data(input_length=len(y_test))
-                        # y_test = encoded_test.predict(tf.constant(y_test))
+                    if len(self.sessions_mms.keys()):
+                        joblib.dump(self.sessions_mms, helpful_files)
 
-                        await self.mms_layer(
-                            fit_data=np.concatenate([y_train, y_test]).reshape(-1, 1)
+                    # (X_train, y_train), (X_test, y_test) = await array_split(
+                    #     data=self.dataset_packages,
+                    #     labels=self.dataset_labels,
+                    #     train_size=0.8
+                    # )
+                    #
+                    # await self.label_encoder_layer(
+                    #     fit_data=np.concatenate([y_train, y_test])
+                    # )
+                    #
+                    # if self.label_encoder:
+                    #     y_train = self.label_encoder.transform(y_train)
+                    #     y_test = self.label_encoder.transform(y_test)
+                    #
+                    #     # encoded_train = encoded_data(input_length=len(y_train))
+                    #     # y_train = encoded_train.predict(tf.constant(y_train))
+                    #     # encoded_test = encoded_data(input_length=len(y_test))
+                    #     # y_test = encoded_test.predict(tf.constant(y_test))
+                    #
+                    #     await self.mms_layer(
+                    #         fit_data=np.concatenate([y_train, y_test]).reshape(-1, 1)
+                    #     )
+                    #
+                    #     if self.mms:
+                    #         encoded_y_train = self.mms.transform(y_train.reshape(-1, 1))
+                    #         y_train = encoded_y_train.reshape(1, -1)[0]
+                    #
+                    #         encoded_y_test = self.mms.transform(y_test.reshape(-1, 1))
+                    #         y_test = encoded_y_test.reshape(1, -1)[0]
+                    #
+                    #         dataset_for_save = {
+                    #             "X_train": X_train,
+                    #             "y_train": y_train,
+                    #             "X_test": X_test,
+                    #             "y_test": y_test
+                    #         }
+                    #
+                    #         np.savez(dataset_file_npz, **dataset_for_save)
+
+                    if os.path.exists(dataset_file_npz) and os.path.exists(helpful_files):
+                        await self.send_work_status(new_status=statuses.is_studying_status)
+                        await asyncio.sleep(1)
+
+                        model = await classification_traffic_nn(
+                            X_train=X_train,
+                            y_train=y_train,
+                            X_test=X_test,
+                            y_test=y_test,
+                            save_model_path=model_path
                         )
+                        self.model = model["model"]
 
-                        if self.mms:
-                            encoded_y_train = self.mms.transform(y_train.reshape(-1, 1))
-                            y_train = encoded_y_train.reshape(1, -1)[0]
-
-                            encoded_y_test = self.mms.transform(y_test.reshape(-1, 1))
-                            y_test = encoded_y_test.reshape(1, -1)[0]
-
-                            dataset_for_save = {
-                                "X_train": X_train,
-                                "y_train": y_train,
-                                "X_test": X_test,
-                                "y_test": y_test
+                        await self.send_work_status(new_status=statuses.working_status)
+                        await self.send_work_data(
+                            send_type="model_work",
+                            data={
+                                "status": "success",
+                                "modelID": self.current_model_id,
                             }
-
-                            np.savez(dataset_file_npz, **dataset_for_save)
-
-                if os.path.exists(dataset_file_npz):
-                    await self.send_work_status(new_status=statuses.is_studying_status)
-                    await asyncio.sleep(1)
-
-                    dataset = np.load(dataset_file_npz)
-
-                    model = await classification_traffic_nn(
-                        dataset=dataset,
-                        save_model_path=model_path
-                    )
-                    self.model = model["model"]
-
-                    await self.send_work_status(new_status=statuses.working_status)
-                    await self.send_work_data(
-                        send_type="model_work",
-                        data={
-                            "status": "success",
-                            "modelID": self.current_model_id,
-                        }
-                    )
-                    print("==== Model has been trained and is ready to work ====")
+                        )
+                        print("==== Model has been trained and is ready to work ====")
 
         # # Searching models
         # files_from_dataset_directory = os.listdir(str(dataset_directory))

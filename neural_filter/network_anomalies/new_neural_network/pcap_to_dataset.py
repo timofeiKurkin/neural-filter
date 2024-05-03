@@ -61,8 +61,8 @@ async def read_pcap(*, pcap_path):
 
 
 async def formated_package(*, ip_addresses, mac_addresses):
-    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) for ip in ip_addresses]
-    mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) for mac_address in mac_addresses]
+    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) / 100 for ip in ip_addresses]
+    mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) / 10000000 for mac_address in mac_addresses]
 
     return ip_addresses_encoded, mac_addresses_encoded
 
@@ -86,9 +86,9 @@ async def expand_dimension(*, encoded_packages):
     new_encoded_packages = []
 
     for packages in encoded_packages:
-        package_data = [[np.expand_dims(package_item, axis=0) for package_item in package]
-                        for package in packages]
-        new_encoded_packages.append(np.array(package_data))
+        package_data = np.array([[np.expand_dims(package_item, axis=0) for package_item in package]
+                                 for package in packages])
+        new_encoded_packages.append(package_data)
 
     return np.array(new_encoded_packages)
 

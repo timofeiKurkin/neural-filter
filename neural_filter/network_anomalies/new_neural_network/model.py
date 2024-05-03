@@ -3,8 +3,6 @@ import keras_cv
 import numpy as np
 import tensorflow as tf
 
-from sklearn.preprocessing import MinMaxScaler
-
 # from schedule_of_learning_outcomes import schedule_of_learning_outcomes
 # from pcap_to_dataset import encoded_data
 
@@ -30,36 +28,39 @@ np.set_printoptions(suppress=True)
 # ])
 
 
-async def encoded_data(*, input_length):
-    encoded_model = keras.Sequential([
-        keras.layers.Embedding(
-            input_dim=input_length + 1,
-            output_dim=1,
-        ),
-        keras.layers.Dense(units=1, activation='relu')
-    ])
-    encoded_model.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.MeanSquaredError()
-    )
-    return encoded_model
+# async def encoded_data(*, input_length):
+#     encoded_model = keras.Sequential([
+#         keras.layers.Embedding(
+#             input_dim=input_length + 1,
+#             output_dim=1,
+#         ),
+#         keras.layers.Dense(units=1, activation='relu')
+#     ])
+#     encoded_model.compile(
+#         optimizer=keras.optimizers.Adam(),
+#         loss=keras.losses.MeanSquaredError()
+#     )
+#     return encoded_model
 
 
 async def classification_traffic_nn(
         *,
-        dataset,
+        X_train,
+        y_train,
+        X_test,
+        y_test,
         save_model_path
 ):
-    if dataset:
-        (X_train, y_train), (X_test, y_test) = (
-            (dataset["X_train"], dataset["y_train"]),
-            (dataset["X_test"], dataset["y_test"]))
-
-        print(f"{X_train.shape}")
-        print(f"{y_train.shape}")
-        print(f"{X_test.shape}")
-        print(f"{y_test.shape}")
-        print(X_test)
+    if len(X_train) and len(y_train) and len(X_test) and len(y_test):
+        # (X_train, y_train), (X_test, y_test) = (
+        #     (dataset["X_train"], dataset["y_train"]),
+        #     (dataset["X_test"], dataset["y_test"]))
+        #
+        # print(f"{X_train.shape}")
+        # print(f"{y_train.shape}")
+        # print(f"{X_test.shape}")
+        # print(f"{y_test.shape}")
+        # print(X_test)
 
         model = keras.Sequential([
             keras.layers.ConvLSTM2D(
@@ -107,6 +108,10 @@ async def classification_traffic_nn(
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.2),
             keras.layers.Flatten(),
+            keras.layers.Dense(
+                units=256,
+                activation=keras.activations.relu
+            ),
             keras.layers.Dense(
                 units=64,
                 activation=keras.activations.relu
