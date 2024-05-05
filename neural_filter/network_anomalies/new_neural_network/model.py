@@ -62,9 +62,69 @@ async def classification_traffic_nn(
         # print(f"{y_test.shape}")
         # print(X_test)
 
+        # model = keras.Sequential([
+        #     keras.layers.ConvLSTM2D(
+        #         filters=16,
+        #         kernel_size=3,
+        #         activation=keras.activations.relu,
+        #         input_shape=X_train.shape[1:],
+        #         return_sequences=False,
+        #         name="ConvLSTM"
+        #     ),
+        #     keras.layers.Conv2D(
+        #         filters=32,
+        #         kernel_size=3,
+        #         activation=keras.activations.relu,
+        #         padding="same",
+        #         name="Conv2"
+        #     ),
+        #     keras.layers.Conv2D(
+        #         filters=32,
+        #         kernel_size=3,
+        #         activation=keras.activations.relu,
+        #         padding="same",
+        #         name="Conv3"
+        #     ),
+        #     keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        #
+        #     keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite"),
+        #
+        #     keras.layers.Conv2D(
+        #         filters=16,
+        #         kernel_size=3,
+        #         activation=keras.activations.relu,
+        #         padding="same",
+        #         name="Conv4"
+        #     ),
+        #     keras.layers.Conv2D(
+        #         filters=16,
+        #         kernel_size=3,
+        #         activation=keras.activations.relu,
+        #         padding="same",
+        #         name="Conv5"
+        #     ),
+        #     keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        #
+        #     keras.layers.BatchNormalization(),
+        #     keras.layers.Dropout(0.2),
+        #     keras.layers.Flatten(),
+        #     keras.layers.Dense(
+        #         units=256,
+        #         activation=keras.activations.relu
+        #     ),
+        #     keras.layers.Dense(
+        #         units=64,
+        #         activation=keras.activations.relu
+        #     ),
+        #     keras.layers.Dense(
+        #         units=1,
+        #         activation=keras.activations.sigmoid
+        #     ),
+        # ], name="traffic_classification")
+
         model = keras.Sequential([
             keras.layers.ConvLSTM2D(
-                filters=16,
+                filters=32,
                 kernel_size=3,
                 activation=keras.activations.relu,
                 input_shape=X_train.shape[1:],
@@ -72,14 +132,14 @@ async def classification_traffic_nn(
                 name="ConvLSTM"
             ),
             keras.layers.Conv2D(
-                filters=32,
+                filters=64,
                 kernel_size=3,
                 activation=keras.activations.relu,
                 padding="same",
                 name="Conv2"
             ),
             keras.layers.Conv2D(
-                filters=32,
+                filters=64,
                 kernel_size=3,
                 activation=keras.activations.relu,
                 padding="same",
@@ -87,21 +147,28 @@ async def classification_traffic_nn(
             ),
             keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
-            keras_cv.layers.SqueezeAndExcite2D(filters=32, name="SqueezeAndExcite"),
+            keras_cv.layers.SqueezeAndExcite2D(filters=64, name="SqueezeAndExcite"),
 
             keras.layers.Conv2D(
-                filters=16,
+                filters=32,
                 kernel_size=3,
                 activation=keras.activations.relu,
                 padding="same",
                 name="Conv4"
             ),
             keras.layers.Conv2D(
-                filters=16,
+                filters=32,
                 kernel_size=3,
                 activation=keras.activations.relu,
                 padding="same",
                 name="Conv5"
+            ),
+            keras.layers.Conv2D(
+                filters=16,
+                kernel_size=3,
+                activation=keras.activations.relu,
+                padding="same",
+                name="Conv6"
             ),
             keras.layers.MaxPooling2D(pool_size=(2, 2)),
 
@@ -109,11 +176,11 @@ async def classification_traffic_nn(
             keras.layers.Dropout(0.2),
             keras.layers.Flatten(),
             keras.layers.Dense(
-                units=256,
+                units=1024,
                 activation=keras.activations.relu
             ),
             keras.layers.Dense(
-                units=64,
+                units=512,
                 activation=keras.activations.relu
             ),
             keras.layers.Dense(
@@ -135,7 +202,7 @@ async def classification_traffic_nn(
 
         model.summary()
 
-        epochs = 50
+        epochs = 60
 
         history = model.fit(
             x=X_train,
@@ -149,7 +216,7 @@ async def classification_traffic_nn(
             x=X_test,
             batch_size=32
         )
-        print(f"{predictions=}")
+        # print(f"{predictions=}")
         print(f"{predictions.shape=}")
         print(f"{np.max(predictions)=}")
         print(f"{np.min(predictions)=}")

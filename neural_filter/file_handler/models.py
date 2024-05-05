@@ -19,16 +19,16 @@ class DatasetModel(models.Model):
 
     val_loss = models.FloatField(default=0.0)
 
-    accuracy = models.FloatField(default=0.0)
+    # accuracy = models.FloatField(default=0.0)
 
-    val_accuracy = models.FloatField(default=0.0)
+    # val_accuracy = models.FloatField(default=0.0)
 
     def __str__(self):
         return (
             f"dataset_title: {self.dataset_title}, "
             f"group_file_id: {self.group_file_id}, "
             f"loss: {self.loss}, "
-            f"accuracy: {self.accuracy}"
+            # f"accuracy: {self.accuracy}"
         )
 
     class Meta:

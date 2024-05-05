@@ -97,15 +97,19 @@ class FileHandlerView(APIView):
             if dataset_serializer.is_valid():
                 dataset_serializer.save()
 
+                del packets_from_files
+                del sessions_count
+
                 return Response(
                     {
                         "dataset": {
                             "dataset_title": dataset_serializer.data["dataset_title"],
                             "group_file_id": dataset_serializer.data["group_file_id"],
+                            "sessions_count": dataset_serializer.data["sessions_count"],
                             "loss": dataset_serializer.data["loss"],
-                            "val_loss": dataset_serializer.data["val_loss"],
-                            "accuracy": dataset_serializer.data["accuracy"],
-                            "val_accuracy": dataset_serializer.data["val_accuracy"]
+                            # "val_loss": dataset_serializer.data["val_loss"],
+                            # "accuracy": dataset_serializer.data["accuracy"],
+                            # "val_accuracy": dataset_serializer.data["val_accuracy"]
                         }
                     },
                     status=status.HTTP_201_CREATED
@@ -149,7 +153,7 @@ class FileHandlerView(APIView):
                 "dataset_title": dataset.dataset_title,
                 "group_file_id": dataset.group_file_id,
                 "loss": dataset.loss,
-                "accuracy": dataset.accuracy
+                "sessions_count": dataset.sessions_count,
             })
 
         return Response({"datasets": datasets}, status=status.HTTP_200_OK)

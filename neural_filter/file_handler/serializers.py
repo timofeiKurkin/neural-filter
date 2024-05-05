@@ -11,8 +11,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             'sessions_count',
             'loss',
             'val_loss',
-            'accuracy',
-            'val_accuracy',
             'count_files'
         )
         read_only_fields = ('id',)

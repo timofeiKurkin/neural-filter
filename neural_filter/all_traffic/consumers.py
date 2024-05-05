@@ -32,7 +32,7 @@ class PacketConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super(PacketConsumer, self).__init__(*args, **kwargs)
         self.traffic = None
-        self.packages = []
+        # self.packages = []
         self.id_packages = 0
 
     # Соединение связи с клиентом
@@ -54,8 +54,8 @@ class PacketConsumer(AsyncWebsocketConsumer):
             )
             self.id_packages += 1
             time.sleep(0.2)
-            self.packages.append(data)
-            asyncio.run(self.send_packet())
+            # self.packages.append(data)
+            asyncio.run(self.send(text_data=json.dumps(data)))
 
     # Ответное сообщение пользователю
     async def receive(self, text_data=None, bytes_data=None):
@@ -77,7 +77,7 @@ class PacketConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps("Starting sniffing"))
         self.traffic.start()
 
-    async def send_packet(self):
-        if len(self.packages) > 0 and self.traffic:
-            await self.send(text_data=json.dumps(self.packages[-1]))
-            # self.packages = []
+    # async def send_packet(self):
+    #     if len(self.packages) > 0 and self.traffic:
+    #         await self.send(text_data=json.dumps(self.packages[-1]))
+    #         # self.packages = []

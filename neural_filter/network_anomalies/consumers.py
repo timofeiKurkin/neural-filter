@@ -6,6 +6,7 @@ import time
 
 import keras.saving
 import numpy as np
+from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -163,9 +164,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             normal_package = {
                 "id": self.package_id,
-                "time": packet.time,
+                "time": float(packet.time),
                 "source": ip_src,
+                "MACSrc": mac_src,
+                "portSrc": tcp_sport,
                 "destination": ip_dst,
+                "MACDst": mac_dst,
+                "portDst": tcp_dport,
                 "protocol": ip_proto,
                 "length": ip_len
             }
@@ -224,9 +229,10 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
                 session_for_predict = np.array([self.sessions_encoded[session_key]])
 
-                if session_for_predict.shape[1] >= 8:
+                if session_for_predict.shape[1] >= 16:
                     session_for_predict, _ = asyncio.run(formated_packages(packages=session_for_predict))
 
+                    #
                     mean_value_test = np.mean(session_for_predict, axis=(0, 1, 2, 3))
                     session_for_predict[session_for_predict == 0] = mean_value_test
 
@@ -234,7 +240,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     session_predict = session_predict[0][0]
                     print(f"{session_predict}")
 
-                    if 0.08 < session_predict < 0.14:
+                    if 0.09 < session_predict < 0.11:
                         if session_key not in self.anomaly_packages_for_send_client:
                             self.anomaly_packages_for_send_client[session_key] = []
                         self.anomaly_packages_for_send_client[session_key].append(normal_package)
@@ -354,6 +360,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             # Change 0 to mean value
             dataset_packages[dataset_packages == 0] = np.mean(dataset_packages, axis=(0, 1, 2))
+
             dataset_packages = await expand_dimension(encoded_packages=dataset_packages)
 
             dataset_packages, dataset_labels = await formated_packages(
@@ -437,6 +444,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         else:
             print("==== Start education ====")
             await self.send_work_status(new_status=statuses.preprocessing_status)
+            await self.send_work_data(
+                send_type="model_study",
+                data={
+                    "status": "success",
+                    "modelID": self.current_model_id,
+                }
+            )
             await asyncio.sleep(1)
             await self.pcap_files_to_dataset_v2()
 
@@ -519,6 +533,21 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                             save_model_path=model_path
                         )
                         self.model = model["model"]
+                        history = model["history"]
+                        # epochs = model["epochs"]
+
+                        dataset_db = await self.get_dataset_from_db(self.current_model_id)
+                        dataset_db[0].loss = history.history["loss"][-1]
+                        await sync_to_async(dataset_db[0].save)()
+
+                        await self.send_work_data(
+                            send_type="finish_education",
+                            data={
+                                "dataset_id": self.current_model_id,
+                                "status": "success",
+                                "loss": dataset_db[0].loss,
+                            }
+                        )
 
                         await self.send_work_status(new_status=statuses.working_status)
                         await self.send_work_data(
@@ -528,6 +557,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                                 "modelID": self.current_model_id,
                             }
                         )
+
                         print("==== Model has been trained and is ready to work ====")
 
         # # Searching models
