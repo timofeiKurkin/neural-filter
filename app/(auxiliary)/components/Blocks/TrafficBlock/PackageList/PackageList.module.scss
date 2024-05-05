@@ -1,62 +1,56 @@
 @import "@/styles/variables.module";
 
 .packageListWrapper {
-    height: 100%;
-    
-    display: grid;
-    grid-template-rows: min-content 500px;
-    
-    overflow: hidden;
-    
-    .headerList {
-        width: 100%;
-        margin-bottom: 15px;
-        
-        .headerItem {
-        
-        }
-    }
-    
-    .packageList {
-        width: 100%;
-        height: 100%;
+	height: 100%;
 
-        .noAnomaliesFound {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            column-gap: 30px;
+	display: grid;
+	grid-template-rows: min-content 460px;
 
-            width: 100%;
-            height: 100%;
-        }
+	overflow: hidden;
 
-        .packageListIsEmpty {
-            height: 100%;
-            display: grid;
-            justify-content: center;
-            align-items: center;
-        }
-    }
+	.headerList {
+		width: 100%;
+		margin-bottom: 15px;
+	}
+
+	.packageList {
+		width: 100%;
+		height: 100%;
+
+		display: flex;
+		flex-direction: column;
+		row-gap: 5px;
+
+		.noAnomaliesFound {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			column-gap: 30px;
+
+			width: 100%;
+			height: 100%;
+		}
+	}
 }
 
 .columnWrapper {
-    display: grid;
-    grid-template-columns: 60px 1fr 1.5fr 1.5fr 1fr 1fr;
-    padding: 0 5px;
+	display: grid;
+	grid-template-columns: 60px 1fr 1.5fr 1.5fr 1fr 1fr;
+	//justify-items: center;
+	padding: 0 5px;
 }
 
 .underLine {
-    position: relative;
-    padding-bottom: 10px;
-    
-    &:after {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 2px;
-        background-color: $color_3;
-        bottom: 0;
-        left: 0;
-    }
+	position: relative;
+	padding-bottom: 10px;
+
+	&:after {
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 2px;
+		background-color: $color_3;
+		bottom: 0;
+		left: 0;
+	}
 }

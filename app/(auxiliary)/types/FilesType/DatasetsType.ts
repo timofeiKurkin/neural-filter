@@ -1,10 +1,10 @@
 export interface DatasetsType {
-  datasets: DatasetType[];
+    datasets: DatasetType[];
 }
 
 export interface DatasetType {
-  dataset_title: string;
-  group_file_id: string;
-  loss: number;
-  accuracy: number;
+    dataset_title: string;
+    group_file_id: string;
+    loss: number;
+    sessions_count: number;
 }

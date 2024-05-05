@@ -7,12 +7,14 @@ import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork,
-    setCurrentModelStatus, setNewAnomalyTraffic,
+    setCurrentModelStatus,
+    setNewAnomalyTraffic,
     setWebSocket
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {selectorFiles} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import {
+    NeuralNetworkFinishEducation,
     NeuralNetworkFoundAnomalyResponseType,
     NeuralNetworkWorkResponseType
 } from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
@@ -45,9 +47,7 @@ const NnStatus = () => {
 
     const {
         datasets
-    }: {
-        dataset: DatasetType[]
-    } = useSelector(selectorFiles)
+    }: InitialFilesStateType = useSelector(selectorFiles)
 
     const [stateStatus, setStateStatus] = useState<StatusRenderType>({
         status: 'disconnection',
@@ -55,8 +55,7 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
-    // console.log("stateStatus: ", stateStatus)
-    // console.log("datasets", datasets)
+    console.log("datasets", datasets)
 
     useEffect(() => {
         let timeOut
@@ -125,16 +124,33 @@ const NnStatus = () => {
                         }))
                     }
 
-                    if ((statusData as NeuralNetworkWorkResponseType).send_type === 'model_work') {
+                    if (
+                        (statusData as NeuralNetworkWorkResponseType).send_type === 'model_work' ||
+                        (statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "model_study") {
                         const workResponse: NeuralNetworkWorkResponseType = data
 
-                        if (workResponse.send_type === "model_work" &&
-                            workResponse.data.status === "success") {
-                            dispatch(setCurrentModelStatus({
-                                workStatus: true,
-                                modelID: workResponse.data.modelID || ""
-                            }))
+                        if (workResponse.data.status === "success") {
+                            if (workResponse.data.modelID !== currentModelStatus.modelID) {
+                                dispatch(setCurrentModelStatus({
+                                    workStatus: true,
+                                    modelID: workResponse.data.modelID || ""
+                                }))
+                            }
                         }
+                    }
+
+                    if ((statusData as NeuralNetworkFinishEducation).send_type === "finish_education") {
+                        const finishEducation: NeuralNetworkFinishEducation = data
+                        const updatedDatasets = datasets.map((item) => {
+                            if (item.group_file_id === finishEducation.data.dataset_id) {
+                                return {
+                                    ...item,
+                                    loss: finishEducation.data.loss
+                                }
+                            }
+                            return item
+                        })
+                        dispatch(setDatasets(updatedDatasets))
                     }
 
                     if (statusData.status) {
@@ -183,8 +199,8 @@ const NnStatus = () => {
         createWebSocket()
 
         return () => {
-            if (ws && Object.keys(ws).length) {
-                (ws as WebSocket).close();
+            if (ws && ws instanceof WebSocket) {
+                ws.close();
             }
         };
     }, [

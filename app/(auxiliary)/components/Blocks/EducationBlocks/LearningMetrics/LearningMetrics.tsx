@@ -8,6 +8,7 @@ import {selectorNeuralNetwork} from "@/app/(auxiliary)/lib/redux/store/slices/ne
 import styles from "./LearningMetrics.module.scss";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import Image from "next/image";
+import LogoText from "@/app/(auxiliary)/components/UI/TextTemplates/LogoText";
 
 
 const LearningMetrics = () => {
@@ -16,7 +17,7 @@ const LearningMetrics = () => {
     return (
         <MainShadow>
             {
-                (Object.keys(modelMetric).length > 0) && (
+                (Object.keys(modelMetric).length > 0) ? (
                     <div className={styles.learningMetricsWrapper}>
                         <div className={styles.learningMetrics}>
 
@@ -41,6 +42,12 @@ const LearningMetrics = () => {
                                 />
                             )
                         }
+                    </div>
+                ) : (
+                    <div className={styles.noSelectedModel}>
+                        <LogoText>
+                            Select a trained model to view its metrics and training schedule.
+                        </LogoText>
                     </div>
                 )
             }

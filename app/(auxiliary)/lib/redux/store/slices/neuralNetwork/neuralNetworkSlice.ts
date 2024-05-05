@@ -7,14 +7,14 @@ import {
     AnomalyTrafficStateType,
     StateOfCurrentModelID
 } from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
-import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
+import {AnomalyTrafficPackageType, TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
 export interface InitialNeuralNetworkStateType {
     currentModelStatus: StateOfCurrentModelID;
     ws: WebSocket;
     modelMetric: ModelMetricType;
     // anomalyTraffic: AnomalyTrafficStateType;
-    anomalyTraffic: TrafficPackageType[];
+    anomalyTraffic: AnomalyTrafficPackageType[];
 }
 
 const initialState: InitialNeuralNetworkStateType = {

@@ -16,3 +16,10 @@ export interface TrafficPackageType {
     protocol: string;
     length: number;
 }
+
+export interface AnomalyTrafficPackageType extends TrafficPackageType {
+    MACSrc: string;
+    portSrc;
+    MACDst: string;
+    portDst: string;
+}

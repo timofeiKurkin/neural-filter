@@ -28,7 +28,7 @@ const PacketAnomalyReceiver = () => {
             ) : (
                 <div>
                     <LogoText>
-                        Run or train a new model to identify anomalies in traffic on the <Link
+                        Run an already trained model or create a new one on the page <Link
                         href={"/education-ai"}>/education-ai</Link> page
                     </LogoText>
                 </div>

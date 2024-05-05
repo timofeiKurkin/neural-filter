@@ -44,7 +44,7 @@ const TrainingNow: FC = () => {
         return () => {
             active = false
         }
-    }, [dispatch]);
+    }, []);
 
     return (
         <MainShadow>

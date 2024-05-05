@@ -1,9 +1,23 @@
-import React from 'react';
+import React, {FC} from 'react';
+import {AnomalyTrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
+import generalStyles from "../PackageAnomalyList.module.scss";
+import styles from "./PackageAnomalyItem.module.scss"
+import {formattedTime} from "@/app/(auxiliary)/func/traffic/timeFormat";
 
-const PackageAnomalyItem = () => {
+
+interface PropsType {
+    anomalyPackage: AnomalyTrafficPackageType;
+}
+
+const PackageAnomalyItem: FC<PropsType> = ({
+                                               anomalyPackage
+                                           }) => {
+    anomalyPackage = {...anomalyPackage, time: formattedTime(Number.parseFloat(anomalyPackage.time))}
     return (
-        <div>
-
+        <div className={`${generalStyles.columnWrapper} ${styles.anomalyItem}`}>
+            {Object.values(anomalyPackage).map((item, index) => (
+                <div key={`key=${index}`} className={styles.anomalyData}>{item}</div>
+            ))}
         </div>
     );
 };

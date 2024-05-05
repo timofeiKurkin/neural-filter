@@ -5,17 +5,23 @@ import React, {FC, useRef} from "react";
 import ButtonText from "@/app/(auxiliary)/components/UI/TextTemplates/ButtonText";
 
 import styles from "./Button.module.scss"
+import {AnimationControls, AnimationProps, HTMLMotionProps, motion, Target, VariableTransitions} from "framer-motion";
+
 
 interface buttonType {
     disabled?: boolean;
-    style: {
-        backgroundColor: string;
-        color: string;
-    },
+    style: React.CSSProperties,
     children: string;
     tabIndex?: number;
     onClick?: () => void;
-    type?: "button" | "reset" | "submit"
+    type?: "button" | "reset" | "submit",
+
+
+    motionAnimate?: {
+        transition: any;
+        animate: any;
+        initial: any;
+    }
 }
 
 const Button: FC<buttonType> = ({
@@ -24,27 +30,27 @@ const Button: FC<buttonType> = ({
                                     children,
                                     tabIndex,
                                     onClick,
-                                    type
+                                    type,
+                                    motionAnimate
                                 }) => {
     const button = useRef(null)
 
     return (
-        <button type={type ?? "button"}
-                       className={`${styles.button}`}
-                       ref={button}
-                       tabIndex={tabIndex}
-                       disabled={disabled}
-                       onClick={onClick}
-                       style={style}
+        <motion.button
+            type={type ?? "button"}
+            className={`${styles.button}`}
+            ref={button}
+            tabIndex={tabIndex}
+            disabled={disabled}
+            onClick={onClick}
+            style={style}
 
-                       // variants={variants}
-                       // initial={'initial'}
-                       // whileHover={'hover'}
+            initial={motionAnimate?.initial}
+            animate={motionAnimate?.animate}
+            transition={motionAnimate?.transition}
         >
-            <span>
-                <ButtonText>{children}</ButtonText>
-            </span>
-        </button>
+            <ButtonText>{children}</ButtonText>
+        </motion.button>
     );
 };
 

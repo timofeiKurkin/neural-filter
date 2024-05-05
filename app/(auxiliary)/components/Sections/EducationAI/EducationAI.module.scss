@@ -12,6 +12,10 @@
 		display: grid;
         grid-template-rows: min-content 1fr;
 		row-gap: 25px;
+
+		h1 {
+			color: $color_1;
+		}
 	}
 }
 

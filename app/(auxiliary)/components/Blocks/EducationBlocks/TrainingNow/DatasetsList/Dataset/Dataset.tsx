@@ -10,7 +10,7 @@ import stop from "@/public/stop.svg"
 
 import styles from "./Dataset.module.scss";
 import Image from "next/image";
-import {color_1, color_2} from "@/styles/color";
+import {color_1, color_2, color_3, color_5} from "@/styles/color";
 import {deleteDataset} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
@@ -43,8 +43,10 @@ interface PropsType {
 const Dataset: FC<PropsType> = ({dataset}) => {
     const dispatch = useDispatch()
 
-    const {currentModelStatus, ws}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
-    const {datasets}: InitialFilesStateType = useSelector(selectorFiles)
+    const {currentModelStatus, ws, modelMetric}: InitialNeuralNetworkStateType =
+        useSelector(selectorNeuralNetwork)
+    const {datasets}: InitialFilesStateType =
+        useSelector(selectorFiles)
 
     const [datasetHover, setDatasetHover] =
         useState<boolean>(() => false)
@@ -71,13 +73,20 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         setTwoFactorAccept(false)
     }
 
-    const getDatasetMetrics = async (dataset_id: string) => {
-        const response = await getMetricImage(dataset_id)
+    const getDatasetMetrics = async (
+        dataset_id: string,
+        current_dataset_id: string
+    ) => {
+        if (dataset_id !== current_dataset_id) {
+            const response = await getMetricImage(dataset_id)
 
-        if ((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
-            const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
+            if ((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
+                const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
 
-            dispatch(setModelMetric(modelMetric))
+                dispatch(setModelMetric(modelMetric))
+            }
+        } else {
+            dispatch(setModelMetric({} as ModelMetricType))
         }
     }
 
@@ -97,12 +106,11 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         }
     }
 
-    // useEffect(() => {
-    //
-    // }, [])
-
     return (
         <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
+             style={{
+                 backgroundColor: currentModelStatus.modelID == dataset.group_file_id ? color_3 : ""
+             }}
              onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
              onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
         >
@@ -132,14 +140,14 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetLine}></div>
 
             <div className={styles.datasetStatistics}
-                 onClick={() => getDatasetMetrics(dataset.group_file_id)}>
+                 onClick={() => getDatasetMetrics(dataset.group_file_id, modelMetric.group_file_id)}>
                 <span className={styles.datasetText}
                       style={{color: color_2}}>
-                    loss: {dataset.loss === 0 ? "0.0" : dataset.loss}
+                    sessions: {dataset.sessions_count}
                 </span>
                 <span className={styles.datasetText}
                       style={{color: color_2}}>
-                    accuracy: {dataset.accuracy === 0 ? "0.0" : dataset.accuracy}
+                    loss: {dataset.loss === 0 ? "0.0" : dataset.loss.toFixed(3)}
                 </span>
             </div>
 

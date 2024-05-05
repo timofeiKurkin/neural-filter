@@ -1,7 +1,6 @@
 import React, {FC} from 'react';
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import Dataset from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/DatasetsList/Dataset/Dataset";
-import {color_5} from "@/styles/color";
 
 
 /**
@@ -17,7 +16,7 @@ interface PropsType {
 
 const DatasetsList: FC<PropsType> = ({datasets}) => {
 
-    const formattedDataset = [...datasets].concat(new Array(6-datasets.length).fill([]))
+    const formattedDataset = [...datasets].concat(new Array(6 - datasets.length).fill([]))
 
     return (
         <div
@@ -29,7 +28,8 @@ const DatasetsList: FC<PropsType> = ({datasets}) => {
             }}
         >
             {formattedDataset.map((dataset: DatasetType, index) => (
-                <Dataset key={`key=${index}`} dataset={dataset}/>
+                <Dataset key={`key=${index}`}
+                         dataset={dataset}/>
             ))}
         </div>
     );

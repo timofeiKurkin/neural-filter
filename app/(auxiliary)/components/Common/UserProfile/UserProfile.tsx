@@ -11,11 +11,17 @@ import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(a
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import {AnimatePresence} from "framer-motion";
 import {IUser} from "@/app/(auxiliary)/types/UserTypes/IUser";
+import {
+    InitialNeuralNetworkStateType,
+    selectorNeuralNetwork
+} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 
 
 const UserProfile: FC = () => {
     const dispatch = useDispatch()
+
     const {user, isAuth} = useSelector(selectorUser)
+    const {ws}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     const [visibleUserMenu, setVisibleUserMenu] = useState<boolean>(false)
 
@@ -33,6 +39,10 @@ const UserProfile: FC = () => {
     const logoutHandler = () => {
         localStorage.removeItem('access')
         localStorage.removeItem('refresh')
+
+        if(ws instanceof WebSocket) {
+           ws.close()
+        }
 
         dispatch(setAuth(false))
         dispatch(setUser({} as IUser))
