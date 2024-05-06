@@ -74,7 +74,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_dataset_from_db(self, selected_dataset_id):
         try:
-            return list(DatasetModel.objects.filter(group_file_id=selected_dataset_id))
+            return list(DatasetModel.objects.filter(modelID=selected_dataset_id))
         except DatasetModel.DoesNotExist:
             raise DenyConnection("No dataset found")
 
@@ -163,7 +163,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 session_key = keys_with_sessions[0]
 
             normal_package = {
-                "id": self.package_id,
                 "time": float(packet.time),
                 "source": ip_src,
                 "MACSrc": mac_src,
@@ -174,7 +173,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 "protocol": ip_proto,
                 "length": ip_len
             }
-            self.package_id += 1
 
             (ip_src, ip_dst), (mac_dst, mac_src) = asyncio.run(formated_package(
                 ip_addresses=[ip_src, ip_dst],
@@ -193,67 +191,68 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             session_mms_key = [key for key in self.sessions_mms.keys() if src_key in key and dst_key in key]
 
-            if len(session_mms_key) == 1:
-                session_mms = self.sessions_mms[session_mms_key[0]]
-                package_array = session_mms.transform(package_array.reshape(-1, 1))
-            else:
-                mms = asyncio.run(self.mms_layer(
-                    fit_data=package_array.reshape(-1, 1),
-                    session_key=session_key
-                ))
-                package_array = mms.transform(package_array.reshape(-1, 1))
+            if len(package_array) == 8:
+                if len(session_mms_key) == 1:
+                    session_mms = self.sessions_mms[session_mms_key[0]]
+                    package_array = session_mms.transform(package_array.reshape(-1, 1))
+                else:
+                    mms = asyncio.run(self.mms_layer(
+                        fit_data=package_array.reshape(-1, 1),
+                        session_key=session_key
+                    ))
+                    package_array = mms.transform(package_array.reshape(-1, 1))
 
-            # package_len = 1
-            # if len(self.sessions_encoded) and session_key in self.sessions_encoded:
-            #     package_len = len(self.sessions_encoded[session_key])
-            #
-            # encoded_model = asyncio.run(encoded_embedding_model(
-            #     input_length=package_len * 8
-            # ))
-            # encoded_packages = encoded_model.predict(package_array, verbose=0)
-            # new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=[encoded_packages]))
+                # package_len = 1
+                # if len(self.sessions_encoded) and session_key in self.sessions_encoded:
+                #     package_len = len(self.sessions_encoded[session_key])
+                #
+                # encoded_model = asyncio.run(encoded_embedding_model(
+                #     input_length=package_len * 8
+                # ))
+                # encoded_packages = encoded_model.predict(package_array, verbose=0)
+                # new_encoded_packages_dimension = asyncio.run(expand_dimension(encoded_packages=[encoded_packages]))
 
-            # encoded_packages = []
+                if session_key not in self.sessions:
+                    self.sessions[session_key] = []
+                if session_key not in self.sessions_encoded:
+                    self.sessions_encoded[session_key] = []
 
-            if session_key not in self.sessions:
-                self.sessions[session_key] = []
-            self.sessions[session_key].append(normal_package)
+                if normal_package not in self.sessions[session_key]:
+                    if len(self.sessions[session_key]) >= 16:
 
-            if session_key not in self.sessions_encoded:
-                self.sessions_encoded[session_key] = []
-            self.sessions_encoded[session_key].append(package_array)
+                        self.sessions[session_key].append(normal_package)
+                        self.sessions_encoded[session_key].append(package_array)
 
-            if self.model is not None:
-                # print("")
-                # print("==== Predict start ====")
+                        if self.model is not None:
+                            session_for_predict = np.array([self.sessions_encoded[session_key]])
 
-                session_for_predict = np.array([self.sessions_encoded[session_key]])
+                            session_for_predict, _ = asyncio.run(formated_packages(packages=session_for_predict))
 
-                if session_for_predict.shape[1] >= 16:
-                    session_for_predict, _ = asyncio.run(formated_packages(packages=session_for_predict))
+                            #
+                            session_for_predict[session_for_predict == 0] = (
+                                np.mean(session_for_predict, axis=(0, 1, 2, 3)))
 
-                    #
-                    mean_value_test = np.mean(session_for_predict, axis=(0, 1, 2, 3))
-                    session_for_predict[session_for_predict == 0] = mean_value_test
+                            session_predict = self.model.predict(session_for_predict, verbose=0)
+                            session_predict = session_predict[0][0]
+                            print(f"{session_predict=}")
 
-                    session_predict = self.model.predict(session_for_predict, verbose=0)
-                    session_predict = session_predict[0][0]
-                    print(f"{session_predict}")
+                            if 0.09 < session_predict < 0.11:
+                                if session_key not in self.anomaly_packages_for_send_client:
+                                    self.anomaly_packages_for_send_client[session_key] = []
+                                self.anomaly_packages_for_send_client[session_key].append(normal_package)
+                                asyncio.run(self.send_work_data(
+                                    send_type="found_anomaly_traffic",
+                                    data={
+                                        "status": "success",
 
-                    if 0.09 < session_predict < 0.11:
-                        if session_key not in self.anomaly_packages_for_send_client:
-                            self.anomaly_packages_for_send_client[session_key] = []
-                        self.anomaly_packages_for_send_client[session_key].append(normal_package)
-                        asyncio.run(self.send_work_data(
-                            send_type="found_anomaly_traffic",
-                            data={
-                                "status": "success",
-
-                                "session": session_key,
-                                "anomaly_package": normal_package
-                            }
-                        ))
-
+                                        "session": session_key,
+                                        "anomaly_package": normal_package
+                                    }
+                                ))
+                    else:
+                        self.sessions[session_key].append(normal_package)
+                        self.sessions_encoded[session_key].append(package_array)
+                time.sleep(0.1)
             #
             #     if session_key in self.mean_traffic_predict_sessions:
             #         last_predict_package = session_predict[-1][0]
@@ -284,19 +283,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             #             self.mean_traffic_predict_sessions[session_key] = session_predict_mean
             #     else:
             #         self.mean_traffic_predict_sessions[session_key] = session_predict_mean
-
-            time.sleep(0.1)
-
-            # print(f"Session key: {session_key}")
-            # print(f"{self.sessions_encoded}")
-            # print(f"{session_predict=}")
-            # print(f"{session_for_predict=}")
-            # print(f"{session_predict.shape=}")
-            # print(f"{session_predict_mean=}")
-            # print(f"{self.anomaly_packages_for_send_client=}")
-
-            # print("==== Predict end ====")
-            # print("")
 
     #
     # Start scanning traffic
@@ -442,7 +428,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             print("==== Model already is exist and loaded ====")
 
         else:
-            print("==== Start education ====")
+            print("==== Start encoded files ====")
             await self.send_work_status(new_status=statuses.preprocessing_status)
             await self.send_work_data(
                 send_type="model_study",
@@ -482,46 +468,8 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     if len(self.sessions_mms.keys()):
                         joblib.dump(self.sessions_mms, helpful_files)
 
-                    # (X_train, y_train), (X_test, y_test) = await array_split(
-                    #     data=self.dataset_packages,
-                    #     labels=self.dataset_labels,
-                    #     train_size=0.8
-                    # )
-                    #
-                    # await self.label_encoder_layer(
-                    #     fit_data=np.concatenate([y_train, y_test])
-                    # )
-                    #
-                    # if self.label_encoder:
-                    #     y_train = self.label_encoder.transform(y_train)
-                    #     y_test = self.label_encoder.transform(y_test)
-                    #
-                    #     # encoded_train = encoded_data(input_length=len(y_train))
-                    #     # y_train = encoded_train.predict(tf.constant(y_train))
-                    #     # encoded_test = encoded_data(input_length=len(y_test))
-                    #     # y_test = encoded_test.predict(tf.constant(y_test))
-                    #
-                    #     await self.mms_layer(
-                    #         fit_data=np.concatenate([y_train, y_test]).reshape(-1, 1)
-                    #     )
-                    #
-                    #     if self.mms:
-                    #         encoded_y_train = self.mms.transform(y_train.reshape(-1, 1))
-                    #         y_train = encoded_y_train.reshape(1, -1)[0]
-                    #
-                    #         encoded_y_test = self.mms.transform(y_test.reshape(-1, 1))
-                    #         y_test = encoded_y_test.reshape(1, -1)[0]
-                    #
-                    #         dataset_for_save = {
-                    #             "X_train": X_train,
-                    #             "y_train": y_train,
-                    #             "X_test": X_test,
-                    #             "y_test": y_test
-                    #         }
-                    #
-                    #         np.savez(dataset_file_npz, **dataset_for_save)
-
                     if os.path.exists(dataset_file_npz) and os.path.exists(helpful_files):
+                        print("==== Start education model ====")
                         await self.send_work_status(new_status=statuses.is_studying_status)
                         await asyncio.sleep(1)
 
@@ -540,14 +488,14 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         dataset_db[0].loss = history.history["loss"][-1]
                         await sync_to_async(dataset_db[0].save)()
 
-                        await self.send_work_data(
-                            send_type="finish_education",
-                            data={
-                                "dataset_id": self.current_model_id,
-                                "status": "success",
-                                "loss": dataset_db[0].loss,
-                            }
-                        )
+                        # await self.send_work_data(
+                        #     send_type="finish_education",
+                        #     data={
+                        #         "modelID": self.current_model_id,
+                        #         "status": "success",
+                        #         "loss": dataset_db[0].loss,
+                        #     }
+                        # )
 
                         await self.send_work_status(new_status=statuses.working_status)
                         await self.send_work_data(
@@ -555,6 +503,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                             data={
                                 "status": "success",
                                 "modelID": self.current_model_id,
+                                "loss": dataset_db[0].loss,
                             }
                         )
 

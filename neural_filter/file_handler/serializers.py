@@ -7,7 +7,7 @@ class DatasetSerializer(serializers.ModelSerializer):
         model = DatasetModel
         fields = (
             'dataset_title',
-            'group_file_id',
+            'modelID',
             'sessions_count',
             'loss',
             'val_loss',

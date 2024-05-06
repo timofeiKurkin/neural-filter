@@ -133,8 +133,8 @@ async def dataset_split(
         data_test, data_train = data[:split_index], data[split_index:]
         labels_test_first_part, labels_train_second_part = labels[:split_index], labels[split_index:]
 
-        data_test[data_test == 0] = np.mean(data_test, axis=(0, 1, 2, 3))
-        data_train[data_train == 0] = np.mean(data_train, axis=(0, 1, 2, 3))
+        # data_test[data_test == 0] = np.mean(data_test, axis=(0, 1, 2, 3))
+        # data_train[data_train == 0] = np.mean(data_train, axis=(0, 1, 2, 3))
 
         return ((data_test, labels_test_first_part),
                 (data_train, labels_train_second_part))

@@ -38,7 +38,7 @@ class FileHandlerView(APIView):
     @staticmethod
     def get_dataset(*, pk):
         try:
-            return DatasetModel.objects.get(group_file_id=pk)
+            return DatasetModel.objects.get(modelID=pk)
         except DatasetModel.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -58,8 +58,8 @@ class FileHandlerView(APIView):
             dataset_title: str = multiple_serializer.validated_data.get('dataset_title')
 
             # UUID for dataset and files
-            group_file_id = uuid.uuid4()
-            model_directory = os.path.join(settings.MODELS_DIR, str(group_file_id))
+            modelID = uuid.uuid4()
+            model_directory = os.path.join(settings.MODELS_DIR, str(modelID))
             os.mkdir(model_directory)
 
             sessions_directory = os.path.join(model_directory, directories.sessions_directory)
@@ -89,7 +89,7 @@ class FileHandlerView(APIView):
 
             dataset_serializer = self.dataset_serializer(data={
                 "dataset_title": dataset_title,
-                "group_file_id": group_file_id,
+                "modelID": modelID,
                 "count_files": len(uploaded_files),
                 "sessions_count": int(sessions_count)
             })
@@ -104,7 +104,7 @@ class FileHandlerView(APIView):
                     {
                         "dataset": {
                             "dataset_title": dataset_serializer.data["dataset_title"],
-                            "group_file_id": dataset_serializer.data["group_file_id"],
+                            "modelID": dataset_serializer.data["modelID"],
                             "sessions_count": dataset_serializer.data["sessions_count"],
                             "loss": dataset_serializer.data["loss"],
                             # "val_loss": dataset_serializer.data["val_loss"],
@@ -151,7 +151,7 @@ class FileHandlerView(APIView):
         for dataset in queryset:
             datasets.append({
                 "dataset_title": dataset.dataset_title,
-                "group_file_id": dataset.group_file_id,
+                "modelID": dataset.modelID,
                 "loss": dataset.loss,
                 "sessions_count": dataset.sessions_count,
             })

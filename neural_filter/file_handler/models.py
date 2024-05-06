@@ -9,7 +9,7 @@ from django.db import models
 class DatasetModel(models.Model):
     dataset_title = models.CharField(max_length=50)
 
-    group_file_id = models.UUIDField(default=uuid.uuid4)
+    modelID = models.UUIDField(default=uuid.uuid4)
 
     count_files = models.IntegerField(default=0)
 
@@ -26,7 +26,7 @@ class DatasetModel(models.Model):
     def __str__(self):
         return (
             f"dataset_title: {self.dataset_title}, "
-            f"group_file_id: {self.group_file_id}, "
+            f"modelID: {self.modelID}, "
             f"loss: {self.loss}, "
             # f"accuracy: {self.accuracy}"
         )

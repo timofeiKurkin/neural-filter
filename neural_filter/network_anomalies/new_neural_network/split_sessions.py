@@ -33,4 +33,7 @@ def split_sessions(
         write_pcap.write(sessions_packets)
         write_pcap.flush()
 
-    return len(sessions)
+    session_len = len(sessions)
+
+    del sessions
+    return session_len

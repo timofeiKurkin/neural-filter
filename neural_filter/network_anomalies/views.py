@@ -30,7 +30,7 @@ class ModelMetricsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        dataset_info = list(DatasetModel.objects.filter(group_file_id=dataset_id).values())[0]
+        dataset_info = list(DatasetModel.objects.filter(modelID=dataset_id).values())[0]
 
         if dataset_info:
             image_metric = f"{dataset_id}.webp"
