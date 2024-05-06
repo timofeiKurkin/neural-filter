@@ -7,12 +7,19 @@ import {formattedTime} from "@/app/(auxiliary)/func/traffic/timeFormat";
 
 interface PropsType {
     anomalyPackage: AnomalyTrafficPackageType;
+    index: number;
 }
 
 const PackageAnomalyItem: FC<PropsType> = ({
-                                               anomalyPackage
+                                               anomalyPackage,
+                                               index
                                            }) => {
-    anomalyPackage = {...anomalyPackage, time: formattedTime(Number.parseFloat(anomalyPackage.time))}
+    anomalyPackage["id"] = index
+    anomalyPackage = {
+        ...anomalyPackage,
+        time: formattedTime(Number.parseFloat(anomalyPackage.time))
+    }
+
     return (
         <div className={`${generalStyles.columnWrapper} ${styles.anomalyItem}`}>
             {Object.values(anomalyPackage).map((item, index) => (

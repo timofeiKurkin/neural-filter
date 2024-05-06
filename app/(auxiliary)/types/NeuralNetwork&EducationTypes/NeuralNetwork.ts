@@ -11,6 +11,7 @@ export interface NeuralNetworkWorkResponseType {
     data: {
         status: "success" | "error";
         modelID?: string;
+        loss?: number;
     }
 }
 

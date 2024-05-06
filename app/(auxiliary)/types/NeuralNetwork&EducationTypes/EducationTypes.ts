@@ -1,13 +1,11 @@
+import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+
 export interface GetModelMetricResponseType {
     metric: ModelMetricType;
 }
 
-export interface ModelMetricType {
-    id: number;
-    dataset_title: string;
-    group_file_id: string;
+export interface ModelMetricType extends DatasetType{
     count_files: number;
-    loss: number;
     val_loss: number;
     accuracy: number;
     val_accuracy: number;

@@ -19,7 +19,7 @@ export interface TrafficPackageType {
 
 export interface AnomalyTrafficPackageType extends TrafficPackageType {
     MACSrc: string;
-    portSrc;
+    portSrc: string;
     MACDst: string;
     portDst: string;
 }

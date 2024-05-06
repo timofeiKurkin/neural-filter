@@ -6,7 +6,7 @@ import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularTe
 
 import styles from "./TrainingNow.module.scss";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import {selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {getDatasets} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import {AxiosResponse} from "axios";
@@ -23,7 +23,7 @@ import DatasetsList from "@/app/(auxiliary)/components/Blocks/EducationBlocks/Tr
 const TrainingNow: FC = () => {
 
     const dispatch = useDispatch()
-    const {datasets} = useSelector(selectorFiles)
+    const {datasets}: InitialFilesStateType = useSelector(selectorFiles)
 
     useEffect(() => {
         let active = true

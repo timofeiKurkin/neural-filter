@@ -55,8 +55,6 @@ const NnStatus = () => {
         colorStatus: color_6
     })
 
-    console.log("datasets", datasets)
-
     useEffect(() => {
         let timeOut
 
@@ -113,8 +111,6 @@ const NnStatus = () => {
 
                     const statusData: StatusRenderType = data
 
-                    // console.log("statusData", statusData)
-
                     if ((statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
                         const newAnomalyTraffic: NeuralNetworkFoundAnomalyResponseType = data
                         const anomalyTrafficSession = newAnomalyTraffic.data.session
@@ -136,22 +132,35 @@ const NnStatus = () => {
                                     modelID: workResponse.data.modelID || ""
                                 }))
                             }
+
+                            if (workResponse.data.loss && datasets.length) {
+                                const updatedDatasets = datasets.map((item) => {
+                                    if (item.modelID === workResponse.data.modelID) {
+                                        return {
+                                            ...item,
+                                            loss: workResponse.data.loss ?? 0
+                                        }
+                                    }
+                                    return item
+                                })
+                                dispatch(setDatasets(updatedDatasets))
+                            }
                         }
                     }
 
-                    if ((statusData as NeuralNetworkFinishEducation).send_type === "finish_education") {
-                        const finishEducation: NeuralNetworkFinishEducation = data
-                        const updatedDatasets = datasets.map((item) => {
-                            if (item.group_file_id === finishEducation.data.dataset_id) {
-                                return {
-                                    ...item,
-                                    loss: finishEducation.data.loss
-                                }
-                            }
-                            return item
-                        })
-                        dispatch(setDatasets(updatedDatasets))
-                    }
+                    // if ((statusData as NeuralNetworkFinishEducation).send_type === "finish_education") {
+                    //     const finishEducation: NeuralNetworkFinishEducation = data
+                    //     const updatedDatasets = datasets.map((item) => {
+                    //         if (item.group_file_id === finishEducation.data.dataset_id) {
+                    //             return {
+                    //                 ...item,
+                    //                 loss: finishEducation.data.loss
+                    //             }
+                    //         }
+                    //         return item
+                    //     })
+                    //     dispatch(setDatasets(updatedDatasets))
+                    // }
 
                     if (statusData.status) {
                         if (statusData.statusCode === 2) {

@@ -33,7 +33,7 @@ const LearningMetrics = () => {
                         {
                             (modelMetric.image_metric_exist) && (
                                 <Image
-                                    src={`http://localhost:8000/network_anomalies/get_metric_image/${modelMetric.group_file_id}/`}
+                                    src={`http://localhost:8000/network_anomalies/get_metric_image/${modelMetric.modelID}/`}
                                     alt={"metrics-alt"}
                                     width={436}
                                     height={436}

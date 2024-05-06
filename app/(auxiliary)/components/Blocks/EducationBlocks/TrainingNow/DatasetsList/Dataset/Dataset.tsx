@@ -53,7 +53,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const [twoFactorAccept, setTwoFactorAccept] =
         useState<boolean>(() => false)
 
-    const working = dataset.group_file_id === currentModelStatus.modelID && currentModelStatus.workStatus
+    const working = dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus
 
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{
@@ -61,24 +61,31 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         }}></div>
     }
 
-    const deleteDatasetHandler = async (datasetGroupID: string) => {
-        await deleteDataset(datasetGroupID)
+    const deleteDatasetHandler = async (args: {
+        modelID: string,
+    }) => {
+        await deleteDataset(args.modelID)
             .then((r) => (r as AxiosResponse).status === 204 &&
                 dispatch(setDatasets(
                     datasets.filter(data =>
-                        (data.group_file_id !== datasetGroupID)
+                        (data.modelID !== args.modelID)
                     )
                 )))
+        if (modelMetric.modelID === args.modelID) {
+            dispatch(setModelMetric({} as ModelMetricType))
+        }
         setDatasetHover(false)
         setTwoFactorAccept(false)
     }
 
     const getDatasetMetrics = async (
-        dataset_id: string,
-        current_dataset_id: string
+        args: {
+            modelID: string,
+            currentModelID: string
+        }
     ) => {
-        if (dataset_id !== current_dataset_id) {
-            const response = await getMetricImage(dataset_id)
+        if (args.modelID !== args.currentModelID) {
+            const response = await getMetricImage(args.modelID)
 
             if ((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
                 const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
@@ -109,7 +116,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     return (
         <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
              style={{
-                 backgroundColor: currentModelStatus.modelID == dataset.group_file_id ? color_3 : ""
+                 backgroundColor: currentModelStatus.modelID == dataset.modelID ? color_3 : ""
              }}
              onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
              onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
@@ -117,7 +124,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetTitle}>
                 <div
                     onClick={() => modelWordHandler({
-                        modelID: dataset.group_file_id,
+                        modelID: dataset.modelID,
                         workStatus: working
                     })}>
                     {
@@ -140,7 +147,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetLine}></div>
 
             <div className={styles.datasetStatistics}
-                 onClick={() => getDatasetMetrics(dataset.group_file_id, modelMetric.group_file_id)}>
+                 onClick={() => getDatasetMetrics({
+                     modelID: dataset.modelID,
+                     currentModelID: modelMetric.modelID
+                 })}>
                 <span className={styles.datasetText}
                       style={{color: color_2}}>
                     sessions: {dataset.sessions_count}
@@ -157,18 +167,21 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                         {
                             !twoFactorAccept ? (
                                     <div className={styles.deleteButton}
-                                         onClick={() => setTwoFactorAccept((prevState) => (!prevState))}>
+                                         onClick={() =>
+                                             setTwoFactorAccept((prevState) => (!prevState))}>
                                         <Image src={recycle} alt={'delete'}/>
                                     </div>
                                 )
                                 :
                                 (
                                     <div className={styles.twoFactorAccept}>
-                                        <div onClick={() => deleteDatasetHandler(dataset.group_file_id)}>
+                                        <div onClick={() =>
+                                            deleteDatasetHandler({modelID: dataset.modelID})}>
                                             <Image src={accept} alt={'delete'}/>
                                         </div>
 
-                                        <div onClick={() => setTwoFactorAccept((prevState) => (!prevState))}>
+                                        <div onClick={() =>
+                                            setTwoFactorAccept((prevState) => (!prevState))}>
                                             <Image src={exit} alt={'delete'}/>
                                         </div>
                                     </div>

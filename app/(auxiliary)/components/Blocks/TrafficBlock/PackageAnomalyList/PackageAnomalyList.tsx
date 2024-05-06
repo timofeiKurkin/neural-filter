@@ -68,15 +68,17 @@ const PackageAnomalyList = () => {
                         anomalySessions.length ? (
                             <div className={styles.packageAnomalyList}>
                                 {
-                                    anomalySessions.map((item) => (
+                                    anomalySessions.map((item, index) => (
                                         <PackageAnomalyItem key={`key=${item.id}`}
-                                                            anomalyPackage={item}/>
+                                                            anomalyPackage={item}
+                                                            index={index}/>
                                     ))
                                 }
                             </div>
                         ) : (
                             <div className={styles.noAnomaliesFound}>
-                                <Image src={checkMark} alt={"check-mark"}/> <MainTitle>No anomalies found</MainTitle>
+                                <Image src={checkMark} alt={"check-mark"}/> <MainTitle>The model hasn't detected any
+                                anomalies yet</MainTitle>
                             </div>
                         )
                     }

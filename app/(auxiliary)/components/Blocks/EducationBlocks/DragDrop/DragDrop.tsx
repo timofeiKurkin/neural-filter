@@ -15,10 +15,11 @@ import {
 } from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
-import {DatasetType, UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
+import {UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
 import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
+import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
@@ -134,7 +135,7 @@ const DragDrop = () => {
                 !files.length && Object.keys(lastDataset).length ? (
                     <div className={styles.dragDropButton}>
                         <Button style={{backgroundColor: color_1, color: color_white}}
-                                onClick={() => startEducationHandler({datasetID: lastDataset.group_file_id})}>
+                                onClick={() => startEducationHandler({datasetID: lastDataset.modelID})}>
                             Start education
                         </Button>
                     </div>
