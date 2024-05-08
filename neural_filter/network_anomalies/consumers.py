@@ -217,7 +217,18 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 if session_key not in self.sessions_encoded:
                     self.sessions_encoded[session_key] = []
 
-                if normal_package not in self.sessions[session_key]:
+                exist_package_in_object = True if {
+                    "source": ip_src,
+                    "MACSrc": mac_src,
+                    "portSrc": tcp_sport,
+                    "destination": ip_dst,
+                    "MACDst": mac_dst,
+                    "portDst": tcp_dport,
+                    "protocol": ip_proto,
+                    "length": ip_len
+                } in self.sessions[session_key] else False
+
+                if not exist_package_in_object:
                     if len(self.sessions[session_key]) >= 16:
 
                         self.sessions[session_key].append(normal_package)
