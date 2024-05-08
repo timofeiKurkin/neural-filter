@@ -14,15 +14,13 @@ const PackageAnomalyItem: FC<PropsType> = ({
                                                anomalyPackage,
                                                index
                                            }) => {
-    anomalyPackage["id"] = index
-    anomalyPackage = {
-        ...anomalyPackage,
-        time: formattedTime(Number.parseFloat(anomalyPackage.time))
-    }
+    let copyPackage = {...anomalyPackage}
+    copyPackage["time"] = formattedTime(anomalyPackage.time as number)
+    copyPackage = {id: index+1, ...copyPackage}
 
     return (
         <div className={`${generalStyles.columnWrapper} ${styles.anomalyItem}`}>
-            {Object.values(anomalyPackage).map((item, index) => (
+            {Object.values(copyPackage).map((item, index) => (
                 <div key={`key=${index}`} className={styles.anomalyData}>{item}</div>
             ))}
         </div>

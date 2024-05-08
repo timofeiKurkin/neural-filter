@@ -10,7 +10,7 @@ export interface HeaderItemsType {
 
 export interface TrafficPackageType {
     id: number;
-    time: number;
+    time: number | string;
     source: string;
     destination: string;
     protocol: string;

@@ -69,7 +69,7 @@ const PackageAnomalyList = () => {
                             <div className={styles.packageAnomalyList}>
                                 {
                                     anomalySessions.map((item, index) => (
-                                        <PackageAnomalyItem key={`key=${item.id}`}
+                                        <PackageAnomalyItem key={`key=${index}`}
                                                             anomalyPackage={item}
                                                             index={index}/>
                                     ))
