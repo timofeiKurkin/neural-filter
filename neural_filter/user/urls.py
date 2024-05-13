@@ -1,4 +1,5 @@
 from django.urls import path
+from .views import ChangePasswordView
 from . import views
 from .serializers import MyTokenObtainPairView
 from rest_framework_simplejwt.views import (
@@ -11,7 +12,7 @@ urlpatterns = [
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('change-password/', views.change_password, name='change_password'),
+    path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('get-csrf-token/', views.get_csrf, name='get_token')
 ]
 

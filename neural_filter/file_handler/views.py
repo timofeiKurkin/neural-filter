@@ -52,6 +52,9 @@ class FileHandlerView(APIView):
 
         multiple_serializer = self.multiple_serializer_class(data=request.data)
 
+        if not os.path.exists(settings.MODELS_DIR):
+            os.makedirs(settings.MODELS_DIR)
+
         if multiple_serializer.is_valid():
             # File name for saving
             uploaded_files = multiple_serializer.validated_data.get('file')
