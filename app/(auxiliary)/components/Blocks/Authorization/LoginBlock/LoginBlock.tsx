@@ -47,7 +47,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
     const passwordValue = useInput("", passwordKey, passwordValidations)
 
 
-    const formHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
+    const authorizationHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault()
 
         const response = await login(loginValue.value, passwordValue.value, csrfToken)
@@ -96,7 +96,12 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
         if (isAuth && user.username && !rememberPath) {
             router.push('/')
         }
-    }, [isAuth, user.username, rememberPath]);
+    }, [
+        isAuth,
+        user.username,
+        rememberPath,
+        router
+    ]);
 
 
     return (
@@ -115,7 +120,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                                 <div>
                                     <Input
                                         value={loginValue.value}
-                                        placeholder={"login"}
+                                        placeholder={"Login"}
                                         // disabled={}
                                         maxLength={10}
                                         tabIndex={1}
@@ -130,7 +135,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
                                 <Input
                                     value={passwordValue.value}
-                                    placeholder={"password"}
+                                    placeholder={"Password"}
                                     // disabled={}
                                     type={'password'}
                                     maxLength={20}
@@ -143,7 +148,7 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                         </div>
 
                         <div className={styles.loginButton}
-                             onClick={(e: React.MouseEvent<HTMLDivElement>) => formHandler(e)}>
+                             onClick={(e: React.MouseEvent<HTMLDivElement>) => authorizationHandler(e)}>
                             <Button style={{backgroundColor: color_1, color: color_white}}
                                     tabIndex={3}
                                     type={'submit'}

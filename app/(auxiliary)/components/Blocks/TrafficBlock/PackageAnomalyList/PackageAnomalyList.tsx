@@ -18,9 +18,17 @@ import checkMark from "@/public/check-mark.svg";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 import PackageAnomalyItem
     from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PackageAnomalyList/PackageAnomalyItem/PackageAnomalyItem";
+import Link from "next/link";
+import LogoText from "@/app/(auxiliary)/components/UI/TextTemplates/LogoText";
 
 
-const PackageAnomalyList = () => {
+interface PropsType {
+    workDataStatus: boolean
+}
+
+const PackageAnomalyList: PropsType = ({
+                                           workDataStatus
+                                       }) => {
     const {anomalyTraffic}: InitialNeuralNetworkStateType =
         useSelector(selectorNeuralNetwork)
 
@@ -65,21 +73,32 @@ const PackageAnomalyList = () => {
             <Scrollbar trigger={anomalySessions.length}>
                 <div className={styles.packageList}>
                     {
-                        anomalySessions.length ? (
-                            <div className={styles.packageAnomalyList}>
-                                {
-                                    anomalySessions.map((item, index) => (
-                                        <PackageAnomalyItem key={`key=${index}`}
-                                                            anomalyPackage={item}
-                                                            index={index}/>
-                                    ))
-                                }
+                        !workDataStatus ? (
+                            <div className={styles.noWorkingModel}>
+                                <LogoText>
+                                    Run an already trained model or create a new one on the page <Link
+                                    href={"/education-ai"}>/education-ai</Link> page
+                                </LogoText>
                             </div>
                         ) : (
-                            <div className={styles.noAnomaliesFound}>
-                                <Image src={checkMark} alt={"check-mark"}/> <MainTitle>The model hasn't detected any
-                                anomalies yet</MainTitle>
-                            </div>
+                            anomalySessions.length ? (
+                                <div className={styles.packageAnomalyList}>
+                                    {
+                                        anomalySessions.map((item, index) => (
+                                            <PackageAnomalyItem key={`key=${index}`}
+                                                                anomalyPackage={item}
+                                                                index={index}/>
+                                        ))
+                                    }
+                                </div>
+                            ) : (
+                                <div className={styles.noAnomaliesFound}>
+                                    <Image src={checkMark} alt={"check-mark"}/> <MainTitle>The model hasn&apos;t
+                                    detected
+                                    any
+                                    anomalies yet</MainTitle>
+                                </div>
+                            )
                         )
                     }
                 </div>
@@ -87,7 +106,6 @@ const PackageAnomalyList = () => {
 
             <div className={styles.underLine}></div>
         </div>
-        // <PackageList packages={anomalySessions} anomalyTraffic={true}/>
     );
 };
 

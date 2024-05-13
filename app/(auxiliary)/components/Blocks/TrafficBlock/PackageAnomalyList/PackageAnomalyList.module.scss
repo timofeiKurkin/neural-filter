@@ -29,6 +29,16 @@
 		//display: flex;
 		//justify-content: center;
 
+		.noWorkingModel {
+			height: 100%;
+			display: grid;
+			grid-template-columns: 1020px;
+			grid-template-rows: 1fr;
+			justify-content: center;
+			align-items: center;
+			white-space: nowrap;
+		}
+
 		.packageAnomalyList {
 			display: flex;
 			flex-direction: column;
@@ -40,7 +50,6 @@
 			display: flex;
 			align-items: center;
 			column-gap: 30px;
-			text-wrap: wrap;
 
 			width: 70%;
 			height: 100%;

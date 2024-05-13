@@ -22,18 +22,19 @@ const PacketAnomalyReceiver = () => {
     }: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     return (
-        ws && ws instanceof WebSocket && (
-            currentModelStatus.workStatus ? (
-                <PackageAnomalyList/>
-            ) : (
-                <div>
-                    <LogoText>
-                        Run an already trained model or create a new one on the page <Link
-                        href={"/education-ai"}>/education-ai</Link> page
-                    </LogoText>
-                </div>
-            )
-        )
+        <PackageAnomalyList workDataStatus={currentModelStatus.workStatus}/>
+        // ws && ws instanceof WebSocket && (
+        //     currentModelStatus.workStatus ? (
+        //         <PackageAnomalyList/>
+        //     ) : (
+        //         <div>
+        //             <LogoText>
+        //                 Run an already trained model or create a new one on the page <Link
+        //                 href={"/education-ai"}>/education-ai</Link> page
+        //             </LogoText>
+        //         </div>
+        //     )
+        // )
     );
 };
 

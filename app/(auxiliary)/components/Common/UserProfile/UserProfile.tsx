@@ -15,13 +15,11 @@ import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import Logout from "@/app/(auxiliary)/components/Blocks/Authorization/Logout/Logout";
 
 
 const UserProfile: FC = () => {
-    const dispatch = useDispatch()
-
     const {user, isAuth} = useSelector(selectorUser)
-    const {ws}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     const [visibleUserMenu, setVisibleUserMenu] = useState<boolean>(false)
 
@@ -34,18 +32,6 @@ const UserProfile: FC = () => {
             opacity: 1,
             paddingTop: 20
         },
-    }
-
-    const logoutHandler = () => {
-        localStorage.removeItem('access')
-        localStorage.removeItem('refresh')
-
-        if(ws instanceof WebSocket) {
-           ws.close()
-        }
-
-        dispatch(setAuth(false))
-        dispatch(setUser({} as IUser))
     }
 
     return (
@@ -74,15 +60,7 @@ const UserProfile: FC = () => {
                                     animate={"visible"}
                                     exit={"hidden"}
                         >
-                            <MainShadow>
-                                <div className={styles.menuItem}
-                                     onClick={logoutHandler}
-                                >
-                                    <NavigationText>
-                                        Logout
-                                    </NavigationText>
-                                </div>
-                            </MainShadow>
+                            <Logout/>
                         </motion.div>
                     }
                 </AnimatePresence>

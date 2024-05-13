@@ -11,7 +11,8 @@ import {
     InitialFilesStateType,
     selectorFiles,
     setDatasets,
-    setFiles
+    setFiles,
+    setUploadingFilesStatus
 } from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
@@ -20,11 +21,16 @@ import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
 import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
+import AnimationButton from "@/app/(auxiliary)/components/UI/AnimationButton/AnimationButton";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
 
-    const {files, datasets}: InitialFilesStateType = useSelector(selectorFiles)
+    const {
+        files,
+        datasets,
+        uploadingFilesStatus
+    }: InitialFilesStateType = useSelector(selectorFiles)
 
     const [lastDataset, setLastDataset] = useState<DatasetType>(() => ({} as DatasetType))
 
@@ -52,6 +58,7 @@ const DragDrop = () => {
         datasets: DatasetType[]
     }) => {
         if (args.files.length && datasetTitle) {
+            dispatch(setUploadingFilesStatus(true))
             let formData = new FormData()
 
             args.files.forEach((file) => {
@@ -63,6 +70,7 @@ const DragDrop = () => {
             accessToken = accessToken.split('"').join('')
 
             const response = await uploadFiles(formData, accessToken)
+            dispatch(setUploadingFilesStatus(false))
 
             if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
                 const dataset = (response as AxiosResponse<UploadFilesResponse>).data.dataset
@@ -103,6 +111,7 @@ const DragDrop = () => {
                         >
                             <Button style={{backgroundColor: color_1, color: color_white}}
                                     onClick={() => removeAllFilesHandler()}
+                                    disabled={uploadingFilesStatus}
                             >
                                 Remove all files
                             </Button>
@@ -120,6 +129,7 @@ const DragDrop = () => {
                                    placeholder={"dataset title..."}
                                    maxLength={20}
                                    tabIndex={1}
+                                   disabled={uploadingFilesStatus}
                                    onFocus={() => {
                                    }}
                                    onBlur={() => {
@@ -140,16 +150,24 @@ const DragDrop = () => {
                         </Button>
                     </div>
                 ) : (
-                    <div className={styles.dragDropButton}>
-                        <Button style={{backgroundColor: color_1, color: color_white}} disabled={!datasetTitle || !files.length}
-                                onClick={() => uploadFilesHandler({
-                                    files,
-                                    datasetTitle,
-                                    datasets
-                                })}>
-                            Send and save file{files.length > 1 ? "s" : ""} to dataset
-                        </Button>
-                    </div>
+                    uploadingFilesStatus ?
+                        (
+                            <AnimationButton disabled={uploadingFilesStatus}>Files are uploaded to the server</AnimationButton>
+                        )
+                        :
+                        (
+                            <div className={styles.dragDropButton}>
+                                <Button style={{backgroundColor: color_1, color: color_white}}
+                                        disabled={!datasetTitle || !files.length}
+                                        onClick={() => uploadFilesHandler({
+                                            files,
+                                            datasetTitle,
+                                            datasets
+                                        })}>
+                                    Send and save file{files.length > 1 ? "s" : ""} to dataset
+                                </Button>
+                            </div>
+                        )
                 )
             }
         </div>

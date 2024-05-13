@@ -22,7 +22,7 @@ const DropZone: FC = () => {
     const page = `/${pathname.split('/').filter(Boolean)[0]}`
 
     const dispatch = useDispatch()
-    const {files}: InitialFilesStateType = useSelector(selectorFiles)
+    const {files, uploadingFilesStatus}: InitialFilesStateType = useSelector(selectorFiles)
     const {errorList}: { errorList: CustomErrorType[] } = useSelector(selectorApplication)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -56,7 +56,6 @@ const DropZone: FC = () => {
     }
 
     const {
-        // acceptedFiles,
         fileRejections,
         getRootProps,
         getInputProps,
@@ -65,13 +64,16 @@ const DropZone: FC = () => {
         validator: noRepeatFiles,
         onDrop,
         accept: {},
-        maxFiles: 10
+        maxFiles: 10,
+        disabled: uploadingFilesStatus
     })
 
 
     const removeFileHandler = (fileName: string) => {
-        const removeFile = files.filter(file => file.name !== fileName)
-        dispatch(setFiles(removeFile))
+        if (!uploadingFilesStatus) {
+            const removeFile = files.filter(file => file.name !== fileName)
+            dispatch(setFiles(removeFile))
+        }
     }
 
 
@@ -106,14 +108,6 @@ const DropZone: FC = () => {
         }
     }, [fileRejections]);
 
-    // useEffect(() => {
-    //     if(!files.length) {
-    //
-    //     }
-    // }, [files])
-
-    // console.log("errorFiles", errorList)
-
     const listVariants: Variants = {
         'visible': {
             y: 0, opacity: 1
@@ -142,7 +136,7 @@ const DropZone: FC = () => {
             <div className={styles.dropZone}>
                 <div {...getRootProps({
                     // сюда можно передавать классы/стили
-                    style: {userSelect: "none", cursor: "pointer"}
+                    style: {userSelect: "none", cursor: uploadingFilesStatus ? "default" : "pointer"}
                 })}
                      className={styles.dropZoneWrapper}>
                     <input {...getInputProps()}
@@ -194,6 +188,11 @@ const DropZone: FC = () => {
                                             <RegularText>{file.name}</RegularText>
 
                                             <div className={styles.removeFile}
+                                                 style={{
+                                                     cursor: uploadingFilesStatus ?
+                                                         "default" :
+                                                         "pointer"
+                                                 }}
                                                  onClick={() => removeFileHandler(file.name)}>
                                                 <Image src={cross} alt={'cross'}/>
                                             </div>

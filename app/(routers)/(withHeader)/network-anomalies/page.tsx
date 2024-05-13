@@ -5,5 +5,4 @@ import NetworkAnomalies from "@/app/(auxiliary)/components/Sections/NetworkAnoma
 const Page = () => {
     return <NetworkAnomalies/>
 };
-
 export default Page;

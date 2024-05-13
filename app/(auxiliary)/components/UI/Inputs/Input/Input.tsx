@@ -16,7 +16,7 @@ const Input: FC<PropsType> = ({
                                   onBlur,
                                   placeholder,
                                   type = "text",
-                                  disabled,
+                                  disabled= false,
                                   maxLength,
                                   tabIndex
                               }) => {
@@ -48,7 +48,7 @@ const Input: FC<PropsType> = ({
                     onBlur={() => activeBlurHandler()}
                     placeholder={placeholder}
                     maxLength={maxLength}
-                    disabled={disabled ? disabled : false}
+                    disabled={disabled}
                     tabIndex={tabIndex}
                 />
             </div>

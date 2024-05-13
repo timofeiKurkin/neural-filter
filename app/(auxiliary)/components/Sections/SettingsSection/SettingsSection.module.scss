@@ -1,0 +1,22 @@
+
+
+.settingsSection {
+	display: grid;
+	row-gap: 25px;
+
+	.changePassword {
+		display: grid;
+		grid-template-columns: 440px;
+
+		.changePasswordInputs {
+			margin: 15px 0 25px 0;
+			display: grid;
+			row-gap: 20px;
+		}
+
+		.changePasswordButton {
+			display: flex;
+			justify-content: flex-end;
+		}
+	}
+}

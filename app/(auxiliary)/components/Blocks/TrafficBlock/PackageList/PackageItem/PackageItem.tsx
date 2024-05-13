@@ -9,12 +9,12 @@ interface PropsType {
     packageItem: TrafficPackageType
 }
 const PackageItem: FC<PropsType> = ({packageItem}) => {
-    const formattedDate = formattedTime(packageItem.time)
+    const formattedDate = formattedTime(packageItem.time as number)
 
     return (
         <div className={`${columnWrapper.columnWrapper} ${styles.packageItem}`}>
-            {Object.values(packageItem).map((item) => (
-                <div className={styles.data}>
+            {Object.values(packageItem).map((item, index) => (
+                <div key={`key=${index}`} className={styles.data}>
                     {item}
                 </div>
             ))}

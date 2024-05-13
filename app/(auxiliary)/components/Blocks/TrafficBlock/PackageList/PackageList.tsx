@@ -43,9 +43,7 @@ const PackageList: FC<PropsType> = ({
                 <div className={`${styles.packageList}`}>
                     {
                         packages.map((item) => (
-                            <div key={`key=${item.id}+${Math.random()}`}>
-                                <PackageItem packageItem={item}/>
-                            </div>
+                            <PackageItem key={`key=${item.id}+${Math.random()}`} packageItem={item}/>
                         ))
                     }
                 </div>

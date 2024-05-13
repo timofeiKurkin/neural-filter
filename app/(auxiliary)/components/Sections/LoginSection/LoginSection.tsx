@@ -2,7 +2,7 @@ import React, {FC} from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import LoginBlock from "@/app/(auxiliary)/components/Blocks/LoginBlock/LoginBlock";
+import LoginBlock from "@/app/(auxiliary)/components/Blocks/Authorization/LoginBlock/LoginBlock";
 
 import styles from "./LoginSection.module.scss";
 import {cookies} from "next/headers";

@@ -12,34 +12,25 @@ export default class UserService {
         return $api.post(`${this.userPath}token/`, {
                 username: login,
                 password
-            },
-            //     {
-            //     headers: {
-            //         "X-CSRFToken": csrfToken
-            //     }
-            // }
+            }
         )
     }
 
     static async refreshToken(refreshToken: string, csrfToken: string) {
         return $api.post(`${this.userPath}token/refresh/`, {
                 refresh: refreshToken
-            },
-            //     {
-            //     headers: {
-            //         'X-CSRFToken': csrfToken
-            //     }
-            // }
+            }
         )
     }
 
     static async logout(csrfToken: string) {
-        return $api.post(`${this.userPath}logout/`, {},
-            // {
-            //     headers: {
-            //         'X-CSRFToken': csrfToken
-            //     }
-            // }
-        )
+        return $api.post(`${this.userPath}logout/`)
+    }
+
+    static async changePassword(oldPassword: string, newPassword: string) {
+        return $api.put(`${this.userPath}change-password/`, {
+            old_password: oldPassword,
+            new_password: newPassword
+        })
     }
 }
