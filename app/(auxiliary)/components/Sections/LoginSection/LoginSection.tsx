@@ -11,7 +11,7 @@ import LogoText from "@/app/(auxiliary)/components/UI/TextTemplates/LogoText";
 
 const LoginSection: FC = () => {
     const cookiesStore = cookies()
-    const token = cookiesStore.get('csrftoken')
+    const token = cookiesStore.get('csrftoken') || {value: ""}
 
     return (
         <div className={styles.loginSectionWrapper}>
@@ -35,13 +35,9 @@ const LoginSection: FC = () => {
 
             <div className={styles.loginSectionBorder}></div>
 
-            {
-                token?.value && (
-                    <div className={styles.loginSectionInputsWrapper}>
-                        <LoginBlock csrfToken={token.value}/>
-                    </div>
-                )
-            }
+            <div className={styles.loginSectionInputsWrapper}>
+                <LoginBlock csrfToken={token.value}/>
+            </div>
 
         </div>
     );

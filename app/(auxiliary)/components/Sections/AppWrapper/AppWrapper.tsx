@@ -21,14 +21,17 @@ interface PropsType {
     CSRFToken: string;
 }
 
-const AppWrapper: FC<PropsType> = ({children, CSRFToken}) => {
+const AppWrapper: FC<PropsType> = ({
+                                       children,
+                                       CSRFToken
+                                   }) => {
     const dispatch = useDispatch()
 
     const pathname = usePathname()
     const route = useRouter()
 
     const {user, isAuth} = useSelector(selectorUser)
-    const {rememberPath}: {rememberPath: string} = useSelector(selectorApplication)
+    const {rememberPath}: { rememberPath: string } = useSelector(selectorApplication)
     const accessTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('access') : null
     const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
 

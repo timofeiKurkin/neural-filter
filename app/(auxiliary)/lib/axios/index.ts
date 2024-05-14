@@ -16,7 +16,7 @@ const accessToken = typeof window !== "undefined" ? localStorage.getItem('access
 console.log("accessToken", accessToken.split('"').join(''))
 
 $api.interceptors.request.use((config) => {
-    config.headers.Authorization = `Bearer ${accessToken.split('"').join('')}`
+    config.headers.Authorization = accessToken ? `Bearer ${accessToken.split('"').join('')}` : ""
     return config
 })
 
