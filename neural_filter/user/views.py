@@ -24,7 +24,7 @@ def get_routers(request: Request) -> Response:
 
 
 @api_view(["GET"])
-@permission_classes((permissions.IsAuthenticatedOrReadOnly,))
+@permission_classes(())
 def get_csrf(request: Request) -> JsonResponse:
     csrf_token = get_token(request)
     response = JsonResponse({"csrftoken": csrf_token})
