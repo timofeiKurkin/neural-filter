@@ -4,11 +4,13 @@ import {CustomErrorType} from "@/app/(auxiliary)/types/AppTypes/Errors";
 interface InitialStateType {
     errorList: CustomErrorType[];
     rememberPath: string;
+    CSRFToken: string;
 }
 
 const initialState: InitialStateType = {
     errorList: [],
-    rememberPath: '',
+    rememberPath: "",
+    CSRFToken: ""
 }
 
 export const applicationSlice = createSlice({
@@ -20,6 +22,9 @@ export const applicationSlice = createSlice({
         },
         setPath: (state, action: PayloadAction<string>) => {
             state.rememberPath = action.payload
+        },
+        setCSRFToken: (state, action: PayloadAction<string>) => {
+            state.CSRFToken = action.payload
         }
     }
 })
@@ -27,5 +32,6 @@ export const applicationSlice = createSlice({
 
 export const {
     setError,
-    setPath
+    setPath,
+    setCSRFToken
 } = applicationSlice.actions

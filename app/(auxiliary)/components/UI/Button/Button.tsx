@@ -11,7 +11,7 @@ import {AnimationControls, AnimationProps, HTMLMotionProps, motion, Target, Vari
 interface buttonType {
     disabled?: boolean;
     style: React.CSSProperties,
-    children: string;
+    children: string | React.ReactNode;
     tabIndex?: number;
     onClick?: () => void;
     type?: "button" | "reset" | "submit",

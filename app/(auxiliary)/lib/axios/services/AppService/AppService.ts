@@ -1,4 +1,4 @@
-import $api from "@/app/(auxiliary)/lib/axios";
+import {$api} from "@/app/(auxiliary)/lib/axios";
 import {AxiosResponse} from "axios";
 
 export default class AppService {

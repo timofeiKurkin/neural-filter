@@ -8,14 +8,15 @@ import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
+import {$api_client} from "@/app/(auxiliary)/lib/axios";
 
 const Logout = () => {
     const dispatch = useDispatch()
     const {ws}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
-    const logoutHandler = () => {
+    const logoutHandler = async () => {
         localStorage.removeItem('access')
-        localStorage.removeItem('refresh')
+        await $api_client.post("logout/")
 
         if (ws instanceof WebSocket) {
             ws.close()

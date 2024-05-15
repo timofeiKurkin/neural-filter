@@ -14,7 +14,6 @@ import {
     setFiles,
     setUploadingFilesStatus
 } from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
-import {uploadFiles} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {UploadFilesResponse} from "@/app/(auxiliary)/types/FilesType/UploadFilesResponse";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
@@ -22,6 +21,9 @@ import Input from "@/app/(auxiliary)/components/UI/Inputs/Input/Input";
 import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import AnimationButton from "@/app/(auxiliary)/components/UI/AnimationButton/AnimationButton";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
+import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
+import FileService from "@/app/(auxiliary)/lib/axios/services/FileService/FileService";
 
 const DragDrop = () => {
     const dispatch = useDispatch()
@@ -53,9 +55,9 @@ const DragDrop = () => {
      * Функция для отправки пакетов на сервер
      */
     const uploadFilesHandler = async (args: {
-        files: File[],
-        datasetTitle: string,
-        datasets: DatasetType[]
+        files: File[];
+        datasetTitle: string;
+        datasets: DatasetType[];
     }) => {
         if (args.files.length && datasetTitle) {
             dispatch(setUploadingFilesStatus(true))
@@ -66,10 +68,10 @@ const DragDrop = () => {
             })
             formData.append('dataset_title', args.datasetTitle)
 
-            let accessToken = typeof window !== "undefined" ? localStorage.getItem('access') ?? "" : ""
-            accessToken = accessToken.split('"').join('')
+            const accessToken = getAccessToken()
 
-            const response = await uploadFiles(formData, accessToken)
+            const response =
+                await axiosHandler(FileService.uploadFiles(formData, accessToken))
             dispatch(setUploadingFilesStatus(false))
 
             if ((response as AxiosResponse<UploadFilesResponse>).status === 201) {
@@ -152,7 +154,9 @@ const DragDrop = () => {
                 ) : (
                     uploadingFilesStatus ?
                         (
-                            <AnimationButton disabled={uploadingFilesStatus}>Files are uploaded to the server</AnimationButton>
+                            <AnimationButton disabled={uploadingFilesStatus}>
+                                Files are uploaded to the server
+                            </AnimationButton>
                         )
                         :
                         (
@@ -164,7 +168,7 @@ const DragDrop = () => {
                                             datasetTitle,
                                             datasets
                                         })}>
-                                    Send and save file{files.length > 1 ? "s" : ""} to dataset
+                                    <span>Send and save file{files.length > 1 ? "s" : ""} to dataset</span>
                                 </Button>
                             </div>
                         )

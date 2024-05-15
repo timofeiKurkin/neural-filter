@@ -5,11 +5,13 @@ import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 interface InitialStateType {
     user: IUser;
     isAuth: boolean;
+    accessToken: string;
 }
 
 const initialState: InitialStateType = {
     user: {} as IUser,
     isAuth: false,
+    accessToken: ""
 }
 
 export const userSlice = createSlice({
@@ -22,10 +24,14 @@ export const userSlice = createSlice({
         setAuth: (state, action: PayloadAction<boolean>) => {
             state.isAuth = action.payload
         },
+        setAccessToken: (state, action: PayloadAction<string>) => {
+            state.accessToken = action.payload
+        }
     }
 })
 
 export const {
     setUser,
     setAuth,
+    setAccessToken,
 } = userSlice.actions

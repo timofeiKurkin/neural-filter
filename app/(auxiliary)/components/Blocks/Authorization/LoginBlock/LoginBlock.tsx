@@ -15,20 +15,18 @@ import {color_1, color_white} from "@/styles/color";
 import styles from "./LoginBlock.module.scss"
 import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
-import {login} from "@/app/(routers)/(withoutHeader)/login/login";
-import {AxiosError, AxiosResponse} from "axios";
+import {AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
 import ErrorsHandler from "@/app/(auxiliary)/components/Common/ErrorsHandler/ErrorsHandler";
 import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {CustomErrorType, JustErrorType} from "@/app/(auxiliary)/types/AppTypes/Errors";
+import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
+import UserService from "@/app/(auxiliary)/lib/axios/services/UserService/UserService";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 
-interface PropsType {
-    csrfToken: string;
-}
-
-const LoginBlock: FC<PropsType> = ({csrfToken}) => {
+const LoginBlock: FC = () => {
     const router = useRouter()
     const dispatch = useDispatch()
 
@@ -40,6 +38,8 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
 
     const [hasLogin, setHasLogin] = useState<boolean>(true)
 
+    const accessToken = getAccessToken()
+
     const loginKey = "u-l"
     const loginValue = useInput("", loginKey, usernameValidations)
 
@@ -47,16 +47,23 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
     const passwordValue = useInput("", passwordKey, passwordValidations)
 
 
-    const authorizationHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
-        e.preventDefault()
-
-        const response = await login(loginValue.value, passwordValue.value, csrfToken)
+    const authorizationHandler = async (args: {
+        e: React.MouseEvent<HTMLDivElement>;
+        login: string;
+        password: string;
+        accessToken: string;
+    }) => {
+        args.e.preventDefault()
+        const response = await axiosHandler(UserService.login(
+            args.login,
+            args.password,
+            args.accessToken
+        ))
 
         if ((response as AxiosResponse).status === 200) {
             const data = (response as AxiosResponse).data
-            const accessToken = data.access
-            const refreshToken = data.refresh
             const decodeJWT: JwtPayloadExtended = jwtDecode(data.access)
+            const accessToken = data.access
 
             dispatch(setUser({
                 id: decodeJWT.user_id,
@@ -65,7 +72,6 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
             dispatch(setAuth(true))
 
             localStorage.setItem('access', JSON.stringify(accessToken))
-            localStorage.setItem('refresh', JSON.stringify(refreshToken))
         } else if ((response as AxiosErrorType).statusCode === 401 && (response as AxiosErrorType).message) {
 
             dispatch(setError([...errorList, {
@@ -148,7 +154,12 @@ const LoginBlock: FC<PropsType> = ({csrfToken}) => {
                         </div>
 
                         <div className={styles.loginButton}
-                             onClick={(e: React.MouseEvent<HTMLDivElement>) => authorizationHandler(e)}>
+                             onClick={(e: React.MouseEvent<HTMLDivElement>) => authorizationHandler({
+                                 e,
+                                 login: loginValue.value,
+                                 password: passwordValue.value,
+                                 accessToken
+                             })}>
                             <Button style={{backgroundColor: color_1, color: color_white}}
                                     tabIndex={3}
                                     type={'submit'}

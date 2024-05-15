@@ -10,30 +10,29 @@ import {AxiosResponse} from "axios";
 import styles from "./SettingsSection.module.scss"
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 
+const SettingsSection = () => {
+    const accessToken = getAccessToken()
 
-interface PropsType {
-    csrfToken: string
-}
-
-const SettingsSection: PropsType = ({
-                                        csrfToken
-                                    }) => {
     const [oldPassword, setOldPassword] = useState<string>("")
     const [newPassword, setNewPassword] = useState<string>("")
     const [comparePasswords, setComparePasswords] =
         useState<boolean>(() => false)
 
     const changePasswordHandler = async (args: {
-        oldPassword: string,
-        newPassword: string
+        oldPassword: string;
+        newPassword: string;
+        accessToken: string;
     }) => {
         const response = await axiosHandler(UserService.changePassword(
-            args.oldPassword, args.newPassword
+            args.oldPassword,
+            args.newPassword,
+            args.accessToken
         ))
 
         if ((response as AxiosResponse).status === 200) {
-            const data = (response as AxiosResponse<{success}>).data
+            const data = (response as AxiosResponse<{success: boolean}>).data
             if(data.success) {
             } else {
 
@@ -92,7 +91,8 @@ const SettingsSection: PropsType = ({
                         style={{backgroundColor: color_1, color: color_5}}
                         onClick={() => changePasswordHandler({
                             oldPassword,
-                            newPassword
+                            newPassword,
+                            accessToken
                         })}
                         disabled={!comparePasswords}>
                         Save

@@ -1,29 +1,33 @@
 "use client"
 
 import React, {FC, useEffect, useState} from 'react';
-import {
-    selectorUser,
-    setAuth,
-    setUser,
-    useDispatch,
-    useSelector
-} from "@/app/(auxiliary)/lib/redux/store";
+import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {usePathname, useRouter} from "next/navigation";
-import {getCSRFToken, refreshToken} from "@/app/func";
 import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 import axios, {AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
-import {selectorApplication, setPath} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {selectorApplication, setCSRFToken, setPath} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
+import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
+import UserService from "@/app/(auxiliary)/lib/axios/services/UserService/UserService";
+import AppService from "@/app/(auxiliary)/lib/axios/services/AppService/AppService";
+
+
+interface CSRFTokenType {
+    csrftoken: string;
+}
 
 interface PropsType {
     children: React.ReactNode;
     CSRFToken: string;
+    refreshToken?: string;
 }
 
 const AppWrapper: FC<PropsType> = ({
                                        children,
-                                       CSRFToken
+                                       CSRFToken,
+                                       refreshToken = ""
                                    }) => {
     const dispatch = useDispatch()
 
@@ -32,11 +36,11 @@ const AppWrapper: FC<PropsType> = ({
 
     const {user, isAuth} = useSelector(selectorUser)
     const {rememberPath}: { rememberPath: string } = useSelector(selectorApplication)
-    const accessTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('access') : null
-    const refreshTokenFromLS = typeof window !== 'undefined' ? localStorage.getItem('refresh') : null
+    const accessToken = getAccessToken()
 
-    axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
-    // axios.defaults.headers.common['Accept'] = "application/vnd.tcpdump.pcap, application/json, text/plain, */*"
+    if (CSRFToken) {
+        axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
+    }
 
     useEffect(() => {
         if (!rememberPath && pathname !== "/login" && pathname !== "/settings") {
@@ -51,10 +55,10 @@ const AppWrapper: FC<PropsType> = ({
     const [tokens, setTokens] = useState<
         AuthTokens
     >(() => {
-        if (accessTokenFromLS && refreshTokenFromLS) {
+        if (accessToken && refreshToken) {
             return {
-                access: JSON.parse(accessTokenFromLS),
-                refresh: JSON.parse(refreshTokenFromLS)
+                access: accessToken,
+                refresh: refreshToken
             }
         } else {
             return {
@@ -72,16 +76,27 @@ const AppWrapper: FC<PropsType> = ({
 
         const fetchData = async () => {
             if (active) {
-                return await getCSRFToken()
+                const response = await axiosHandler(AppService.getCSRFToken())
+
+                if ((response as AxiosResponse<CSRFTokenType>).status === 200) {
+                    const token = (response as AxiosResponse<CSRFTokenType>).data.csrftoken
+                    axios.defaults.headers.common['X-CSRFToken'] = token
+                    dispatch(setCSRFToken(token))
+                }
             }
         }
 
-        fetchData().then()
+        if (!CSRFToken) {
+            fetchData().then()
+        }
 
         return () => {
             active = false
         }
-    }, [dispatch]);
+    }, [
+        CSRFToken,
+        dispatch
+    ]);
 
 
     /**
@@ -90,8 +105,9 @@ const AppWrapper: FC<PropsType> = ({
     useEffect(() => {
         let active = true
 
-        const fetchData = async (refToken: string, csrfToken: string) => {
-            const response = await refreshToken(refToken, csrfToken)
+        const fetchData = async (refToken: string, accToken: string) => {
+            const response =
+                await axiosHandler(UserService.refreshToken(refToken, accToken))
 
             if (active) {
                 if ((response as AxiosResponse).status === 200) {
@@ -111,9 +127,7 @@ const AppWrapper: FC<PropsType> = ({
                                     access: data.access,
                                     refresh: prevState.refresh,
                                 }
-
                                 localStorage.setItem('access', JSON.stringify(newToken.access))
-                                // localStorage.setItem('refresh', JSON.stringify(newToken.refresh))
 
                                 return newToken
                             } else {
@@ -129,7 +143,7 @@ const AppWrapper: FC<PropsType> = ({
         }
 
         if (tokens.access && tokens.refresh) {
-            fetchData(tokens.refresh, CSRFToken).then()
+            fetchData(tokens.refresh, tokens.access).then()
         }
 
         const intervalGettingTokens = setInterval(() => {
@@ -148,7 +162,8 @@ const AppWrapper: FC<PropsType> = ({
         user.id,
         dispatch,
         tokens.refresh,
-        tokens.access
+        tokens.access,
+        CSRFToken
     ]);
 
 
@@ -161,7 +176,13 @@ const AppWrapper: FC<PropsType> = ({
         } else if (rememberPath) {
             route.push(rememberPath)
         }
-    }, [isAuth, user.id, rememberPath]);
+    }, [
+        isAuth,
+        user.id,
+        rememberPath,
+        user.username,
+        route
+    ]);
 
 
     return (children)

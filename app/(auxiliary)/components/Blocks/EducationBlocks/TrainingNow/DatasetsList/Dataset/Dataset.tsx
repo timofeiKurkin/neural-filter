@@ -11,7 +11,6 @@ import stop from "@/public/stop.svg"
 import styles from "./Dataset.module.scss";
 import Image from "next/image";
 import {color_1, color_2, color_3, color_5} from "@/styles/color";
-import {deleteDataset} from "@/app/(routers)/(withHeader)/education-ai/func";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
@@ -20,13 +19,17 @@ import {
     selectorNeuralNetwork,
     setModelMetric
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {getMetricImage} from "@/app/(auxiliary)/func/educationNeuralNetwork/getMetrics";
 import {
     GetModelMetricResponseType, ModelMetricType
 } from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/EducationTypes";
 import {
     startEducationInstruction, stopEducationInstruction
 } from "@/app/(auxiliary)/components/Blocks/EducationBlocks/TrainingNow/DatasetsList/Dataset/modelWorkInstructions";
+import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
+import FileService from "@/app/(auxiliary)/lib/axios/services/FileService/FileService";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
+import NetworkAnomaliesService
+    from "@/app/(auxiliary)/lib/axios/services/NetworkAnomaliesService/NetworkAnomaliesService";
 
 
 /**
@@ -42,6 +45,7 @@ interface PropsType {
 
 const Dataset: FC<PropsType> = ({dataset}) => {
     const dispatch = useDispatch()
+    const accessToken = getAccessToken()
 
     const {currentModelStatus, ws, modelMetric}: InitialNeuralNetworkStateType =
         useSelector(selectorNeuralNetwork)
@@ -63,8 +67,9 @@ const Dataset: FC<PropsType> = ({dataset}) => {
 
     const deleteDatasetHandler = async (args: {
         modelID: string,
+        accessToken: string
     }) => {
-        await deleteDataset(args.modelID)
+        await axiosHandler(FileService.deleteDataset(args.modelID, args.accessToken))
             .then((r) => (r as AxiosResponse).status === 204 &&
                 dispatch(setDatasets(
                     datasets.filter(data =>
@@ -82,10 +87,11 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         args: {
             modelID: string,
             currentModelID: string
+            accessToken: string
         }
     ) => {
         if (args.modelID !== args.currentModelID) {
-            const response = await getMetricImage(args.modelID)
+            const response = await axiosHandler(NetworkAnomaliesService.getModelMetrics(args.modelID, args.accessToken))
 
             if ((response as AxiosResponse<GetModelMetricResponseType>).status === 200) {
                 const modelMetric: ModelMetricType = (response as AxiosResponse<GetModelMetricResponseType>).data.metric
@@ -149,7 +155,8 @@ const Dataset: FC<PropsType> = ({dataset}) => {
             <div className={styles.datasetStatistics}
                  onClick={() => getDatasetMetrics({
                      modelID: dataset.modelID,
-                     currentModelID: modelMetric.modelID
+                     currentModelID: modelMetric.modelID,
+                     accessToken
                  })}>
                 <span className={styles.datasetText}
                       style={{color: color_2}}>
@@ -176,7 +183,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                                 (
                                     <div className={styles.twoFactorAccept}>
                                         <div onClick={() =>
-                                            deleteDatasetHandler({modelID: dataset.modelID})}>
+                                            deleteDatasetHandler({
+                                                modelID: dataset.modelID,
+                                                accessToken
+                                            })}>
                                             <Image src={accept} alt={'delete'}/>
                                         </div>
 

@@ -17,12 +17,12 @@ interface PropsType {
 }
 
 export default function RootLayout({children}: PropsType) {
-
     const cookiesStore = cookies()
     const tokenObject = cookiesStore.get('csrftoken' as any)
-    let CSRFToken: string = ''
+    const refreshToken = cookiesStore.get("refresh")
 
-    if (tokenObject?.value && tokenObject.name) {
+    let CSRFToken: string = ''
+    if (tokenObject?.value) {
         CSRFToken = tokenObject.value
     }
 
@@ -30,7 +30,8 @@ export default function RootLayout({children}: PropsType) {
         <html lang="en">
         <body className={`${KanitLocalFont.className}`}>
         <Providers>
-            <AppWrapper CSRFToken={CSRFToken}>
+            <AppWrapper CSRFToken={CSRFToken}
+                        refreshToken={refreshToken?.value}>
                 {children}
             </AppWrapper>
         </Providers>

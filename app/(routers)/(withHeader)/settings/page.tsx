@@ -1,5 +1,4 @@
 import React from 'react';
-import $api from "@/app/(auxiliary)/lib/axios";
 import {cookies} from "next/headers";
 import SettingsSection from "@/app/(auxiliary)/components/Sections/SettingsSection/SettingsSection";
 
@@ -8,7 +7,7 @@ const Page = () => {
     const token = cookiesStore.get('csrftoken')
 
     return (
-        token?.value && <SettingsSection csrfToken={token}/>
+        token?.value && <SettingsSection/>
     );
 };
 

@@ -1,5 +1,5 @@
 import {AxiosResponse} from "axios";
-import $api, {API_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
+import {$api, $api_client, API_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
 
 export default class UserService {
     static userPath = "user/"
@@ -7,30 +7,42 @@ export default class UserService {
     static async login(
         login: string,
         password: string,
-        csrfToken: string
+        accessToken: string
     ): Promise<AxiosResponse> {
-        return $api.post(`${this.userPath}token/`, {
+        return $api_client.post(`login/`, {
                 username: login,
                 password
+            }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
             }
         )
     }
 
-    static async refreshToken(refreshToken: string, csrfToken: string) {
+    static async refreshToken(refreshToken: string, accessToken: string) {
         return $api.post(`${this.userPath}token/refresh/`, {
                 refresh: refreshToken
+            }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
             }
         )
     }
 
-    static async logout(csrfToken: string) {
-        return $api.post(`${this.userPath}logout/`)
-    }
-
-    static async changePassword(oldPassword: string, newPassword: string) {
+    static async changePassword(
+        oldPassword: string,
+        newPassword: string,
+        accessToken: string
+    ) {
         return $api.put(`${this.userPath}change-password/`, {
             old_password: oldPassword,
             new_password: newPassword
+        }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         })
     }
 }

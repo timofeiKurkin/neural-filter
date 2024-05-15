@@ -5,7 +5,6 @@ import Image from "next/image";
 
 import {AxiosResponse} from "axios";
 import arrowForSelect from "@/public/arrow-for-select.svg";
-import {getInterface} from "@/app/(routers)/(withHeader)/all-traffic/func";
 
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 
@@ -14,6 +13,9 @@ import {GetInterfaces} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
 import styles from "./InterfaceHandler.module.scss";
 import {setInterface, useDispatch} from "@/app/(auxiliary)/lib/redux/store";
+import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
+import AllTrafficService from "@/app/(auxiliary)/lib/axios/services/AllTrafficService/AllTrafficService";
+import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 
 const InterfaceHandler: FC = () => {
     const dispatch = useDispatch()
@@ -21,18 +23,19 @@ const InterfaceHandler: FC = () => {
     const ref = useRef<HTMLDivElement>(null)
 
     const [allInterface, setAllInterface] = useState<GetInterfaces[]>([])
-
     const [selectedInterface, setSelectedInterface] = useState<GetInterfaces>()
-
     const [selectStatus, setSelectStatus] = useState(false)
 
-    useEffect(() => {
-    }, []);
+    const accessToken = getAccessToken()
 
     useEffect(() => {
         let active = true
-        const fetchData = async () => {
-            const response = await getInterface()
+        const fetchData = async (args: {
+            accessToken: string
+        }) => {
+            const response =
+                await axiosHandler(AllTrafficService.getInterface(accessToken))
+
             if (active) {
                 if ((response as AxiosResponse<TrafficResponse>).status === 200) {
                     const responseData = (response as AxiosResponse<TrafficResponse>).data.network_interfaces
@@ -43,7 +46,9 @@ const InterfaceHandler: FC = () => {
             }
         }
 
-        fetchData().then()
+        fetchData({
+            accessToken
+        }).then()
 
         return () => {
             active = false
