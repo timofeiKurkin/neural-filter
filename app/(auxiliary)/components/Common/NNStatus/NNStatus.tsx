@@ -12,10 +12,8 @@ import {
     setWebSocket
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
-import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 import {
-    NeuralNetworkFinishEducation,
-    NeuralNetworkFoundAnomalyResponseType,
+    NeuralNetworkFoundAnomalyResponseType, NeuralNetworkNoWorkType,
     NeuralNetworkWorkResponseType
 } from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
 
@@ -28,7 +26,7 @@ interface StatusType {
         "working" |
         "disconnection" |
         "preprocessing";
-    statusCode: 0 | 1 | 2 | 3;
+    statusCode: 0 | 1 | 2 | 3 | 4;
 }
 
 
@@ -109,9 +107,7 @@ const NnStatus = () => {
                     //     dispatch(setDatasets(updatedDataset))
                     // }
 
-                    const statusData: StatusRenderType = data
-
-                    if ((statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
+                    if ((data as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
                         const newAnomalyTraffic: NeuralNetworkFoundAnomalyResponseType = data
                         const anomalyTrafficSession = newAnomalyTraffic.data.session
 
@@ -121,8 +117,8 @@ const NnStatus = () => {
                     }
 
                     if (
-                        (statusData as NeuralNetworkWorkResponseType).send_type === 'model_work' ||
-                        (statusData as NeuralNetworkFoundAnomalyResponseType).send_type === "model_study") {
+                        (data as NeuralNetworkWorkResponseType).send_type === 'model_work' ||
+                        (data as NeuralNetworkWorkResponseType).send_type === "model_study") {
                         const workResponse: NeuralNetworkWorkResponseType = data
 
                         if (workResponse.data.status === "success") {
@@ -148,6 +144,15 @@ const NnStatus = () => {
                         }
                     }
 
+                    if ((data as NeuralNetworkNoWorkType).send_type === "no_work") {
+                        console.log("data", data)
+                        console.log("currentModelStatus", currentModelStatus)
+                        if ((data as NeuralNetworkNoWorkType).data.model_id === currentModelStatus.modelID) {
+                            const newModelStatus = {...currentModelStatus, workStatus: false}
+                            dispatch(setCurrentModelStatus(newModelStatus))
+                        }
+                    }
+
                     // if ((statusData as NeuralNetworkFinishEducation).send_type === "finish_education") {
                     //     const finishEducation: NeuralNetworkFinishEducation = data
                     //     const updatedDatasets = datasets.map((item) => {
@@ -162,7 +167,9 @@ const NnStatus = () => {
                     //     dispatch(setDatasets(updatedDatasets))
                     // }
 
-                    if (statusData.status) {
+                    if ((data as StatusRenderType).status) {
+                        const statusData: StatusRenderType = data
+
                         if (statusData.statusCode === 2) {
                             statusData.colorStatus = color_6
                             setStateStatus(statusData)
@@ -212,13 +219,7 @@ const NnStatus = () => {
                 ws.close();
             }
         };
-    }, [
-        // ws,
-        // datasets,
-        // dispatch,
-        // currentModelID.signal,
-        // currentModelID.modelID
-    ]);
+    }, []);
 
 
     // console.log("stateStatus", stateStatus)

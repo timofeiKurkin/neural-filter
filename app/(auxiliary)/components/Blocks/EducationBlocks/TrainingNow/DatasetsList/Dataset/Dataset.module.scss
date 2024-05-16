@@ -16,24 +16,28 @@
 
 	.datasetTitle {
 		display: grid;
-		grid-template-columns: 24px 105px;
+		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
 		align-items: center;
-
-		overflow: hidden;
-
-		column-gap: 10px;
 	}
 
-	.datasetLine {
-		width: 1px;
-		height: 24px;
-		background-color: $color_2;
-	}
-
-	.datasetStatistics {
-		display: flex;
+	.datasetData {
+		width: 100%;
+		display: grid;
+		grid-template-columns: 105px 1px 1fr;
+		align-items: center;
 		column-gap: 10px;
+
+		.datasetLine {
+			width: 1px;
+			height: 24px;
+			background-color: $color_2;
+		}
+
+		.datasetStatistics {
+			display: flex;
+			column-gap: 10px;
+		}
 	}
 
 	.datasetDeleteWrapper {

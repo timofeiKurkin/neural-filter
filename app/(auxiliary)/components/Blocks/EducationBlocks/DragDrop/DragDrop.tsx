@@ -155,7 +155,7 @@ const DragDrop = () => {
                     uploadingFilesStatus ?
                         (
                             <AnimationButton disabled={uploadingFilesStatus}>
-                                Files are uploaded to the server
+                                Files are uploading to the server
                             </AnimationButton>
                         )
                         :

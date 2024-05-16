@@ -75,16 +75,20 @@ const AppWrapper: FC<PropsType> = ({
         let active = true
 
         const fetchData = async () => {
-            if (active) {
-                const response = await axiosHandler(AppService.getCSRFToken())
+            console.log("active", active)
+            const response = await axiosHandler(AppService.getCSRFToken())
+            console.log("after axios request")
+            console.log("response", response)
 
+            if (active) {
                 if ((response as AxiosResponse<CSRFTokenType>).status === 200) {
                     const token = (response as AxiosResponse<CSRFTokenType>).data.csrftoken
                     axios.defaults.headers.common['X-CSRFToken'] = token
-                    dispatch(setCSRFToken(token))
                 }
             }
         }
+
+        console.log("CSRFToken", CSRFToken)
 
         if (!CSRFToken) {
             fetchData().then()
@@ -94,8 +98,7 @@ const AppWrapper: FC<PropsType> = ({
             active = false
         }
     }, [
-        CSRFToken,
-        dispatch
+        CSRFToken
     ]);
 
 
@@ -148,7 +151,7 @@ const AppWrapper: FC<PropsType> = ({
 
         const intervalGettingTokens = setInterval(() => {
             if (tokens.refresh && isAuth && user.id) {
-                fetchData(tokens.refresh, CSRFToken).then()
+                fetchData(tokens.refresh, tokens.access).then()
             }
         }, 2400)
 

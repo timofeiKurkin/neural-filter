@@ -16,7 +16,7 @@ import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {
     InitialNeuralNetworkStateType,
-    selectorNeuralNetwork,
+    selectorNeuralNetwork, setCurrentModelStatus,
     setModelMetric
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {
@@ -57,7 +57,17 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const [twoFactorAccept, setTwoFactorAccept] =
         useState<boolean>(() => false)
 
-    const working = dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus
+    const [working, setWorking] =
+        useState(() => dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus)
+
+    useEffect(() => {
+        if(dataset.modelID === currentModelStatus.modelID) {
+            setWorking(currentModelStatus.workStatus)
+        }
+    }, [
+        dataset,
+        currentModelStatus
+    ]);
 
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{
@@ -108,6 +118,11 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         workStatus: boolean
     }) => {
         if (!args.workStatus) {
+            dispatch(setCurrentModelStatus({
+                modelID: args.modelID,
+                workStatus: true
+            }))
+
             ws.send(JSON.stringify({
                 ...startEducationInstruction,
                 data: args.modelID
@@ -127,45 +142,45 @@ const Dataset: FC<PropsType> = ({dataset}) => {
              onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
              onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
         >
-            <div className={styles.datasetTitle}>
-                <div
-                    onClick={() => modelWordHandler({
-                        modelID: dataset.modelID,
-                        workStatus: working
-                    })}>
-                    {
-                        working ? (
-                                <Image src={stop} alt={"stop"}/>
-                            )
-                            :
-                            (
-                                <Image src={datasetHover ? goHover : go} alt={'go'}/>
-                            )
-                    }
-                </div>
-
-                <span className={styles.datasetText}
-                      style={{color: color_1}}>
-                    {dataset.dataset_title}
-                </span>
+            <div className={styles.datasetTitle}
+                 onClick={() => modelWordHandler({
+                     modelID: dataset.modelID,
+                     workStatus: working
+                 })}>
+                {
+                    working ? (
+                            <Image src={stop} alt={"stop"}/>
+                        )
+                        :
+                        (
+                            <Image src={datasetHover ? goHover : go} alt={'go'}/>
+                        )
+                }
             </div>
 
-            <div className={styles.datasetLine}></div>
-
-            <div className={styles.datasetStatistics}
+            <div className={styles.datasetData}
                  onClick={() => getDatasetMetrics({
                      modelID: dataset.modelID,
                      currentModelID: modelMetric.modelID,
                      accessToken
                  })}>
                 <span className={styles.datasetText}
+                      style={{color: color_1}}>
+                    {dataset.dataset_title}
+                </span>
+
+                <div className={styles.datasetLine}></div>
+
+                <div className={styles.datasetStatistics}>
+                <span className={styles.datasetText}
                       style={{color: color_2}}>
                     sessions: {dataset.sessions_count}
                 </span>
-                <span className={styles.datasetText}
-                      style={{color: color_2}}>
+                    <span className={styles.datasetText}
+                          style={{color: color_2}}>
                     loss: {dataset.loss === 0 ? "0.0" : dataset.loss.toFixed(3)}
                 </span>
+                </div>
             </div>
 
             {

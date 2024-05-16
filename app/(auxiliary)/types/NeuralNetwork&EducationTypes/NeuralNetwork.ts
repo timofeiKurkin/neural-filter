@@ -35,6 +35,16 @@ export interface NeuralNetworkFoundAnomalyResponseType {
     }
 }
 
+
+export interface NeuralNetworkNoWorkType {
+    send_type: "no_work";
+    data: {
+        status: "success";
+        model_id: string;
+    }
+}
+
+
 export type AnomalyTrafficStateType = AnomalyTrafficObjectType[];
 
 export interface AnomalyTrafficObjectType {
