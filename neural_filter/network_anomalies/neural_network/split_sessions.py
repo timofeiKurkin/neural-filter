@@ -28,12 +28,12 @@ def split_sessions(
                     sessions[session_key] = []
                 sessions[session_key].append(packet)
 
+    session_len = len(sessions)
+
     for session_key, sessions_packets in sessions.items():
         write_pcap = PcapWriter(filename=f"{output_directory}/{session_key}.pcap")
         write_pcap.write(sessions_packets)
         write_pcap.flush()
+        del sessions[session_key]
 
-    session_len = len(sessions)
-
-    del sessions
     return session_len

@@ -17,15 +17,15 @@ from sklearn.preprocessing import MinMaxScaler
 from file_handler.models import DatasetModel
 from . import directories
 from . import statuses
-from .new_neural_network.model import classification_traffic_nn
-from .new_neural_network.pcap_to_dataset import (
+from .neural_network.model import classification_traffic_nn
+from .neural_network.pcap_to_dataset import (
     array_split,
     pcap_file_to_dataset,
     formated_package,
     encoded_embedding_model,
     expand_dimension
 )
-from .new_neural_network.pcap_to_dataset_v2 import (
+from .neural_network.pcap_to_dataset_v2 import (
     read_pcap,
     formated_packages,
     dataset_split
@@ -218,15 +218,15 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     self.sessions_encoded[session_key] = []
 
                 exist_package_in_object = True if {
-                    "source": ip_src,
-                    "MACSrc": mac_src,
-                    "portSrc": tcp_sport,
-                    "destination": ip_dst,
-                    "MACDst": mac_dst,
-                    "portDst": tcp_dport,
-                    "protocol": ip_proto,
-                    "length": ip_len
-                } in self.sessions[session_key] else False
+                                                      "source": ip_src,
+                                                      "MACSrc": mac_src,
+                                                      "portSrc": tcp_sport,
+                                                      "destination": ip_dst,
+                                                      "MACDst": mac_dst,
+                                                      "portDst": tcp_dport,
+                                                      "protocol": ip_proto,
+                                                      "length": ip_len
+                                                  } in self.sessions[session_key] else False
 
                 if not exist_package_in_object:
                     if len(self.sessions[session_key]) >= 16:
@@ -466,6 +466,11 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         labels=self.dataset_labels,
                         train_size=0.8
                     )
+
+                    print(f"{X_train.shape=}")
+                    print(f"{y_train.shape=}")
+                    print(f"{X_test.shape=}")
+                    print(f"{y_test.shape=}")
 
                     dataset_for_save = {
                         "X_train": X_train,

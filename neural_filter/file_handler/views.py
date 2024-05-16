@@ -14,7 +14,7 @@ from django.conf import settings
 from .serializers import MultipleSerializer, DatasetSerializer
 from .models import DatasetModel
 
-from network_anomalies.new_neural_network.split_sessions import split_sessions
+from network_anomalies.neural_network.split_sessions import split_sessions
 import network_anomalies.directories as directories
 
 from scapy.all import PcapReader
