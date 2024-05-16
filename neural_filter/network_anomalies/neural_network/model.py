@@ -55,7 +55,7 @@ async def classification_traffic_nn(
         # (X_train, y_train), (X_test, y_test) = (
         #     (dataset["X_train"], dataset["y_train"]),
         #     (dataset["X_test"], dataset["y_test"]))
-        #
+
         # print(f"{X_train.shape}")
         # print(f"{y_train.shape}")
         # print(f"{X_test.shape}")
@@ -202,7 +202,7 @@ async def classification_traffic_nn(
 
         model.summary()
 
-        epochs = 60
+        epochs = 50
 
         history = model.fit(
             x=X_train,

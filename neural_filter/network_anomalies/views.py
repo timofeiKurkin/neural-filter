@@ -7,8 +7,10 @@ from django.conf import settings
 from PIL import Image
 from django.http import FileResponse
 
+from . import directories
+
 from rest_framework import status
-from rest_framework import permissions, authentication
+from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.request import Request
@@ -33,8 +35,13 @@ class ModelMetricsView(APIView):
         dataset_info = list(DatasetModel.objects.filter(modelID=dataset_id).values())[0]
 
         if dataset_info:
-            image_metric = f"{dataset_id}.webp"
-            image_metric_path = os.path.join(settings.MODELS_DIR, dataset_id, image_metric)
+            image_metric = f"{directories.graph_directory}.webp"
+            image_metric_path = os.path.join(
+                settings.MODELS_DIR,
+                dataset_id,
+                directories.graph_directory,
+                image_metric
+            )
             dataset_info["image_metric_exist"] = os.path.exists(image_metric_path)
 
             return Response(
@@ -51,16 +58,27 @@ class ModelMetricsView(APIView):
 
 class ImageMetricsView(APIView):
     queryset = DatasetModel.objects.all()
-    permissions_classes = [permissions.IsAuthenticated]
+    permissions_classes = [permissions.AllowAny]
 
     @staticmethod
-    def get(request: Request, filename: str = None, *args, **kwargs):
-        if not filename:
+    def get(
+            request: Request,
+            dataset_id: str = None,
+            *args,
+            **kwargs
+    ):
+        if not dataset_id:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        dataset_id = filename
-        image_metric = f"{dataset_id}.webp"
-        image_metric_path = os.path.join(settings.MODELS_DIR, dataset_id, image_metric)
+        image_metric = f"{directories.graph_directory}.webp"
+        image_metric_path = os.path.join(
+            settings.MODELS_DIR,
+            dataset_id,
+            directories.graph_directory,
+            image_metric
+        )
+
+        print(f"{image_metric_path=}")
 
         try:
             if os.path.exists(image_metric_path):

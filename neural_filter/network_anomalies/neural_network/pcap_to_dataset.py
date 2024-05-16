@@ -27,7 +27,7 @@ async def read_pcap(*, pcap_path):
             # ip_src = int(ipaddress.IPv4Address(package_data['IP'].src))
             # ip_dst = int(ipaddress.IPv4Address(package_data['IP'].dst))
 
-            (ip_src, ip_dst), (mac_dst, mac_src) = await formated_package(
+            (ip_src, ip_dst), (mac_dst, mac_src) = await formatted_package(
                 ip_addresses=[package_data['IP'].dst, package_data['IP'].src],
                 mac_addresses=[package_data.fields["dst"], package_data.fields["src"]])
 
@@ -60,7 +60,7 @@ async def read_pcap(*, pcap_path):
         return []
 
 
-async def formated_package(*, ip_addresses, mac_addresses):
+async def formatted_package(*, ip_addresses, mac_addresses):
     ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) / 100 for ip in ip_addresses]
     mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) / 10000000 for mac_address in mac_addresses]
 

@@ -1,4 +1,5 @@
 from scapy.all import PcapWriter
+from tqdm import tqdm
 
 
 def split_sessions(
@@ -8,7 +9,10 @@ def split_sessions(
 ):
     sessions = {}
 
-    for packet in pcap_file:
+    print("")
+    print("==== Distribution of packages by session ====")
+
+    for packet in tqdm(pcap_file):
         if packet.haslayer("IP") and packet.haslayer("TCP"):
             src_ip = "-".join(packet["IP"].src.split("."))
             src_port = packet["TCP"].sport
@@ -30,10 +34,14 @@ def split_sessions(
 
     session_len = len(sessions)
 
-    for session_key, sessions_packets in sessions.items():
+    print("")
+    print("==== Writing packages to files ====")
+    for session_key, sessions_packets in tqdm(sessions.items()):
         write_pcap = PcapWriter(filename=f"{output_directory}/{session_key}.pcap")
         write_pcap.write(sessions_packets)
         write_pcap.flush()
-        del sessions[session_key]
 
+    print("==== Finished writing packages to files ====")
+
+    del sessions
     return session_len

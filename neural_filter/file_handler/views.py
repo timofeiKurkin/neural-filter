@@ -71,7 +71,8 @@ class FileHandlerView(APIView):
             directories_to_create = [
                 directories.dataset_directory,
                 directories.model_directory,
-                directories.helpful_directory
+                directories.helpful_directory,
+                directories.graph_directory
             ]
 
             for directory_name in directories_to_create:

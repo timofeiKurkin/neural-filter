@@ -7,9 +7,13 @@ import time
 import keras.saving
 import numpy as np
 from asgiref.sync import sync_to_async
+from tqdm import tqdm
+
 from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.exceptions import StopConsumer
+
 from django.conf import settings
 from scapy.sendrecv import AsyncSniffer
 from sklearn.preprocessing import MinMaxScaler
@@ -18,17 +22,20 @@ from file_handler.models import DatasetModel
 from . import directories
 from . import statuses
 from .neural_network.model import classification_traffic_nn
-from .neural_network.pcap_to_dataset import (
-    array_split,
-    pcap_file_to_dataset,
-    formated_package,
-    encoded_embedding_model,
-    expand_dimension
-)
+# from .neural_network.pcap_to_dataset import (
+#     array_split,
+#     pcap_file_to_dataset,
+#     formatted_package,
+#     encoded_embedding_model,
+#     expand_dimension
+# )
+from .neural_network.training_graph import training_graph
 from .neural_network.pcap_to_dataset_v2 import (
     read_pcap,
-    formated_packages,
-    dataset_split
+    formatted_packages,
+    formatted_package,
+    dataset_split,
+    expand_dimension
 )
 
 
@@ -93,6 +100,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
             self.asyncSniffer = None
+        raise StopConsumer()
 
     # Get any massages from user
     async def receive(self, text_data=None, bytes_data=None):
@@ -122,9 +130,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if send_type == "stop_scanning":
             await self.stop_scanning()
 
-        if send_type == "stop_working":
-            pass
-
     async def stop_scanning(self):
         if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
@@ -132,11 +137,16 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             print("==== Sniffer stopped ====")
 
     async def stop_education(self):
-        model_path = ""
-        dataset_path = ""
-        helpful_files = ""
-        self.current_model_id = ''
-        pass
+        print("==== Education or working stopped ====")
+        await self.send_work_status(new_status=statuses.no_work_status)
+        await self.send_work_data(
+            send_type="no_work",
+            data={
+                "status": "success",
+                "model_id": self.current_model_id,
+            }
+        )
+        # raise StopConsumer()
 
     def packet_callback(self, packet):
         if packet.haslayer("IP") and packet.haslayer("TCP"):
@@ -174,7 +184,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 "length": ip_len
             }
 
-            (ip_src, ip_dst), (mac_dst, mac_src) = asyncio.run(formated_package(
+            (ip_src, ip_dst), (mac_dst, mac_src) = asyncio.run(formatted_package(
                 ip_addresses=[ip_src, ip_dst],
                 mac_addresses=[mac_dst, mac_src]
             ))
@@ -237,7 +247,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         if self.model is not None:
                             session_for_predict = np.array([self.sessions_encoded[session_key]])
 
-                            session_for_predict, _ = asyncio.run(formated_packages(packages=session_for_predict))
+                            session_for_predict, _ = asyncio.run(formatted_packages(packages=session_for_predict))
 
                             #
                             session_for_predict[session_for_predict == 0] = (
@@ -255,7 +265,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                                     send_type="found_anomaly_traffic",
                                     data={
                                         "status": "success",
-
                                         "session": session_key,
                                         "anomaly_package": normal_package
                                     }
@@ -332,7 +341,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             dataset_packages = []
             dataset_labels = np.array([])
 
-            for pcap_file in pcap_files_path:
+            for pcap_file in tqdm(pcap_files_path):
                 array, label = await read_pcap(
                     pcap_path=pcap_file,
                 )
@@ -360,45 +369,45 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             dataset_packages = await expand_dimension(encoded_packages=dataset_packages)
 
-            dataset_packages, dataset_labels = await formated_packages(
+            dataset_packages, dataset_labels = await formatted_packages(
                 packages=dataset_packages,
                 labels=dataset_labels
             )
             self.dataset_packages = dataset_packages
             self.dataset_labels = dataset_labels
 
+    # #
+    # # Pcap files to dataset V1
+    # async def pcap_files_to_dataset(self):
+    #     # Directory for savings datasets and figure
+    #     if self.current_model_id:
+    #         sessions_path = str(os.path.join(
+    #             self.current_model_path,
+    #             directories.sessions_directory
+    #         ))
     #
-    # Pcap files to dataset V1
-    async def pcap_files_to_dataset(self):
-        # Directory for savings datasets and figure
-        if self.current_model_id:
-            sessions_path = str(os.path.join(
-                self.current_model_path,
-                directories.sessions_directory
-            ))
-
-            # All files from sessions directory
-            pcap_files_path = [
-                os.path.join(sessions_path, package_file)
-                for package_file in os.listdir(sessions_path)
-            ]
-
-            dataset_packages = []
-            dataset_labels = []
-
-            for pcap_file in pcap_files_path:
-                packages, label = await pcap_file_to_dataset(
-                    pcap_file_path=pcap_file,
-                    pcap_files_count=len(pcap_files_path)
-                )
-
-                if len(packages) != 0 and len(label) != 0:
-                    dataset_packages.append(packages)
-                    dataset_labels.append(label)
-
-            self.dataset_packages = dataset_packages
-            self.dataset_labels = dataset_labels
-            print("==== Datasets successfully loaded ====")
+    #         # All files from sessions directory
+    #         pcap_files_path = [
+    #             os.path.join(sessions_path, package_file)
+    #             for package_file in os.listdir(sessions_path)
+    #         ]
+    #
+    #         dataset_packages = []
+    #         dataset_labels = []
+    #
+    #         for pcap_file in pcap_files_path:
+    #             packages, label = await pcap_file_to_dataset(
+    #                 pcap_file_path=pcap_file,
+    #                 pcap_files_count=len(pcap_files_path)
+    #             )
+    #
+    #             if len(packages) != 0 and len(label) != 0:
+    #                 dataset_packages.append(packages)
+    #                 dataset_labels.append(label)
+    #
+    #         self.dataset_packages = dataset_packages
+    #         self.dataset_labels = dataset_labels
+    #         print("==== Datasets successfully loaded ====")
 
     #
     # MinMaxLayer for encoded packages
@@ -464,13 +473,13 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     (X_train, y_train), (X_test, y_test) = await dataset_split(
                         data=self.dataset_packages,
                         labels=self.dataset_labels,
-                        train_size=0.8
+                        test_size=0.2
                     )
 
-                    print(f"{X_train.shape=}")
-                    print(f"{y_train.shape=}")
-                    print(f"{X_test.shape=}")
-                    print(f"{y_test.shape=}")
+                    # print(f"{X_train.shape=}")
+                    # print(f"{y_train.shape=}")
+                    # print(f"{X_test.shape=}")
+                    # print(f"{y_test.shape=}")
 
                     dataset_for_save = {
                         "X_train": X_train,
@@ -485,6 +494,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         joblib.dump(self.sessions_mms, helpful_files)
 
                     if os.path.exists(dataset_file_npz) and os.path.exists(helpful_files):
+                        print("")
                         print("==== Start education model ====")
                         await self.send_work_status(new_status=statuses.is_studying_status)
                         await asyncio.sleep(1)
@@ -498,7 +508,18 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         )
                         self.model = model["model"]
                         history = model["history"]
-                        # epochs = model["epochs"]
+                        epochs = model["epochs"]
+
+                        graph_path = str(os.path.join(
+                            self.current_model_path,
+                            directories.graph_directory
+                        ))
+                        await training_graph(
+                            history=history,
+                            epochs=epochs,
+                            file_name="graph",
+                            path_to_save=graph_path
+                        )
 
                         dataset_db = await self.get_dataset_from_db(self.current_model_id)
                         dataset_db[0].loss = history.history["loss"][-1]

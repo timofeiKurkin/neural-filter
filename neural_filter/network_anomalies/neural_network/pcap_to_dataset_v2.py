@@ -3,6 +3,7 @@ import numpy as np
 
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from scapy.all import PcapReader
+from tqdm import tqdm
 
 
 async def read_pcap(*, pcap_path):
@@ -65,7 +66,14 @@ async def expand_dimension(*, encoded_packages):
     return np.array(new_encoded_packages)
 
 
-async def formated_packages(
+async def formatted_package(*, ip_addresses, mac_addresses):
+    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) / 100 for ip in ip_addresses]
+    mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) / 10000000 for mac_address in mac_addresses]
+
+    return ip_addresses_encoded, mac_addresses_encoded
+
+
+async def formatted_packages(
         *,
         packages,
         labels=None
@@ -81,7 +89,10 @@ async def formated_packages(
 
     new_arr = []
 
-    for session in packages:
+    print("")
+    print("==== Converting dataset to images ====")
+
+    for session in tqdm(packages):
         images = []
 
         for idx, package in enumerate(session):
@@ -121,7 +132,6 @@ async def dataset_split(
         *,
         data,
         labels,
-        train_size=0.8,
         test_size=0.2,
 ):
     data_array_length = len(data)
