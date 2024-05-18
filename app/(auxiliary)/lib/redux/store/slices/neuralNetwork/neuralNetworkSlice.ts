@@ -34,13 +34,21 @@ export const neuralNetworkSlice = createSlice({
         setCurrentModelStatus: (state, action: PayloadAction<StateOfCurrentModelID>) => {
             state.currentModelStatus = action.payload
         },
+        setNoWorkStatus: (state, action: PayloadAction<{ modelID: string }>) => {
+            if (state.currentModelStatus.modelID === action.payload.modelID) {
+                state.currentModelStatus = {
+                    workStatus: false,
+                    modelID: action.payload.modelID
+                }
+            }
+        },
         setWebSocket: (state, action: PayloadAction<WebSocket>) => {
             state.ws = action.payload
         },
         setModelMetric: (state, action: PayloadAction<ModelMetricType>) => {
             state.modelMetric = action.payload
         },
-        setNewAnomalyTraffic: (state, action: PayloadAction<{[key: string]: TrafficPackageType}>) => {
+        setNewAnomalyTraffic: (state, action: PayloadAction<{ [key: string]: TrafficPackageType }>) => {
             const sessionKey = Object.keys(action.payload)[0]
             state.anomalyTraffic.push(action.payload[sessionKey])
 
@@ -58,5 +66,6 @@ export const {
     setCurrentModelStatus,
     setWebSocket,
     setModelMetric,
-    setNewAnomalyTraffic
+    setNewAnomalyTraffic,
+    setNoWorkStatus
 } = neuralNetworkSlice.actions

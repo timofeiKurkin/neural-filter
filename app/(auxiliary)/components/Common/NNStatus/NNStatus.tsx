@@ -8,11 +8,17 @@ import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork,
     setCurrentModelStatus,
-    setNewAnomalyTraffic,
+    setNewAnomalyTraffic, setNoWorkStatus,
     setWebSocket
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {
+    InitialFilesStateType,
+    selectorFiles,
+    setDatasets,
+    setUpdateLossDatasets
+} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {
+    NeuralNetworkFinishEducation,
     NeuralNetworkFoundAnomalyResponseType, NeuralNetworkNoWorkType,
     NeuralNetworkWorkResponseType
 } from "@/app/(auxiliary)/types/NeuralNetwork&EducationTypes/NeuralNetwork";
@@ -52,6 +58,17 @@ const NnStatus = () => {
         statusCode: 0,
         colorStatus: color_6
     })
+    const [updateData, setUpdateData] = useState<{
+        type: string;
+        data: any;
+    }>()
+
+    useEffect(() => {
+
+    }, [
+        dispatch,
+        updateData
+    ]);
 
     useEffect(() => {
         let timeOut
@@ -128,44 +145,21 @@ const NnStatus = () => {
                                     modelID: workResponse.data.modelID || ""
                                 }))
                             }
-
-                            if (workResponse.data.loss && datasets.length) {
-                                const updatedDatasets = datasets.map((item) => {
-                                    if (item.modelID === workResponse.data.modelID) {
-                                        return {
-                                            ...item,
-                                            loss: workResponse.data.loss ?? 0
-                                        }
-                                    }
-                                    return item
-                                })
-                                dispatch(setDatasets(updatedDatasets))
-                            }
                         }
                     }
 
                     if ((data as NeuralNetworkNoWorkType).send_type === "no_work") {
-                        console.log("data", data)
-                        console.log("currentModelStatus", currentModelStatus)
-                        if ((data as NeuralNetworkNoWorkType).data.model_id === currentModelStatus.modelID) {
-                            const newModelStatus = {...currentModelStatus, workStatus: false}
-                            dispatch(setCurrentModelStatus(newModelStatus))
-                        }
+                        const noWorkResponse: NeuralNetworkNoWorkType = data
+                        dispatch(setNoWorkStatus({modelID: noWorkResponse.data.model_id}))
                     }
 
-                    // if ((statusData as NeuralNetworkFinishEducation).send_type === "finish_education") {
-                    //     const finishEducation: NeuralNetworkFinishEducation = data
-                    //     const updatedDatasets = datasets.map((item) => {
-                    //         if (item.group_file_id === finishEducation.data.dataset_id) {
-                    //             return {
-                    //                 ...item,
-                    //                 loss: finishEducation.data.loss
-                    //             }
-                    //         }
-                    //         return item
-                    //     })
-                    //     dispatch(setDatasets(updatedDatasets))
-                    // }
+                    if ((data as NeuralNetworkFinishEducation).send_type === "finish_education") {
+                        const finishEducation: NeuralNetworkFinishEducation = data
+                        dispatch(setUpdateLossDatasets({
+                            modelID: finishEducation.data.modelID,
+                            newLoss: finishEducation.data.loss
+                        }))
+                    }
 
                     if ((data as StatusRenderType).status) {
                         const statusData: StatusRenderType = data

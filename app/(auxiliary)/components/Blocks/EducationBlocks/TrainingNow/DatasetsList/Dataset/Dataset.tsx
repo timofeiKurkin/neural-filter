@@ -17,7 +17,7 @@ import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliar
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork, setCurrentModelStatus,
-    setModelMetric
+    setModelMetric, setNoWorkStatus
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import {
     GetModelMetricResponseType, ModelMetricType
@@ -61,8 +61,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         useState(() => dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus)
 
     useEffect(() => {
-        if(dataset.modelID === currentModelStatus.modelID) {
-            setWorking(currentModelStatus.workStatus)
+        if (dataset.modelID === currentModelStatus.modelID) {
+            setWorking(() => currentModelStatus.workStatus)
+        } else {
+            setWorking(() => false)
         }
     }, [
         dataset,
@@ -76,8 +78,8 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     }
 
     const deleteDatasetHandler = async (args: {
-        modelID: string,
-        accessToken: string
+        modelID: string;
+        accessToken: string;
     }) => {
         await axiosHandler(FileService.deleteDataset(args.modelID, args.accessToken))
             .then((r) => (r as AxiosResponse).status === 204 &&
@@ -95,9 +97,9 @@ const Dataset: FC<PropsType> = ({dataset}) => {
 
     const getDatasetMetrics = async (
         args: {
-            modelID: string,
-            currentModelID: string
-            accessToken: string
+            modelID: string;
+            currentModelID: string;
+            accessToken: string;
         }
     ) => {
         if (args.modelID !== args.currentModelID) {
@@ -114,9 +116,18 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     }
 
     const modelWordHandler = (args: {
-        modelID: string,
-        workStatus: boolean
+        modelID: string;
+        workStatus: boolean;
     }) => {
+        if (currentModelStatus.modelID !== args.modelID && currentModelStatus.workStatus) {
+            ws.send(JSON.stringify({
+                ...stopEducationInstruction,
+            }))
+            dispatch(setNoWorkStatus({
+                modelID: currentModelStatus.modelID
+            }))
+        }
+
         if (!args.workStatus) {
             dispatch(setCurrentModelStatus({
                 modelID: args.modelID,
@@ -134,13 +145,13 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         }
     }
 
+    const backgroundStyle = (currentModelStatus.modelID == dataset.modelID && currentModelStatus.workStatus) && color_3
+
     return (
-        <div className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple}`}
-             style={{
-                 backgroundColor: currentModelStatus.modelID == dataset.modelID ? color_3 : ""
-             }}
-             onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
-             onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
+        <div
+            className={`${styles.datasetWrapper} ${datasetHover ? styles.datasetHover : styles.datasetSimple} ${(currentModelStatus.modelID == dataset.modelID && currentModelStatus.workStatus) && styles.datasetHover}`}
+            onMouseEnter={() => setDatasetHover((prevState) => (!prevState))}
+            onMouseLeave={() => setDatasetHover((prevState) => (!prevState))}
         >
             <div className={styles.datasetTitle}
                  onClick={() => modelWordHandler({

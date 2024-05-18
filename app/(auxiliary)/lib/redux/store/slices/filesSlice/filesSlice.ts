@@ -23,6 +23,20 @@ export const filesSlice = createSlice({
         setDatasets: (state, action: PayloadAction<DatasetType[]>) => {
             state.datasets = action.payload
         },
+        setUpdateLossDatasets: (state, action: PayloadAction<{
+            modelID: string;
+            newLoss: number;
+        }>) => {
+            state.datasets = state.datasets.map((dataset) => {
+                if(dataset.modelID === action.payload.modelID) {
+                    return {
+                        ...dataset,
+                        loss: action.payload.newLoss ?? 0
+                    }
+                }
+                return dataset
+            })
+        },
         setUploadingFilesStatus: (state, action: PayloadAction<boolean>) => {
             state.uploadingFilesStatus = action.payload
         }
@@ -32,5 +46,6 @@ export const filesSlice = createSlice({
 export const {
     setFiles,
     setDatasets,
+    setUpdateLossDatasets,
     setUploadingFilesStatus
 } = filesSlice.actions

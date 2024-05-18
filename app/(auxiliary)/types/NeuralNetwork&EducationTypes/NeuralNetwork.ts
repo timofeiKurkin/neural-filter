@@ -19,7 +19,7 @@ export interface NeuralNetworkWorkResponseType {
 export interface NeuralNetworkFinishEducation {
     send_type: "finish_education";
     data: {
-        dataset_id: string;
+        modelID: string;
         status: string;
         loss: number;
     }
