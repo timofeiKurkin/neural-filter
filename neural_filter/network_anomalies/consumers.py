@@ -77,6 +77,27 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         # Dataset labels for education model. They aren't separated for y_train, y_test.
         self.dataset_labels = None
 
+    async def clear_state(self):
+        self.current_work_status = statuses.disconnection_status
+        self.asyncSniffer = None
+        self.package_id = 0
+
+        self.model = None
+
+        self.anomaly_packages_for_send_client = {}
+
+        self.sessions = {}
+        self.sessions_encoded = {}
+        self.sessions_mms = {}
+
+        self.mean_traffic_predict_sessions = {}
+
+        self.current_model_id = None
+        self.current_model_path = None
+
+        self.dataset_packages = None
+        self.dataset_labels = None
+
     # Get dataset from database
     @database_sync_to_async
     def get_dataset_from_db(self, selected_dataset_id):
@@ -108,6 +129,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         send_type = message["send_type"]
 
         if send_type == "start_education":
+            print(self.current_model_id)
             dataset_id = message["data"]
             if dataset_id:
                 self.current_model_id = dataset_id
@@ -134,10 +156,10 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         if self.asyncSniffer is not None:
             self.asyncSniffer.stop()
             self.asyncSniffer = None
+            print("")
             print("==== Sniffer stopped ====")
 
     async def stop_education(self):
-        print("==== Education or working stopped ====")
         await self.send_work_status(new_status=statuses.no_work_status)
         await self.send_work_data(
             send_type="no_work",
@@ -146,6 +168,9 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 "model_id": self.current_model_id,
             }
         )
+        await self.clear_state()
+        print("")
+        print("==== Education or working stopped ====")
         # raise StopConsumer()
 
     def packet_callback(self, packet):
@@ -273,7 +298,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         self.sessions[session_key].append(normal_package)
                         self.sessions_encoded[session_key].append(package_array)
                 time.sleep(0.1)
-            #
+
             #     if session_key in self.mean_traffic_predict_sessions:
             #         last_predict_package = session_predict[-1][0]
             #
@@ -321,6 +346,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
             store=1
         )
         self.asyncSniffer.start()
+        print("")
         print("==== Sniffer started ====")
 
     #
@@ -445,6 +471,8 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                     "modelID": self.current_model_id,
                 }
             )
+            print("")
+            print(self.current_model_id)
             print("==== Model already is exist and loaded ====")
 
         else:
@@ -525,14 +553,14 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                         dataset_db[0].loss = history.history["loss"][-1]
                         await sync_to_async(dataset_db[0].save)()
 
-                        # await self.send_work_data(
-                        #     send_type="finish_education",
-                        #     data={
-                        #         "modelID": self.current_model_id,
-                        #         "status": "success",
-                        #         "loss": dataset_db[0].loss,
-                        #     }
-                        # )
+                        await self.send_work_data(
+                            send_type="finish_education",
+                            data={
+                                "modelID": self.current_model_id,
+                                "status": "success",
+                                "loss": dataset_db[0].loss,
+                            }
+                        )
 
                         await self.send_work_status(new_status=statuses.working_status)
                         await self.send_work_data(
@@ -544,6 +572,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                             }
                         )
 
+                        print("")
                         print("==== Model has been trained and is ready to work ====")
 
         # # Searching models

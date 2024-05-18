@@ -85,6 +85,7 @@ class FileHandlerView(APIView):
             for file in uploaded_files:
                 packages = PcapReader(file)
                 packets_from_files.extend(packages)
+                del packages
 
             sessions_count = split_sessions(
                 pcap_file=packets_from_files,
