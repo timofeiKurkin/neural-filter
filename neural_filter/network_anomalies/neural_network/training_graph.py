@@ -23,7 +23,7 @@ async def training_graph(
     ax1.plot(epochs_range, recall, label='Training Recall', color="#352F44")
     ax1.plot(epochs_range, val_recall, label='Validation Recall', color="#FF9494")
     ax1.legend(loc="lower right")
-    ax1.set_title("Training and Validation Recall && Precision")
+    ax1.set_title("Training and Validation Recall")
 
     ax2.plot(epochs_range, loss, label='Training Loss', color="#352F44")
     ax2.plot(epochs_range, val_loss, label='Validation Loss', color="#FF9494")

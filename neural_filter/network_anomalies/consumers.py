@@ -35,7 +35,8 @@ from .neural_network.pcap_to_dataset_v2 import (
     formatted_packages,
     formatted_package,
     dataset_split,
-    expand_dimension
+    expand_dimension,
+    image_of_package_size
 )
 
 
@@ -129,7 +130,6 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
         send_type = message["send_type"]
 
         if send_type == "start_education":
-            print(self.current_model_id)
             dataset_id = message["data"]
             if dataset_id:
                 self.current_model_id = dataset_id
@@ -373,7 +373,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
                 )
 
                 mms = await self.mms_layer(
-                    fit_data=array.reshape(-1, 8),
+                    fit_data=array.reshape(-1, image_of_package_size),
                     session_key=label
                 )
                 array = mms.transform(array)
@@ -386,7 +386,7 @@ class NeuralNetworkConsumer(AsyncWebsocketConsumer):
 
             dataset_packages = np.array(
                 [np.concatenate(
-                    (lst, np.zeros([int(data_train_max_length - len(lst)), 8]))
+                    (lst, np.zeros([int(data_train_max_length - len(lst)), image_of_package_size]))
                 ) for lst in dataset_packages]
             )
 

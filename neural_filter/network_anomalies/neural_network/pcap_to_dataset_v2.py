@@ -5,6 +5,8 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from scapy.all import PcapReader
 from tqdm import tqdm
 
+image_of_package_size = 8
+
 
 async def read_pcap(*, pcap_path):
     packages = PcapReader(pcap_path)
@@ -24,12 +26,16 @@ async def read_pcap(*, pcap_path):
             # IP layer
             ip_src = int(ipaddress.IPv4Address(package_data['IP'].src)) / 100
             ip_dst = int(ipaddress.IPv4Address(package_data['IP'].dst)) / 100
+            # ip_ttl = package_data['IP'].ttl
+            # ip_chksum = package_data['IP'].chksum
             ip_len = package_data['IP'].len
             ip_proto = package_data['IP'].proto
 
             # TCP layer
             tcp_sport = package_data['TCP'].sport
             tcp_dport = package_data['TCP'].dport
+            # tcp_chksum = package_data['TCP'].chksum
+            # tcp_window = package_data['TCP'].window
 
             package_ = np.array([
                 mac_dst,
@@ -40,11 +46,16 @@ async def read_pcap(*, pcap_path):
                 ip_dst,
                 tcp_sport,
                 tcp_dport,
+
+                # ip_ttl,
+                # ip_chksum,
+                # tcp_window,
+                # tcp_chksum
             ])
 
             package_array = np.append(package_array, package_)
 
-        if len(package_array) == 8:
+        if len(package_array) == image_of_package_size:
             packages_list.add(tuple(package_array))
 
     packages_list = np.array(list(packages_list))
@@ -58,7 +69,9 @@ async def read_pcap(*, pcap_path):
 async def expand_dimension(*, encoded_packages):
     new_encoded_packages = []
 
-    for packages in encoded_packages:
+    print("")
+    print("==== Expanding dimension ====")
+    for packages in tqdm(encoded_packages):
         package_data = np.array([[np.expand_dims(package_item, axis=0) for package_item in package]
                                  for package in packages])
         new_encoded_packages.append(package_data)
@@ -97,24 +110,24 @@ async def formatted_packages(
 
         for idx, package in enumerate(session):
             if len(session) == 1:
-                zeros = np.tile(np.zeros((8, 1)), (7, 1, 1))
+                zeros = np.tile(np.zeros((image_of_package_size, 1)), (image_of_package_size - 1, 1, 1))
                 only = np.concatenate(([package], zeros))
                 images.append(only)
 
             if len(images):
                 if idx != len(session) - 1:
-                    if len(images[-1]) < 8:
+                    if len(images[-1]) < image_of_package_size:
                         images[-1].append(package)
                     else:
                         images.append([package])
                 else:
-                    lack = 8 - len(images[-1])
+                    lack = image_of_package_size - len(images[-1])
                     if lack:
-                        zeros = np.tile(np.zeros((8, 1)), ((lack - 1), 1, 1))
+                        zeros = np.tile(np.zeros((image_of_package_size, 1)), ((lack - 1), 1, 1))
                         last = np.concatenate(([package], zeros))
                         images[-1].extend(last)
                     else:
-                        zeros = np.tile(np.zeros((8, 1)), (7, 1, 1))
+                        zeros = np.tile(np.zeros((image_of_package_size, 1)), (image_of_package_size - 1, 1, 1))
                         last = np.concatenate(([package], zeros))
                         images.append(last)
             else:
@@ -139,7 +152,6 @@ async def dataset_split(
 
     if data_array_length == metrics_array_length:
         split_index = int(data_array_length * test_size)
-        print(f"{split_index=}")
 
         data_test = data[:split_index]
         labels_test_first_part = labels[:split_index]

@@ -3,9 +3,6 @@ import keras_cv
 import numpy as np
 import tensorflow as tf
 
-# from schedule_of_learning_outcomes import schedule_of_learning_outcomes
-# from pcap_to_dataset import encoded_data
-
 tf.random.set_seed(0)
 np.set_printoptions(suppress=True)
 
@@ -26,21 +23,6 @@ np.set_printoptions(suppress=True)
 #     # Dense(256, activation='relu'),
 #     Dense(2, activation='softmax'),
 # ])
-
-
-# async def encoded_data(*, input_length):
-#     encoded_model = keras.Sequential([
-#         keras.layers.Embedding(
-#             input_dim=input_length + 1,
-#             output_dim=1,
-#         ),
-#         keras.layers.Dense(units=1, activation='relu')
-#     ])
-#     encoded_model.compile(
-#         optimizer=keras.optimizers.Adam(),
-#         loss=keras.losses.MeanSquaredError()
-#     )
-#     return encoded_model
 
 
 async def classification_traffic_nn(
@@ -202,7 +184,7 @@ async def classification_traffic_nn(
 
         model.summary()
 
-        epochs = 50
+        epochs = 25
 
         history = model.fit(
             x=X_train,
@@ -216,13 +198,11 @@ async def classification_traffic_nn(
             x=X_test,
             batch_size=32
         )
-        # print(f"{predictions=}")
-        print(f"{predictions.shape=}")
         print(f"{np.max(predictions)=}")
         print(f"{np.min(predictions)=}")
 
         model.save(save_model_path)
-        print(f"Model saved successfully to: {save_model_path}")
+        print("==== Model has educated and saved successfully ====")
 
         return {
             "model": model,
