@@ -1,4 +1,4 @@
-import React, {FC, useCallback, useEffect} from "react";
+import React, {FC, useCallback, useEffect, useState} from "react";
 
 import {FileError, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
@@ -15,6 +15,7 @@ import {InitialFilesStateType, selectorFiles, setFiles} from "@/app/(auxiliary)/
 import {usePathname} from "next/navigation";
 import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {CustomErrorType, ErrorFilesType} from "@/app/(auxiliary)/types/AppTypes/Errors";
+import {current} from "immer";
 
 
 const DropZone: FC = () => {
@@ -25,8 +26,9 @@ const DropZone: FC = () => {
     const {files, uploadingFilesStatus}: InitialFilesStateType = useSelector(selectorFiles)
     const {errorList}: { errorList: CustomErrorType[] } = useSelector(selectorApplication)
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+    const [totalFilesSize, setTotalFilesSize] = useState<number>(0)
 
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         const filteredFiles = acceptedFiles.filter((file) => !files.includes(file))
 
         if (filteredFiles.length) {
@@ -35,9 +37,10 @@ const DropZone: FC = () => {
                 ...filteredFiles,
             ]))
         }
-    }, [])
+    }, [dispatch, files])
 
-    const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null => {
+    const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null | any => {
+        console.log("no repeat")
         if (file.name && file.name.split('.')[1] !== 'pcap') {
             return {
                 code: 415,
@@ -49,6 +52,18 @@ const DropZone: FC = () => {
             return {
                 code: 409,
                 message: `File '${file.name}' with that name already exists. Please, rename file or upload another.`
+            }
+        }
+
+        const totalSize = files.reduce((acc, current) => {
+            return acc + current.size
+        }, 0) + file.size
+        setTotalFilesSize(() => totalSize)
+
+        if(totalSize >= (1073741824 + 1073741824 * .1)) {
+            return {
+                code: 413,
+                message: `The file/s has a size ${(totalSize / 1073741824).toFixed(2)}GB. The maximum allowed size of uploaded files is 1GB`
             }
         }
 
@@ -91,7 +106,7 @@ const DropZone: FC = () => {
                  */
                 const filteredErrors = errorList.filter((error) => ((error.expansion as ErrorFilesType).fileName === rejections.file.name))
 
-                dispatch(setError<ErrorFilesType[]>([
+                dispatch(setError([
                     ...filteredErrors,
                     {
                         id: errorList.length,

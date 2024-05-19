@@ -7,7 +7,7 @@ import {AuthTokens} from "@/app/(auxiliary)/types/AppTypes/AuthTokens";
 import axios, {AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
-import {selectorApplication, setCSRFToken, setPath} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {selectorApplication, setPath} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
 import UserService from "@/app/(auxiliary)/lib/axios/services/UserService/UserService";
@@ -75,20 +75,14 @@ const AppWrapper: FC<PropsType> = ({
         let active = true
 
         const fetchData = async () => {
-            console.log("active", active)
             const response = await axiosHandler(AppService.getCSRFToken())
-            console.log("after axios request")
-            console.log("response", response)
 
             if (active) {
                 if ((response as AxiosResponse<CSRFTokenType>).status === 200) {
-                    const token = (response as AxiosResponse<CSRFTokenType>).data.csrftoken
-                    axios.defaults.headers.common['X-CSRFToken'] = token
+                    axios.defaults.headers.common['X-CSRFToken'] = (response as AxiosResponse<CSRFTokenType>).data.csrftoken
                 }
             }
         }
-
-        console.log("CSRFToken", CSRFToken)
 
         if (!CSRFToken) {
             fetchData().then()

@@ -80,7 +80,17 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const deleteDatasetHandler = async (args: {
         modelID: string;
         accessToken: string;
+        workingStatus: boolean;
     }) => {
+        if (args.workingStatus) {
+            ws.send(JSON.stringify({
+                ...stopEducationInstruction,
+            }))
+            dispatch(setNoWorkStatus({
+                modelID: currentModelStatus.modelID
+            }))
+        }
+
         await axiosHandler(FileService.deleteDataset(args.modelID, args.accessToken))
             .then((r) => (r as AxiosResponse).status === 204 &&
                 dispatch(setDatasets(
@@ -211,14 +221,15 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                                         <div onClick={() =>
                                             deleteDatasetHandler({
                                                 modelID: dataset.modelID,
-                                                accessToken
+                                                accessToken,
+                                                workingStatus: working
                                             })}>
-                                            <Image src={accept} alt={'delete'}/>
+                                            <Image src={accept} alt={'accept-delete'}/>
                                         </div>
 
                                         <div onClick={() =>
                                             setTwoFactorAccept((prevState) => (!prevState))}>
-                                            <Image src={exit} alt={'delete'}/>
+                                            <Image src={exit} alt={'exit-delete'}/>
                                         </div>
                                     </div>
                                 )
