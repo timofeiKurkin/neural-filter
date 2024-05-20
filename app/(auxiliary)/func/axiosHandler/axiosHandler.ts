@@ -8,13 +8,13 @@ export const axiosHandler = async <T, D>(func: T): Promise<AxiosResponse<D> | Ax
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             return {
-                message: error.response?.data,
+                message: error.response?.data || error.message,
                 statusCode: error.response?.status || 500
             } as AxiosErrorType
         } else {
             console.error("Unknown error")
             return {
-                errorText: "Неизвестная ошибка"
+                errorText: "Unknown error"
             } as UnknownError
         }
     }

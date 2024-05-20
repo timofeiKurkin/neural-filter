@@ -15,7 +15,7 @@ import {color_1, color_white} from "@/styles/color";
 import styles from "./LoginBlock.module.scss"
 import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
-import {AxiosResponse} from "axios";
+import {AxiosError, AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
@@ -60,7 +60,9 @@ const LoginBlock: FC = () => {
             args.accessToken
         ))
 
-        if ((response as AxiosResponse).status === 200) {
+        console.log("RESPONSE: ", response)
+
+        if ((response as AxiosResponse).status === 200 && (response as AxiosResponse).data.access) {
             const data = (response as AxiosResponse).data
             const decodeJWT: JwtPayloadExtended = jwtDecode(data.access)
             const accessToken = data.access
@@ -72,14 +74,15 @@ const LoginBlock: FC = () => {
             dispatch(setAuth(true))
 
             localStorage.setItem('access', JSON.stringify(accessToken))
-        } else if ((response as AxiosErrorType).statusCode === 401 && (response as AxiosErrorType).message) {
+        } else if ((response as AxiosResponse<AxiosErrorType>).data.statusCode === 401 && (response as AxiosResponse<AxiosErrorType>).data.message) {
+            const errorResponse = response as AxiosResponse<AxiosErrorType>
 
             dispatch(setError([...errorList, {
                 id: errorList.length,
                 typeError: "Login error",
                 page: "/login",
                 expansion: {
-                    code: (response as AxiosErrorType).statusCode,
+                    code: errorResponse.data.statusCode,
                     message: "Incorrect username or password. Please, check your data."
                 } as JustErrorType
             }]))
