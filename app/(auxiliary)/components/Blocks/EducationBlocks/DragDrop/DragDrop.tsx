@@ -24,8 +24,16 @@ import AnimationButton from "@/app/(auxiliary)/components/UI/AnimationButton/Ani
 import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
 import FileService from "@/app/(auxiliary)/lib/axios/services/FileService/FileService";
+import {
+    InitialApplicationStateType, selectorApplication,
+    setSuccessNotification
+} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
+import {usePathname} from "next/navigation";
 
 const DragDrop = () => {
+    const pathname = usePathname()
+    const page = `/${pathname.split('/').filter(Boolean)[0]}`
+
     const dispatch = useDispatch()
 
     const {
@@ -33,6 +41,7 @@ const DragDrop = () => {
         datasets,
         uploadingFilesStatus
     }: InitialFilesStateType = useSelector(selectorFiles)
+    const {successNotificationList}: InitialApplicationStateType = useSelector(selectorApplication)
 
     const [lastDataset, setLastDataset] = useState<DatasetType>(() => ({} as DatasetType))
 
@@ -81,6 +90,14 @@ const DragDrop = () => {
 
                 dispatch(setFiles([]))
                 dispatch(setDatasets([...datasets, dataset]))
+                dispatch(setSuccessNotification({
+                    id: successNotificationList.length,
+                    typeSuccess: "Upload success",
+                    page: page,
+                    expansion: {
+                        message: "Your files have been successfully sent and saved on the server."
+                    }
+                }))
             } else if ((response as AxiosErrorType).message && (response as AxiosErrorType).statusCode) {
             }
         }

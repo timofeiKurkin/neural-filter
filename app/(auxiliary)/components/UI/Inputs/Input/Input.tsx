@@ -7,7 +7,7 @@ import {PropsType} from "@/app/(auxiliary)/components/UI/Inputs/InputPropsType";
 import border from "./InputBorder.module.scss"
 import fontStyle from "@/styles/FontsStyle/fontsStyle.module.scss";
 import styles from "./Input.module.scss"
-import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
+import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
 
 const Input: FC<PropsType> = ({
                                   value,

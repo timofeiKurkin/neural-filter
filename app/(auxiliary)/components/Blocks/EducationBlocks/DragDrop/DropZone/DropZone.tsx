@@ -40,7 +40,6 @@ const DropZone: FC = () => {
     }, [dispatch, files])
 
     const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null | any => {
-        console.log("no repeat")
         if (file.name && file.name.split('.')[1] !== 'pcap') {
             return {
                 code: 415,

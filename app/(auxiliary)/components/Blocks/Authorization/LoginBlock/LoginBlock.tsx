@@ -19,12 +19,12 @@ import {AxiosError, AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
-import ErrorsHandler from "@/app/(auxiliary)/components/Common/ErrorsHandler/ErrorsHandler";
 import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {CustomErrorType, JustErrorType} from "@/app/(auxiliary)/types/AppTypes/Errors";
 import {axiosHandler} from "@/app/(auxiliary)/func/axiosHandler/axiosHandler";
 import UserService from "@/app/(auxiliary)/lib/axios/services/UserService/UserService";
 import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
+import NotificationsHandler from "@/app/(auxiliary)/components/Common/NotificationsHandler/NotificationsHandler";
 
 const LoginBlock: FC = () => {
     const router = useRouter()
@@ -172,7 +172,7 @@ const LoginBlock: FC = () => {
                 </div>
             </MainShadow>
 
-            <ErrorsHandler/>
+            <NotificationsHandler/>
         </div>
     );
 };

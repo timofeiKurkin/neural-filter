@@ -12,7 +12,7 @@ import styles from "./Header.module.scss";
 import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import {usePathname} from "next/navigation";
 import {color_2} from "@/styles/color";
-import ErrorsHandler from "@/app/(auxiliary)/components/Common/ErrorsHandler/ErrorsHandler";
+import NotificationsHandler from "@/app/(auxiliary)/components/Common/NotificationsHandler/NotificationsHandler";
 
 const Header: FC = () => {
     const navigation: NavigationType[] = navigationData
@@ -67,7 +67,7 @@ const Header: FC = () => {
                         </div>
                     </MainShadow>
 
-                    <ErrorsHandler/>
+                    <NotificationsHandler/>
                 </div>
             </div>
         </header>

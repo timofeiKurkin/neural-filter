@@ -1,0 +1,42 @@
+@import "@/styles/variables.module.scss";
+
+
+.customSuccessBorder {
+	background-color: $color_white;
+	border: 2px solid $color_7;
+	border-radius: 20px;
+	cursor: pointer;
+}
+
+.customSuccessWrapper {
+	padding: 15px 20px;
+
+	display: flex;
+	flex-direction: column;
+	row-gap: 10px;
+
+	.customSuccessTitle {
+		display: flex;
+		align-items: center;
+		column-gap: 8px;
+		color: $color_1;
+
+		.customSuccessTitleLine {
+			width: 2px;
+			height: 12px;
+			background-color: $color_2;
+		}
+
+		p {
+			font-size: 14px;
+		}
+	}
+}
+
+.customSuccessHighlighting {
+	color: $color_2;
+}
+
+.customSuccessText {
+	color: $color_1;
+}
