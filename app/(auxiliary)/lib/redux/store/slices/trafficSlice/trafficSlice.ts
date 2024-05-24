@@ -22,9 +22,9 @@ export const trafficSlice = createSlice({
         setInterface: (state, action: PayloadAction<string>) => {
             state.currentInterface = action.payload
         },
-        setSavingStatus: (state, action: PayloadAction<boolean>) => {
-            state.savingStatus = action.payload
-        },
+        // setSavingStatus: (state, action: PayloadAction<boolean>) => {
+        //     state.savingStatus = action.payload
+        // },
         setCurrentSearchQuery: (state, action: PayloadAction<string>) => {
             state.currentSearchQuery = action.payload
         }
@@ -33,6 +33,6 @@ export const trafficSlice = createSlice({
 
 export const {
     setInterface,
-    setSavingStatus,
+    // setSavingStatus,
     setCurrentSearchQuery
 } = trafficSlice.actions

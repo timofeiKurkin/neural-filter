@@ -1,4 +1,4 @@
-import React, {FC, useMemo} from 'react';
+import React, {FC, useEffect, useMemo, useState} from 'react';
 
 import _headerItems from "@/data/trafficData/headerSimpleItems.json"
 
@@ -9,6 +9,7 @@ import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularTe
 import Scrollbar from "@/app/(auxiliary)/components/UI/Scrollbar/Scrollbar";
 import PackageItem from "@/app/(auxiliary)/components/Blocks/TrafficBlock/PackageList/PackageItem/PackageItem";
 import {InitialTrafficStateType, selectorTraffic, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import Fuse from "fuse.js";
 
 
 interface PropsType {
@@ -21,9 +22,42 @@ const PackageList: FC<PropsType> = ({
 
     const {currentSearchQuery}: InitialTrafficStateType = useSelector(selectorTraffic)
 
-    const packagesMemo = useMemo(
-        () => packages, [packages]
-    )
+    const [formattedPackages, setFormattedPackages] =
+        useState(() => (packages))
+
+    useEffect(() => {
+        setFormattedPackages(() => (packages))
+    }, [packages]);
+
+    useEffect(() => {
+        if (currentSearchQuery) {
+            const fuseOptions = {
+                keys: [
+                    "time",
+                    "source",
+                    "destination",
+                    "protocol",
+                ],
+                minMatchCharLength: 2,
+                findAllMatches: true,
+                threshold: 0.2,
+                useExtendedSearch: true,
+                includeMatches: true,
+
+                ignoreLocation: true
+            }
+
+            const fuse = new Fuse(packages, fuseOptions)
+            const filteredPackages = fuse.search(currentSearchQuery).map((foundPackage) => foundPackage.item)
+            setFormattedPackages(() => (filteredPackages))
+        } else {
+            setFormattedPackages(() => [])
+        }
+
+        return () => {
+            setFormattedPackages(() => [])
+        }
+    }, [currentSearchQuery, packages]);
 
     return (
         <div className={styles.packageListWrapper}>
@@ -42,7 +76,7 @@ const PackageList: FC<PropsType> = ({
             <Scrollbar trigger={packages.length}>
                 <div className={`${styles.packageList}`}>
                     {
-                        packages.map((item) => (
+                        (formattedPackages.length ? formattedPackages : packages).map((item) => (
                             <PackageItem key={`key=${item.id}+${Math.random()}`} packageItem={item}/>
                         ))
                     }

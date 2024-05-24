@@ -23,14 +23,14 @@ const Search: FC = () => {
     }
 
     return (
-        <div className={styles.search}>
+        <div className={`${styles.search} ${activeInput && styles.searchActive}`}>
             <div className={styles.searchWrapper}>
                 <div className={styles.searchBoxImage}>
                     <Image src={img} alt={'loupe search'}/>
                 </div>
                 <div className={inputStyle.inputBox}>
                     <input
-                        className={`${fontStyle.regularTextStyle} ${inputStyle.inputStyle}`}
+                        className={`${fontStyle.regularTextStyle} ${inputStyle.inputStyle} ${styles.searchInput} ${activeInput && styles.searchInputActive}`}
                         type={"text"}
                         value={inputValue}
                         tabIndex={1}

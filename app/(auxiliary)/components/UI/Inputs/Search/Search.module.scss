@@ -1,19 +1,33 @@
 @import '@/styles/variables.module';
 
 .search {
-    width: 100%;
-    height: 100%;
-    
-    .searchWrapper {
-        width: inherit;
-        height: 48px;
-        position: relative;
-        
-        .searchBoxImage {
-            position: absolute;
-            
-            top: 32%;
-            left: 6%;
-        }
-    }
+	width: 60%;
+	height: 100%;
+
+	transition: width .5s ease;
+
+	.searchWrapper {
+		width: 100%;
+		height: 48px;
+		position: relative;
+
+		.searchInput {
+			border-width: 2px 40px;
+			transition: border-width .5s ease;
+		}
+
+		.searchInputActive {
+			border-width: 2px 30px;
+		}
+
+		.searchBoxImage {
+			position: absolute;
+			top: 32%;
+			left: 14px;
+		}
+	}
+}
+
+.searchActive {
+	width: 100%;
 }

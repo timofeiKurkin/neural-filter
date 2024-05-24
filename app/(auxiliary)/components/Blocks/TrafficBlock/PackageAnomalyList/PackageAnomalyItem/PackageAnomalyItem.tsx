@@ -16,7 +16,8 @@ const PackageAnomalyItem: FC<PropsType> = ({
                                            }) => {
     let copyPackage = {...anomalyPackage}
     copyPackage["time"] = formattedTime(anomalyPackage.time as number)
-    copyPackage = {id: index+1, ...copyPackage}
+    copyPackage["id"] = index + 1
+    copyPackage = anomalyPackage
 
     return (
         <div className={`${generalStyles.columnWrapper} ${styles.anomalyItem}`}>

@@ -9,6 +9,7 @@ import PackageList from "@/app/(auxiliary)/components/Blocks/TrafficBlock/Packag
 import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
 import {selectorTraffic, useSelector} from "@/app/(auxiliary)/lib/redux/store";
+import {formattedTime} from "@/app/(auxiliary)/func/traffic/timeFormat";
 
 
 const PacketReceiver: FC = () => {
@@ -40,6 +41,9 @@ const PacketReceiver: FC = () => {
                 const data = JSON.parse(event.data)
 
                 if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
+                    const newPackage: TrafficPackageType = data
+                    newPackage.time = formattedTime(newPackage.time as number)
+
                     setPackages((prevState) => ([...prevState, data]))
                 }
             }

@@ -1,14 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {
-    AnomalyTrafficPackageType,
-    HeaderItemsType,
-    TrafficPackageType
-} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
+import {AnomalyTrafficPackageType, HeaderItemsType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 import _header from "@/data/trafficData/headerAnomalyItems.json";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import styles from "./PackageAnomalyList.module.scss";
@@ -26,7 +22,7 @@ interface PropsType {
     workDataStatus: boolean
 }
 
-const PackageAnomalyList: PropsType = ({
+const PackageAnomalyList: FC<PropsType> = ({
                                            workDataStatus
                                        }) => {
     const {anomalyTraffic}: InitialNeuralNetworkStateType =

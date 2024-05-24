@@ -10,11 +10,8 @@ import PacketReceiver from "@/app/(auxiliary)/components/Blocks/TrafficBlock/Pac
 const AllTraffic: FC = () => {
     return (
         <div className={styles.allTrafficWrapper}>
-            <div className={styles.allTrafficTitle}>
+            <div className={styles.allTrafficTitleAndInter}>
                 <MainTitle>All traffic</MainTitle>
-            </div>
-
-            <div className={styles.allTrafficInter}>
                 <InterfaceHandler/>
             </div>
 
