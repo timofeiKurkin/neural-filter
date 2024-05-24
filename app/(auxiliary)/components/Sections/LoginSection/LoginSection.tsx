@@ -10,9 +10,6 @@ import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
 import LogoText from "@/app/(auxiliary)/components/UI/TextTemplates/LogoText";
 
 const LoginSection: FC = () => {
-    const cookiesStore = cookies()
-    const token = cookiesStore.get('csrftoken') || {value: ""}
-
     return (
         <div className={styles.loginSectionWrapper}>
             <div className={styles.loginSectionLogoWrapper}>
@@ -27,7 +24,7 @@ const LoginSection: FC = () => {
                 </div>
 
                 <div style={{display: "flex"}}>
-                    <Link href={"https://kurkin_digital.ru"} className={styles.linkToMe}>
+                    <Link href={"https://kurkin.vercel.app/"} className={styles.linkToMe}>
                         <LogoText>by kurkin_digital</LogoText>
                     </Link>
                 </div>
@@ -36,9 +33,8 @@ const LoginSection: FC = () => {
             <div className={styles.loginSectionBorder}></div>
 
             <div className={styles.loginSectionInputsWrapper}>
-                <LoginBlock csrfToken={token.value}/>
+                <LoginBlock/>
             </div>
-
         </div>
     );
 };
