@@ -3,9 +3,9 @@
     width: 100%;
     
     display: grid;
-    grid-template-columns: min-content min-content 170px 195px;
+    grid-template-columns: min-content min-content 195px;
     grid-template-rows: min-content 1fr;
-    grid-template-areas: "title interface search control" "content content content content";
+    grid-template-areas: "title interface control" "content content content";
     align-items: center;
     row-gap: 35px;
 
@@ -20,13 +20,13 @@
         grid-area: interface;
     }
     
-    .networkAnomaliesSearch {
-        grid-area: search;
-        
-        justify-self: end;
-        display: grid;
-        grid-template-columns: minmax(170px, 220px);
-    }
+    //.networkAnomaliesSearch {
+    //    grid-area: search;
+    //
+    //    justify-self: end;
+    //    display: grid;
+    //    grid-template-columns: minmax(170px, 220px);
+    //}
 
     .networkAnomaliesControl {
         grid-area: control;

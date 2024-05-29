@@ -22,9 +22,9 @@ const NetworkAnomalies: FC = () => {
                 <InterfaceHandler/>
             </div>
 
-            <div className={styles.networkAnomaliesSearch}>
-                <Search/>
-            </div>
+            {/*<div className={styles.networkAnomaliesSearch}>*/}
+            {/*    <Search/>*/}
+            {/*</div>*/}
 
             <div className={styles.networkAnomaliesControl}>
                 <ScanningControl/>
