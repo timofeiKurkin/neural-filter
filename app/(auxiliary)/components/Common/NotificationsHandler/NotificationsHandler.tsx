@@ -21,12 +21,12 @@ const NotificationsHandler = () => {
 
     useEffect(() => {
         if (errorList.length) {
-            setInterval(() => {
+            setTimeout(() => {
                 dispatch(setError(errorList.slice(0, -1)))
             }, 6000)
         }
         if (successNotificationList.length) {
-            setInterval(() => {
+            setTimeout(() => {
                 dispatch(deleteLastSuccessNotification())
             }, 6000)
         }
@@ -39,7 +39,11 @@ const NotificationsHandler = () => {
                 dispatch(clearSuccessNotifications([]))
             }
         }
-    }, [errorList, successNotificationList]);
+    }, [
+        dispatch,
+        errorList,
+        successNotificationList
+    ]);
 
     return (
         <div>

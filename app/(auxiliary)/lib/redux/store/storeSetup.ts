@@ -6,8 +6,6 @@ import {
 import {combineReducers, configureStore} from "@reduxjs/toolkit";
 import {userSlice} from "@/app/(auxiliary)/lib/redux/store/slices/userSlice";
 
-import {middleware} from "@/app/(auxiliary)/lib/redux/store/middleware";
-import {thunk} from "redux-thunk";
 import {trafficSlice} from "@/app/(auxiliary)/lib/redux/store/slices/trafficSlice";
 import {filesSlice} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {applicationSlice} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
