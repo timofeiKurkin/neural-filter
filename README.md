@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Introduce
+
+This is the *frontend* part of the diploma project **neural-filter**. This project is an example of how neural networks can already be used to ensure information security.\nIn this project, a neural network scans network traffic and looks for anomalies in it. You can train a neural network on your own dataset and get interesting results.
+
+### Links
+- [Behance case](https://www.behance.net/gallery/201619595/Neural-Filter)
+- [The written part of the diploma](https://disk.yandex.ru/i/GaerzbprvIXZhw)
+
+![Preview](./app-photos/preview.png)
+
+## Technologies
+
+**Frontend part** of the application was developed with:
+- [Next.JS v14](https://nextjs.org/) + [TypeScript](https://www.typescriptlang.org/)
+- [Axios](https://axios-http.com/docs/intro)
+- [Redux-Toolkit](https://redux-toolkit.js.org/)
+- [React-Dropzone](https://react-dropzone.js.org/)
+- [Motion](https://motion.dev/docs)
 
 ## Getting Started
 
-First, run the development server:
+After getting project from GitHub, install packages:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i
+npm audit fix # maybe after installing you must to run this
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then, run the building of the application:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+# or
+yarn build
+# or
+pnpm build
+# or
+bun build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+After building start the project:
 
-## Learn More
+```bash
+npm run start
+# or
+yarn start
+# or
+pnpm start
+# or
+bun start
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3020](http://localhost:3020) with your browser to see the application. **Make sure that the backend part of the app has already been started**. You can't use app without the backend part.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Application pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### 1. Authorization
+First of all, user have to *authorization*. There is no registration page, so your account should have already created when user started *backend part*.
 
-## Deploy on Vercel
+![Login page](./app-photos/login.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 2. Main Page
+This is an introduce page where user can get main info about the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+![Main Page](./app-photos/introduction.png)
+
+### 3. All traffic
+On this page user can monitor internet traffic in real time using WireShark. You can select the network interface user need.
+
+![Page](./app-photos/all-traffic.png)
+
+### 4. Network anomalies
+This page displays the anomalies found by the neural network. If anomalies were not found will be success status.
+
+![Page](./app-photos/network-anomalies.png)
+
+### 5. Education AI
+On this page user can train the neural network and monitor training metrics. For training, user can upload datasets with a maximum size of up to 1GB.  
+Warning: Use only .pcap traffic extensions.
+The status of the neural network's operation is displayed in a dedicated block. The connection between the client and server parts is established via WebSocket, allowing not only the operation status to be monitored but also the connection to the server.
+
+![Page](./app-photos/education-ai.png)
+
+### 6. Settings
+Here user can change his password.
+
+![Page](./app-photos/settings.png)
