@@ -16,7 +16,11 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
+# env = dotenv_values("../../../.env")
 env = dotenv_values("../.env")
+
+if not env:
+    print("there's no .env file")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +34,7 @@ SECRET_KEY = env["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [env["FRONTEND_HOST"]]
+ALLOWED_HOSTS = ["localhost", env["FRONTEND_HOST"]]
 
 CORS_ALLOWED_ORIGINS = [env["FRONTEND_HOST"]]
 
@@ -133,11 +137,11 @@ DATABASES = {
     # }
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env["NAME"] if env["NAME"] else "",
-        "USER": env["USER"] if env["USER"] else "",
-        "PASSWORD": env["PASSWORD"] if env["PASSWORD"] else "",
-        "HOST": env["HOST"] if env["HOST"] else "",
-        "PORT": env["PORT"] if env["PORT"] else "",
+        "NAME": env["POSTGRES_DB"] if env["POSTGRES_DB"] else "",
+        "USER": env["POSTGRES_USER"] if env["POSTGRES_USER"] else "",
+        "PASSWORD": env["POSTGRES_PASSWORD"] if env["POSTGRES_PASSWORD"] else "",
+        "HOST": env["POSTGRES_SERVER"] if env["POSTGRES_SERVER"] else "",
+        "PORT": env["POSTGRES_PORT"] if env["POSTGRES_PORT"] else "",
     }
 }
 

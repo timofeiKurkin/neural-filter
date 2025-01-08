@@ -1,32 +1,9 @@
 docker-compose.yml
 Dockerfile
 
-
 .idea
 db.sqlite3
 venv
-neural_filter/neural_filter/__pycache__
-
-neural_filter/.env
-neural_filter/packets
-neural_filter/models
-neural_filter/network_anomalies/models
-
-neural_filter/traffic.json
-neural_filter/traffic-clean.json
-
-neural_filter/user/__pycache__
-neural_filter/user/migrations/__pycache__
-
-neural_filter/network_anomalies/new_neural_network/__pycache__
-neural_filter/network_anomalies/migrations/__pycache__
-neural_filter/network_anomalies/__pycache__
-
-neural_filter/file_handler/migrations/__pycache__
-neural_filter/file_handler/__pycache__
-
-neural_filter/all_traffic/migrations/__pycache__
-neural_filter/all_traffic/__pycache__
 
 # Django #
 *.log
