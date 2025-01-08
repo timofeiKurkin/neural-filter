@@ -1,20 +1,18 @@
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-from django.contrib.auth.models import User
-
-from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework.generics import UpdateAPIView
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import UpdateAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from .serializers import ChangePasswordSerializer
 
 
 @api_view(["GET"])
 @permission_classes((permissions.IsAuthenticatedOrReadOnly,))
-def get_routers(request: Request) -> Response:
+def get_routers(_: Request) -> Response:
     routes = [
         "/user/token",
         "/user/refresh",
@@ -22,6 +20,13 @@ def get_routers(request: Request) -> Response:
         "/user/logout",
     ]
     return Response(routes)
+
+
+@api_view(["GET"])
+@permission_classes((permissions.AllowAny,))
+def health_check(_: Request) -> Response:
+    response = Response(True)
+    return response
 
 
 @api_view(["GET"])

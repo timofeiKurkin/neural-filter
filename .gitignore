@@ -1,9 +1,8 @@
-docker-compose.yml
-Dockerfile
-
 .idea
 db.sqlite3
 venv
+
+neural_filter/network_anomalies/neural_network/models
 
 # Django #
 *.log
