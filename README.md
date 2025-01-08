@@ -34,9 +34,9 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Then install all packages from `environments.txt` file:
+Then install all packages from `requirements.txt` file:
 ```bash
-pip install -r environments.txt
+pip install -r requirements.txt
 ```
 
 You should adjust `.env` file in root directory, that is above frontend and backend folders, and adjust `postgres auth settings` for container:
