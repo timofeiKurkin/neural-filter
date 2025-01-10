@@ -1,0 +1,26 @@
+[
+  {
+    "id": 0,
+    "title": "#"
+  },
+  {
+    "id": 1,
+    "title": "Time"
+  },
+  {
+    "id": 2,
+    "title": "Source"
+  },
+  {
+    "id": 3,
+    "title": "Destination"
+  },
+  {
+    "id": 4,
+    "title": "Protocol"
+  },
+  {
+    "id": 5,
+    "title": "Length"
+  }
+]

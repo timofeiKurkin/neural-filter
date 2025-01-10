@@ -1,0 +1,26 @@
+
+
+.dragDrop {
+    display: grid;
+    grid-template-columns: 1fr 325px max-content;
+    grid-template-rows: minmax(150px, auto) min-content;
+
+    row-gap: 30px;
+    column-gap: 50px;
+
+    grid-template-areas: 'drop drop drop' 'remove input send';
+
+    .dragDropResetButton {
+        grid-area: remove;
+    }
+
+    .inputTitleDataset {
+        grid-area: input;
+    }
+    
+    .dragDropButton {
+        grid-area: send;
+        display: flex;
+        justify-content: flex-end;
+    }
+}

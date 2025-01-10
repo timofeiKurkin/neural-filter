@@ -1,0 +1,82 @@
+@import '../../../../styles/variables.module';
+
+.checkBoxWrapper {
+    
+    @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+        width: 15px;
+        height: 15px;
+    }
+    
+    @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .checkBox {
+        display: none;
+    }
+    
+    position: relative;
+    cursor: pointer;
+    
+    &:before {
+        box-sizing: border-box;
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        background-color: $color_3;
+        
+        @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+            width: 15px;
+            height: 15px;
+            border-radius: 4px;
+        }
+        
+        @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+            border-radius: 5px;
+            width: 19px;
+            height: 19px;
+        }
+    }
+    
+    &:after {
+        content: '';
+        position: absolute;
+        background-color: $color_white;
+        
+        @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+            top: 2px;
+            left: 2px;
+            width: 11px;
+            height: 11px;
+            border-radius: 3px;
+        }
+        
+        @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+            top: 3px;
+            left: 3px;
+            width: 13px;
+            height: 13px;
+            border-radius: 3px;
+        }
+    }
+    
+    .checkBoxMark {
+        position: absolute;
+        z-index: 3;
+        
+        @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+            top: -3px;
+            left: 2px;
+        }
+        
+        @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+            left: 4px;
+        }
+        
+        .checkBoxMarkWrapper {
+            position: relative;
+        }
+    }
+}

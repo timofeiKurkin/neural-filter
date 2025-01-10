@@ -1,0 +1,94 @@
+@import "@/styles/variables.module.scss";
+
+.headerWrapper {
+	width: inherit;
+	height: inherit;
+
+	.headerFixed {
+		height: 100dvh;
+		overflow: hidden;
+
+		position: fixed;
+		top: 0;
+		left: 0;
+
+		background-color: $color_5;
+
+		display: grid;
+		grid-template-columns: minmax(400px, 495px);
+		//grid-template-rows: min-content;
+
+		.header {
+			display: grid;
+			justify-content: center;
+
+			@media screen and ($desktop1920), screen and ($desktop1440_1919) {
+				grid-template-columns: 320px;
+				grid-template-rows: min-content min-content 1fr;
+				padding: 90px 0 30px 0;
+				row-gap: 60px;
+			}
+
+			.headerLogoWrapper {
+				display: grid;
+				grid-template-columns: minmax(200px, 215px);
+				grid-template-rows: 70px;
+
+				.headerLogo {
+					width: 100%;
+					height: 100%;
+					cursor: pointer;
+
+
+					//position: relative;
+
+					img {
+						-moz-user-select: none;
+						-webkit-user-select: none;
+						user-select: none;
+						pointer-events: none;
+					}
+				}
+			}
+
+			.headerNavigationWrapper {
+				background-color: $color_white;
+				display: grid;
+				padding: 30px 0;
+				text-align: center;
+
+				.headerNavigationList {
+					display: grid;
+
+					.headerNavigationItem {
+						margin-bottom: 30px;
+						position: relative;
+
+						&:nth-last-child(2) {
+							margin-bottom: 20px;
+						}
+
+						&:last-child {
+							margin-bottom: 0;
+							padding-top: 20px;
+
+							&:before {
+								content: '';
+								position: absolute;
+								width: 100%;
+								height: 2px;
+								background-color: $color_3;
+								top: 0;
+								left: 0;
+							}
+						}
+
+						.settingsGear {
+							margin-right: 16px;
+						}
+					}
+				}
+			}
+		}
+	}
+}

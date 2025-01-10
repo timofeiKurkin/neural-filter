@@ -1,0 +1,21 @@
+@import "@/styles/variables.module.scss";
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 498px 592px;
+    grid-template-rows: min-content 525px;
+    grid-template-areas: 'drop-zone drop-zone' 'training-now metrics';
+    row-gap: 50px;
+    justify-content: space-between;
+
+	.contentWrapper {
+		display: grid;
+        grid-template-rows: min-content 1fr;
+		row-gap: 25px;
+
+		h1 {
+			color: $color_1;
+		}
+	}
+}
+

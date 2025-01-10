@@ -1,0 +1,32 @@
+@import "@/styles/variables.module";
+
+.loginBlockWrapper {
+    display: grid;
+    grid-template-columns: minmax(350px, 570px) 1fr;
+    grid-template-rows: 1fr;
+    align-items: center;
+    column-gap: 70px;
+    
+    .loginBlock {
+        display: grid;
+        grid-template-columns: minmax(320px, 400px);
+        padding: 47px 0;
+        justify-content: center;
+        
+        .loginTitle {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .loginInputs {
+            display: grid;
+            row-gap: 25px;
+        }
+        
+        .loginButton {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+}

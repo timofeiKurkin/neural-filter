@@ -1,0 +1,36 @@
+{
+  "name": "neural-filter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3020",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1",
+    "axios": "^1.6.3",
+    "dotenv": "^16.3.1",
+    "framer-motion": "^11.0.3",
+    "fuse.js": "^7.0.0",
+    "jwt-decode": "^4.0.0",
+    "next": "^14.2.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-dropzone": "^14.2.3",
+    "universal-cookie": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/redux-logger": "^3.0.12",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "react-redux": "^9.0.4",
+    "redux-logger": "^3.0.6",
+    "sass": "^1.69.6",
+    "typescript": "^5"
+  }
+}

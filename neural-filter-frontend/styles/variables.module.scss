@@ -1,0 +1,27 @@
+// Color
+$color_1: #352F44;
+$color_2: #5C5470;
+$color_3: #B9B4C7;
+$color_4: #FAF0E6;
+$color_5: #F6F6F6;
+$color_6: #FF9494;
+$color_7: #A6CF98;
+$color_8: #FFD28F;
+$color_black: #0A0A0A;
+$color_white: #FFFFFF;
+
+// Media
+$phone375_639: '(min-width: 375px) and (max-width: 639px)';
+$phone550_639: '(min-width: 550px) and (max-width: 639px)';
+$pad640_991: '(min-width: 640px) and (max-width: 991px)';
+$pad992_1279: '(min-width: 992px) and (max-width: 1279px)';
+$desktop1280_1439: '(min-width: 1280px) and (max-width: 1439px)';
+$desktop1440_1919: '(min-width: 1440px) and (max-width: 1919px)';
+$desktop1920: '(min-width: 1920px)';
+
+// Shadow & Border
+$main_shadow: 0px 0px 10px 0px rgba(53, 47, 68, 0.65);
+$solid_line_lite: 2px solid var(--color_3, #B9B4C7);
+$solid_line: 2px solid var(--color_1, #352F44);
+$solid_line_phone: 1px solid var(--color_1, #352F44);
+$solid-line-error: 2px solid var(--color_6, #FF9494);

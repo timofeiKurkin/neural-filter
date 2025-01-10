@@ -1,0 +1,56 @@
+@import '../variables.module.scss';
+
+.regularTextStyle {
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    
+    @media screen and ($desktop1920) {
+        letter-spacing: 0.05625rem;
+        font-size: 1.125rem;
+    }
+}
+
+.navigationTextStyle {
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    
+    @media screen and ($desktop1920) {
+        letter-spacing: 0.105rem;
+        font-size: 1.5rem;
+    }
+}
+
+.titleTextStyle {
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    
+    @media screen and ($desktop1920) {
+        font-size: 2.5rem;
+        letter-spacing: 0.175rem;
+    }
+}
+
+.logoTextStyle {
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    
+    @media screen and ($desktop1920) {
+        font-size: 1.5rem;
+        letter-spacing: 0.09rem;
+    }
+}
+
+.buttonTextStyle {
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    
+    @media screen and ($desktop1920) {
+        letter-spacing: 0.07438rem;
+        font-size: 1.0625rem;
+    }
+}

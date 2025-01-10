@@ -1,0 +1,38 @@
+
+.networkAnomaliesWrapper {
+    width: 100%;
+    
+    display: grid;
+    grid-template-columns: min-content min-content 195px;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: "title interface control" "content content content";
+    align-items: center;
+    row-gap: 35px;
+
+    white-space: nowrap;
+    justify-content: space-between;
+    
+    .networkAnomaliesTitle {
+        grid-area: title;
+    }
+
+    .networkAnomaliesInterface {
+        grid-area: interface;
+    }
+    
+    //.networkAnomaliesSearch {
+    //    grid-area: search;
+    //
+    //    justify-self: end;
+    //    display: grid;
+    //    grid-template-columns: minmax(170px, 220px);
+    //}
+
+    .networkAnomaliesControl {
+        grid-area: control;
+    }
+    
+    .networkAnomalies {
+        grid-area: content;
+    }
+}

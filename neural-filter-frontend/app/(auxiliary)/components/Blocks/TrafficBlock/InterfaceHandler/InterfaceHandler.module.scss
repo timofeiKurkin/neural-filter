@@ -1,0 +1,47 @@
+@import "@/styles/variables.module";
+
+.interfaceHandlerWrapper {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    align-items: center;
+    column-gap: 12px;
+    
+    
+    .interfaceHandler {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 30px;
+        align-items: center;
+        user-select: none;
+        
+        .interfaceItem {
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .interfaceListWrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            
+            .interfaceList {
+                position: absolute;
+                z-index: 2;
+                top: 0;
+                left: 0;
+                
+                display: grid;
+                row-gap: 8px;
+                align-self: start;
+                
+                border-radius: 5px;
+                background-color: $color_white;
+                border: $solid_line_lite;
+            }
+        }
+        
+        .interfaceHandlerArrow {
+            cursor: pointer;
+        }
+    }
+}

@@ -1,0 +1,70 @@
+@import "@/styles/variables.module.scss";
+
+.mainPage {
+    width: 100%;
+    height: 100%;
+    
+    display: grid;
+    grid-template-rows: min-content 1fr;
+    row-gap: 30px;
+    
+    .contentListWrapper {
+        display: grid;
+        grid-template-columns: 1140px;
+        grid-template-rows: 1fr;
+        justify-content: center;
+        align-items: center;
+        
+        .contentList {
+            --gap: 2em;
+            --line-offset: calc(var(--gap) / 2);
+            --line-thickness: 2px;
+            
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(2, 1fr);
+            row-gap: 70px;
+            column-gap: 60px;
+            overflow: hidden;
+            
+            .contentItem {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                
+                &:after, &:before {
+                    content: '';
+                    position: absolute;
+                    background-color: $color_2;
+                    z-index: 1;
+                }
+                
+                &:after {
+                    inline-size: 100vw;
+                    block-size: var(--line-thickness);
+                    inset-inline-start: 0;
+                    inset-block-start: calc(var(--line-offset) * -1);
+                    top: -40px;
+                }
+                
+                &:before {
+                    block-size: 100vh;
+                    inline-size: var(--line-thickness);
+                    inset-inline-start: calc(var(--line-offset) * -1);
+                    left: -30px;
+                }
+                
+                .content {
+                    display: grid;
+                    grid-template-columns: 460px;
+                    grid-template-rows: 1fr;
+                    row-gap: 10px;
+                    justify-content: center;
+                    align-items: center;
+                    
+                    margin: 15px 0;
+                }
+            }
+        }
+    }
+}

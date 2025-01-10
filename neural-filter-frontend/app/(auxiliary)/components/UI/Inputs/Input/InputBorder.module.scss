@@ -1,0 +1,60 @@
+@import "@/styles/variables.module";
+
+.inputBorder, .inputActive, .inputError, {
+    z-index: 1;
+    box-sizing: border-box;
+    position: absolute;
+    
+    border-radius: 15px;
+    
+    top: 0;
+    left: 0;
+    transition: opacity .3s, background-color .5s ease;
+    overflow: hidden;
+    
+    width: 100%;
+    height: inherit;
+    background-color: transparent;
+}
+
+.inputBorder, .inputActive {
+    @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+        border: $solid_line_phone;
+    }
+    
+    @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+        border: $solid_line;
+    }
+}
+
+.inputBorder {
+    background-color: $color_5;
+}
+
+.inputActive {
+    background-color: $color_white;
+}
+
+.inputError {
+    @media screen and ($phone375_639), screen and ($pad640_991), screen and ($pad992_1279) {
+        border: 1px solid $color-7;
+    }
+    
+    @media screen and ($desktop1280_1439), screen and ($desktop1440_1919), screen and ($desktop1920) {
+        border: $solid-line-error;
+    }
+    
+    background-color: #e59898;
+}
+
+.inputBorder {
+    opacity: .5;
+    
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.inputActive {
+    opacity: 1;
+}
