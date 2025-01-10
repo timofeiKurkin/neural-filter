@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: "${BACKEND_IMAGE}-postgres"
+    environment:
+      POSTGRES_SERVER: ${POSTGRES_SERVER:-localhost}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespass}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      PGDATA: /data/postgres
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - nf-data:/var/lib/postgresql/data
+    networks:
+      - nf-network
+      - default
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 1m
+    env_file:
+      - .env
+  
+  backend-prestart:
+    image: "${BACKEND_IMAGE}:latest"
+    container_name: "${BACKEND_IMAGE}-prestart"
+    build:
+      context: ./neural-filter-backend
+    pull_policy: build
+    networks:
+      - nf-network
+      - default
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash scripts/prestart.sh
+    environment:
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - SUPERUSER_NAME=${SUPERUSER_NAME}
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+    env_file:
+      - .env
+
+  backend:
+    image: "${BACKEND_IMAGE}:latest"
+    container_name: "${BACKEND_IMAGE}"
+    build:
+      context: ./neural-filter-backend
+    pull_policy: build
+    volumes:
+      - nf-users-models:/neural_filter-backend/neural_filter/network_anomalies/neural_network/models
+    networks:
+      - nf-network
+      - default
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - SUPERUSER_NAME=${SUPERUSER_NAME}
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+    command: bash /neural_filter-backend/scripts/prestart.sh
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${BACKEND_HOST}/user/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "8080:8080"
+
+networks:
+  nf-network:
+    driver: bridge
+
+volumes:
+  nf-data:
+  nf-users-models:
