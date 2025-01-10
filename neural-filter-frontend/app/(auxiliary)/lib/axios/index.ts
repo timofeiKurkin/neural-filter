@@ -1,10 +1,9 @@
 import axios from "axios";
-import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 
 
-export const WS_URL_SERVER = "ws://localhost:8000"
-export const API_URL_SERVER = "http://localhost:8000/"
-export const API_URL_CLIENT = "http://localhost:3020/api/"
+export const WS_URL_SERVER = process.env.NEXT_PUBLIC_BACKEND_WS
+export const API_URL_SERVER = process.env.NEXT_PUBLIC_BACKEND_HOST
+export const API_URL_CLIENT = process.env.NEXT_PUBLIC_FRONTEND_API
 
 
 const $api = axios.create({
@@ -38,4 +37,4 @@ $api_client.interceptors.request.use((config) => {
 export {
     $api,
     $api_client
-}
+};
