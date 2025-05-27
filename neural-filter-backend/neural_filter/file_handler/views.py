@@ -1,23 +1,19 @@
-import uuid
-import shutil
 import os
+import shutil
+import uuid
 
-from rest_framework import status
+import network_anomalies.directories as directories
+from django.conf import settings
+from network_anomalies.neural_network.split_sessions import split_sessions
+from rest_framework import permissions, status
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.request import Request
-from rest_framework import permissions
-
-from django.conf import settings
-
-from .serializers import MultipleSerializer, DatasetSerializer
-from .models import DatasetModel
-
-from network_anomalies.neural_network.split_sessions import split_sessions
-import network_anomalies.directories as directories
-
 from scapy.all import PcapReader
+
+from .models import DatasetModel
+from .serializers import DatasetSerializer, MultipleSerializer
 
 
 class FileHandlerView(APIView):
@@ -47,7 +43,7 @@ class FileHandlerView(APIView):
         if len(self.all_dataset) >= 6:
             return Response(
                 {"message": "You cannot have more than 6 datasets"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         multiple_serializer = self.multiple_serializer_class(data=request.data)
@@ -57,22 +53,24 @@ class FileHandlerView(APIView):
 
         if multiple_serializer.is_valid():
             # File name for saving
-            uploaded_files = multiple_serializer.validated_data.get('file')
-            dataset_title: str = multiple_serializer.validated_data.get('dataset_title')
+            uploaded_files = multiple_serializer.validated_data.get("file")
+            dataset_title: str = multiple_serializer.validated_data.get("dataset_title")
 
             # UUID for dataset and files
             modelID = uuid.uuid4()
             model_directory = os.path.join(settings.MODELS_DIR, str(modelID))
             os.mkdir(model_directory)
 
-            sessions_directory = os.path.join(model_directory, directories.sessions_directory)
+            sessions_directory = os.path.join(
+                model_directory, directories.sessions_directory
+            )
             os.mkdir(sessions_directory)
 
             directories_to_create = [
                 directories.dataset_directory,
                 directories.model_directory,
                 directories.helpful_directory,
-                directories.graph_directory
+                directories.graph_directory,
             ]
 
             for directory_name in directories_to_create:
@@ -83,21 +81,22 @@ class FileHandlerView(APIView):
             packets_from_files = []
 
             for file in uploaded_files:
-                packages = PcapReader(file)
+                packages: PcapReader = PcapReader(file)
                 packets_from_files.extend(packages)
                 del packages
 
             sessions_count = split_sessions(
-                pcap_file=packets_from_files,
-                output_directory=sessions_directory
+                pcap_files=packets_from_files, output_directory=sessions_directory
             )
 
-            dataset_serializer = self.dataset_serializer(data={
-                "dataset_title": dataset_title,
-                "modelID": modelID,
-                "count_files": len(uploaded_files),
-                "sessions_count": int(sessions_count)
-            })
+            dataset_serializer = self.dataset_serializer(
+                data={
+                    "dataset_title": dataset_title,
+                    "modelID": modelID,
+                    "count_files": len(uploaded_files),
+                    "sessions_count": int(sessions_count),
+                }
+            )
 
             if dataset_serializer.is_valid():
                 dataset_serializer.save()
@@ -117,18 +116,14 @@ class FileHandlerView(APIView):
                             # "val_accuracy": dataset_serializer.data["val_accuracy"]
                         }
                     },
-                    status=status.HTTP_201_CREATED
+                    status=status.HTTP_201_CREATED,
                 )
 
             return Response(
-                dataset_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+                dataset_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
-        return Response(
-            multiple_serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response(multiple_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # @staticmethod
     def delete(self, request: Request, pk) -> Response:
@@ -144,9 +139,13 @@ class FileHandlerView(APIView):
             except OSError as e:
                 print(f"Error: {e.strerror}")
 
-            return Response({"message": "delete was well"}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"message": "delete was well"}, status=status.HTTP_204_NO_CONTENT
+            )
 
-        return Response({"message": "No dataset found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"message": "No dataset found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     @staticmethod
     def get(*args, **kwargs) -> Response:
@@ -154,11 +153,13 @@ class FileHandlerView(APIView):
         datasets = []
 
         for dataset in queryset:
-            datasets.append({
-                "dataset_title": dataset.dataset_title,
-                "modelID": dataset.modelID,
-                "loss": dataset.loss,
-                "sessions_count": dataset.sessions_count,
-            })
+            datasets.append(
+                {
+                    "dataset_title": dataset.dataset_title,
+                    "modelID": dataset.modelID,
+                    "loss": dataset.loss,
+                    "sessions_count": dataset.sessions_count,
+                }
+            )
 
         return Response({"datasets": datasets}, status=status.HTTP_200_OK)

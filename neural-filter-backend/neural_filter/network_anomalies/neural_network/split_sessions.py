@@ -1,47 +1,44 @@
-from scapy.all import PcapWriter
+from collections import defaultdict
+from typing import DefaultDict, List
+
+from scapy.all import Packet, PacketList, PcapWriter, Raw
 from tqdm import tqdm
+
+from .packets_validation import is_valid_packet
 
 
 def split_sessions(
-        *,
-        pcap_file,
-        output_directory
-):
-    sessions = {}
+    *, packages: PacketList, output_directory: str, max_seq_length: int = 128
+) -> int:
+    sessions: DefaultDict[str, List[Packet]] = defaultdict(list)
 
-    print("")
-    print("==== Distribution of packages by session ====")
+    print("\n==== Distribution of packages by session ====")
 
-    for packet in tqdm(pcap_file):
-        if packet.haslayer("IP") and packet.haslayer("TCP"):
-            src_ip = "-".join(packet["IP"].src.split("."))
-            src_port = packet["TCP"].sport
-            src_key = f"{src_ip}_{src_port}"
+    for packet in tqdm(packages):
+        if not is_valid_packet(packet=packet):
+            continue
 
-            dst_ip = "-".join(packet["IP"].dst.split("."))
-            dst_port = packet["TCP"].dport
-            dst_key = f"{dst_ip}_{dst_port}"
+        ip_src: str = packet["IP"].src
+        ip_dst: str = packet["IP"].dst
 
-            keys_with_sessions = [key for key in sessions.keys() if src_key in key and dst_key in key]
+        if Raw in packet:
+            del packet[Raw]
 
-            if len(keys_with_sessions) == 1:
-                sessions[keys_with_sessions[0]].append(packet)
-            else:
-                session_key = f"{dst_key}_{src_key}"
-                if session_key not in sessions:
-                    sessions[session_key] = []
-                sessions[session_key].append(packet)
+        f_key = f"{ip_src}-{ip_dst}"
+        if f_key in sessions:
+            sessions[f_key].append(packet)
+        else:
+            sessions[f"{ip_dst}-{ip_src}"].append(packet)
 
-    session_len = len(sessions)
-
-    print("")
-    print("==== Writing packages to files ====")
-    for session_key, sessions_packets in tqdm(sessions.items()):
-        write_pcap = PcapWriter(filename=f"{output_directory}/{session_key}.pcap")
-        write_pcap.write(sessions_packets)
+    print("\n==== Writing packages to files ====")
+    for session_key, sessions_packets in tqdm(
+        sorted(sessions.items(), key=lambda x: len(x[1]))[-max_seq_length:]
+    ):
+        write_pcap = PcapWriter(filename=f"{output_directory}/{session_key}.pcapng")
+        write_pcap.write(sessions_packets[-max_seq_length:])
         write_pcap.flush()
+        write_pcap.close()
 
     print("==== Finished writing packages to files ====")
 
-    del sessions
-    return session_len
+    return len(sessions.keys())

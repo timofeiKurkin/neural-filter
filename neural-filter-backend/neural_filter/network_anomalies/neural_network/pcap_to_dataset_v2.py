@@ -1,69 +1,81 @@
 import ipaddress
-import numpy as np
 
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+import numpy as np
 from scapy.all import PcapReader
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tqdm import tqdm
+
+from .packets_validation import is_valid_packet
 
 image_of_package_size = 8
 
 
+# def build_packet(
+#     *,
+#     ip_src: float,
+#     ip_dst: float,
+#     mac_src: float,
+#     mac_dst: float,
+#     ip_len: float,
+#     ip_proto: float,
+#     sport: float,
+#     dport: float,
+# ) -> List[float]:
+#     return [ip_src, ip_dst, mac_src, mac_dst, ip_len, ip_proto, sport, dport][
+#         :image_of_package_size
+#     ]
+
+k = 2**32
+t = 2**48
+
+
 async def read_pcap(*, pcap_path):
-    packages = PcapReader(pcap_path)
+    packets = PcapReader(pcap_path)
     packages_list = set()
     package_label = pcap_path.split("/")[-1].split(".")[0]
 
-    for package_data in packages:
+    max_count = 65535
+
+    for packet in packets:
         package_array = np.array([])
 
-        if (
-                package_data.haslayer("IP") and package_data.haslayer("TCP")
-        ):
-            # Header
-            mac_dst = int(package_data.fields["dst"].replace(":", ""), 16) / 10000000
-            mac_src = int(package_data.fields["src"].replace(":", ""), 16) / 10000000
+        if not is_valid_packet(packet=packet):
+            continue
 
-            # IP layer
-            ip_src = int(ipaddress.IPv4Address(package_data['IP'].src)) / 100
-            ip_dst = int(ipaddress.IPv4Address(package_data['IP'].dst)) / 100
-            # ip_ttl = package_data['IP'].ttl
-            # ip_chksum = package_data['IP'].chksum
-            ip_len = package_data['IP'].len
-            ip_proto = package_data['IP'].proto
+        # Header
+        mac_src: float = int(packet.src.replace(":", ""), 16) / t
+        mac_dst: float = int(packet.dst.replace(":", ""), 16) / t
 
-            # TCP layer
-            tcp_sport = package_data['TCP'].sport
-            tcp_dport = package_data['TCP'].dport
-            # tcp_chksum = package_data['TCP'].chksum
-            # tcp_window = package_data['TCP'].window
+        # IP layer
+        ip_src: float = int(ipaddress.IPv4Address(packet["IP"].src)) / k
+        ip_dst: float = int(ipaddress.IPv4Address(packet["IP"].dst)) / k
 
-            package_ = np.array([
+        ip_len: float = packet["IP"].len / max_count
+        ip_proto: float = packet["IP"].proto / 255.0
+
+        # Ports
+        sport: float = packet.sport / max_count if hasattr(packet, "sport") else 0
+        dport: float = packet.dport / max_count if hasattr(packet, "dport") else 0
+
+        package_ = np.array(
+            [
                 mac_dst,
                 mac_src,
                 ip_len,
                 ip_proto,
                 ip_src,
                 ip_dst,
-                tcp_sport,
-                tcp_dport,
+                sport,
+                dport,
+            ]
+        )
+        package_array = np.append(package_array, package_)
 
-                # ip_ttl,
-                # ip_chksum,
-                # tcp_window,
-                # tcp_chksum
-            ])
-
-            package_array = np.append(package_array, package_)
-
-        if len(package_array) == image_of_package_size:
-            packages_list.add(tuple(package_array))
+        packages_list.add(tuple(package_array))
 
     packages_list = np.array(list(packages_list))
 
-    if len(packages_list) > 0:
-        return packages_list, package_label
-    else:
-        return []
+    return packages_list, package_label
 
 
 async def expand_dimension(*, encoded_packages):
@@ -72,34 +84,38 @@ async def expand_dimension(*, encoded_packages):
     print("")
     print("==== Expanding dimension ====")
     for packages in tqdm(encoded_packages):
-        package_data = np.array([[np.expand_dims(package_item, axis=0) for package_item in package]
-                                 for package in packages])
+        package_data = np.array(
+            [
+                [np.expand_dims(package_item, axis=0) for package_item in package]
+                for package in packages
+            ]
+        )
         new_encoded_packages.append(package_data)
 
     return np.array(new_encoded_packages)
 
 
-async def formatted_package(*, ip_addresses, mac_addresses):
-    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) / 100 for ip in ip_addresses]
-    mac_addresses_encoded = [int(mac_address.replace(":", ""), 16) / 10000000 for mac_address in mac_addresses]
+async def format_packet(*, ip_addresses, mac_addresses):
+    k = 2**32
+    ip_addresses_encoded = [int(ipaddress.IPv4Address(ip)) / k for ip in ip_addresses]
+    mac_addresses_encoded = [
+        int(mac_address.replace(":", ""), 16) / t for mac_address in mac_addresses
+    ]
 
     return ip_addresses_encoded, mac_addresses_encoded
 
 
-async def formatted_packages(
-        *,
-        packages,
-        labels=None
-):
+async def format_packets(*, packages, labels=None):
     if labels is not None:
         label_encoded = LabelEncoder()
         label_encoded.fit(labels)
         labels = label_encoded.transform(labels)
 
         mms = MinMaxScaler(feature_range=(0, 1))
-        mms.fit(labels.reshape(-1, 1))
-        labels = mms.transform(labels.reshape(-1, 1))
+        mms.fit(labels.reshape(-1, 1))  # type: ignore
+        labels = mms.transform(labels.reshape(-1, 1))  # type: ignore
 
+    assert labels is not None
     new_arr = []
 
     print("")
@@ -110,7 +126,10 @@ async def formatted_packages(
 
         for idx, package in enumerate(session):
             if len(session) == 1:
-                zeros = np.tile(np.zeros((image_of_package_size, 1)), (image_of_package_size - 1, 1, 1))
+                zeros = np.tile(
+                    np.zeros((image_of_package_size, 1)),
+                    (image_of_package_size - 1, 1, 1),
+                )
                 only = np.concatenate(([package], zeros))
                 images.append(only)
 
@@ -123,11 +142,16 @@ async def formatted_packages(
                 else:
                     lack = image_of_package_size - len(images[-1])
                     if lack:
-                        zeros = np.tile(np.zeros((image_of_package_size, 1)), ((lack - 1), 1, 1))
+                        zeros = np.tile(
+                            np.zeros((image_of_package_size, 1)), ((lack - 1), 1, 1)
+                        )
                         last = np.concatenate(([package], zeros))
                         images[-1].extend(last)
                     else:
-                        zeros = np.tile(np.zeros((image_of_package_size, 1)), (image_of_package_size - 1, 1, 1))
+                        zeros = np.tile(
+                            np.zeros((image_of_package_size, 1)),
+                            (image_of_package_size - 1, 1, 1),
+                        )
                         last = np.concatenate(([package], zeros))
                         images.append(last)
             else:
@@ -141,25 +165,13 @@ async def formatted_packages(
     return new_arr, labels
 
 
-async def dataset_split(
-        *,
-        data,
-        labels,
-        test_size=0.2,
+async def split_dataset(
+    *,
+    data: np.ndarray,
+    labels: np.ndarray,
+    test_size: float = 0.2,
 ):
-    data_array_length = len(data)
-    metrics_array_length = len(labels)
-
-    if data_array_length == metrics_array_length:
-        split_index = int(data_array_length * test_size)
-
-        data_test = data[:split_index]
-        labels_test_first_part = labels[:split_index]
-
-        # data_test[data_test == 0] = np.mean(data_test, axis=(0, 1, 2, 3))
-        # data_train[data_train == 0] = np.mean(data_train, axis=(0, 1, 2, 3))
-
-        return (
-            (data, labels),
-            (data_test, labels_test_first_part)
-        )
+    split_index = int(len(data) * test_size)
+    data_test = data[:split_index]
+    labels_test_first_part = labels[:split_index]
+    return (data, labels), (data_test, labels_test_first_part)
