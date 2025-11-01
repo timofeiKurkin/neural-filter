@@ -10,7 +10,6 @@ interface PropsType {
 }
 
 const CustomError: FC<PropsType> = ({error}) => {
-
     const variants: Variants = {
         "initial": {
             opacity: 1

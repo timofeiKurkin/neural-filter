@@ -17,7 +17,7 @@ const CheckBox: FC<propType> = ({initialStateCheckBox, setCheckBoxState}) => {
             {initialStateCheckBox &&
                 <div className={styles.checkBoxMark}>
                     <div className={styles.checkBoxMarkWrapper}>
-                        <Image src={"/form/check-mark.svg"} alt={"check mark"} width={10} height={9} quality={100}/>
+                        <Image src={"/form/check-mark.svg"} unoptimized alt={"check mark"} width={10} height={9} quality={100}/>
                     </div>
                 </div>
             }

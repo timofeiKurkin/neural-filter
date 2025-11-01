@@ -19,20 +19,10 @@ const SaveTraffic = () => {
     return (
         <div className={styles.saveTrafficWrapper}>
 
-            {!savingStatus ? (
-                    <div className={styles.saveTraffic} onClick={savingHandler}>
-                        <Image src={SaveIcon} alt={'save'}/>
-                        <p className={styles.saveTrafficText}>Write packages and save</p>
-                    </div>
-                )
-                :
-                (
-                    <div className={styles.savingTraffic} onClick={savingHandler}>
-                        <Image src={SaveIcon} alt={'save'}/>
-                        <p className={styles.saveTrafficText}>Writing packages...</p>
-                    </div>
-                )
-            }
+            <div className={styles.saveTraffic} onClick={savingHandler}>
+                <Image src={SaveIcon} alt={'save'} unoptimized/>
+                <p className={styles.saveTrafficText}>Write packages and save</p>
+            </div>
         </div>
     );
 };

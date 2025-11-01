@@ -1,4 +1,4 @@
-import {TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
+import {AnomalyTrafficPackageType, TrafficPackageType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 
 export interface StateOfCurrentModelID {
     workStatus: boolean;
@@ -31,7 +31,7 @@ export interface NeuralNetworkFoundAnomalyResponseType {
     data: {
         status: "success";
         session: string;
-        anomaly_package: TrafficPackageType;
+        anomaly_package: AnomalyTrafficPackageType;
     }
 }
 

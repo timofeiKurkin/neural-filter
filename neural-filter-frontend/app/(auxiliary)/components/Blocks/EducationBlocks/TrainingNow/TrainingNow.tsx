@@ -25,7 +25,6 @@ import {getAccessToken} from "@/app/(auxiliary)/func/app/getAccessToken";
 const TrainingNow: FC = () => {
     const dispatch = useDispatch()
     const {datasets}: InitialFilesStateType = useSelector(selectorFiles)
-    const accessToken = getAccessToken()
 
     useEffect(() => {
         let active = true
@@ -43,6 +42,7 @@ const TrainingNow: FC = () => {
             }
         }
 
+        const accessToken = getAccessToken()
         fetchData({
             accessToken
         }).then()
@@ -50,10 +50,7 @@ const TrainingNow: FC = () => {
         return () => {
             active = false
         }
-    }, [
-        accessToken,
-        dispatch
-    ]);
+    }, [dispatch]);
 
     return (
         <MainShadow>

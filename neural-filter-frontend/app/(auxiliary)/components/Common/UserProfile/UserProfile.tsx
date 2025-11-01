@@ -5,16 +5,9 @@ import {motion, Variants} from "framer-motion";
 
 import styles from "./UserProfile.module.scss";
 import Image from "next/image";
-import NavigationText from "@/app/(auxiliary)/components/UI/TextTemplates/NavigationText";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
-import MainShadow from "@/app/(auxiliary)/components/UI/Borders/MainShadow/MainShadow";
 import {AnimatePresence} from "framer-motion";
-import {IUser} from "@/app/(auxiliary)/types/UserTypes/IUser";
-import {
-    InitialNeuralNetworkStateType,
-    selectorNeuralNetwork
-} from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
 import Logout from "@/app/(auxiliary)/components/Blocks/Authorization/Logout/Logout";
 
 
@@ -48,7 +41,7 @@ const UserProfile: FC = () => {
                 </div>
 
                 <div className={styles.userProfilePhoto}>
-                    <Image src={userPhoto} alt={"user-photo"}/>
+                    <Image src={userPhoto} alt={"user-photo"} unoptimized/>
                 </div>
 
                 <AnimatePresence>

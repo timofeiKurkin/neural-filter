@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC, useMemo, useState} from 'react';
 import {DatasetType} from "@/app/(auxiliary)/types/FilesType/DatasetsType";
 
 import goHover from "@/public/go-hover.svg";
@@ -10,7 +10,7 @@ import stop from "@/public/stop.svg"
 
 import styles from "./Dataset.module.scss";
 import Image from "next/image";
-import {color_1, color_2, color_3, color_5} from "@/styles/color";
+import {color_1, color_2} from "@/styles/color";
 import {AxiosResponse} from "axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {InitialFilesStateType, selectorFiles, setDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
@@ -47,29 +47,14 @@ const Dataset: FC<PropsType> = ({dataset}) => {
     const dispatch = useDispatch()
     const accessToken = getAccessToken()
 
-    const {currentModelStatus, ws, modelMetric}: InitialNeuralNetworkStateType =
-        useSelector(selectorNeuralNetwork)
-    const {datasets}: InitialFilesStateType =
-        useSelector(selectorFiles)
+    const {currentModelStatus, ws, modelMetric}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
+    const {datasets}: InitialFilesStateType = useSelector(selectorFiles)
 
-    const [datasetHover, setDatasetHover] =
-        useState<boolean>(() => false)
-    const [twoFactorAccept, setTwoFactorAccept] =
-        useState<boolean>(() => false)
+    const [datasetHover, setDatasetHover] = useState<boolean>(() => false)
+    const [twoFactorAccept, setTwoFactorAccept] = useState<boolean>(() => false)
 
-    const [working, setWorking] =
-        useState(() => dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus)
-
-    useEffect(() => {
-        if (dataset.modelID === currentModelStatus.modelID) {
-            setWorking(() => currentModelStatus.workStatus)
-        } else {
-            setWorking(() => false)
-        }
-    }, [
-        dataset,
-        currentModelStatus
-    ]);
+    // const [working, setWorking] = useState(() => dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus)
+    const working = useMemo(() => dataset.modelID === currentModelStatus.modelID && currentModelStatus.workStatus, [currentModelStatus.modelID, currentModelStatus.workStatus, dataset.modelID])
 
     if (!Object.keys(dataset).length) {
         return <div className={styles.datasetSimple} style={{
@@ -130,9 +115,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
         workStatus: boolean;
     }) => {
         if (currentModelStatus.modelID !== args.modelID && currentModelStatus.workStatus) {
-            ws.send(JSON.stringify({
-                ...stopEducationInstruction,
-            }))
+            ws.send(JSON.stringify(stopEducationInstruction))
             dispatch(setNoWorkStatus({
                 modelID: currentModelStatus.modelID
             }))
@@ -149,13 +132,9 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                 data: args.modelID
             }))
         } else {
-            ws.send(JSON.stringify({
-                ...stopEducationInstruction,
-            }))
+            ws.send(JSON.stringify(stopEducationInstruction))
         }
     }
-
-    const backgroundStyle = (currentModelStatus.modelID == dataset.modelID && currentModelStatus.workStatus) && color_3
 
     return (
         <div
@@ -169,13 +148,10 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                      workStatus: working
                  })}>
                 {
-                    working ? (
-                            <Image src={stop} alt={"stop"}/>
-                        )
+                    working ?
+                        <Image src={stop} alt={"stop"} unoptimized/>
                         :
-                        (
-                            <Image src={datasetHover ? goHover : go} alt={'go'}/>
-                        )
+                        <Image src={datasetHover ? goHover : go} alt={'go'} unoptimized/>
                 }
             </div>
 
@@ -212,7 +188,7 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                                     <div className={styles.deleteButton}
                                          onClick={() =>
                                              setTwoFactorAccept((prevState) => (!prevState))}>
-                                        <Image src={recycle} alt={'delete'}/>
+                                        <Image src={recycle} alt={'delete'} unoptimized/>
                                     </div>
                                 )
                                 :
@@ -224,12 +200,12 @@ const Dataset: FC<PropsType> = ({dataset}) => {
                                                 accessToken,
                                                 workingStatus: working
                                             })}>
-                                            <Image src={accept} alt={'accept-delete'}/>
+                                            <Image src={accept} alt={'accept-delete'} unoptimized/>
                                         </div>
 
                                         <div onClick={() =>
                                             setTwoFactorAccept((prevState) => (!prevState))}>
-                                            <Image src={exit} alt={'exit-delete'}/>
+                                            <Image src={exit} alt={'exit-delete'} unoptimized/>
                                         </div>
                                     </div>
                                 )

@@ -34,6 +34,7 @@ const Header: FC = () => {
                                     alt={"neural filter logo"}
                                     priority={true}
                                     fill
+                                    unoptimized
                                     quality={100}
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, (max-width: 1920px) 33vw"
                                     // style={{userSelect: "none", pointerEvents: "none"}}
@@ -52,6 +53,7 @@ const Header: FC = () => {
                                                 {navItem.id === navigation.length - 1 &&
                                                     <span className={styles.settingsGear}>
                                                         <Image src={"/settings-gear.svg"}
+                                                               unoptimized
                                                                alt={"s-g"}
                                                                width={21}
                                                                height={21}/>

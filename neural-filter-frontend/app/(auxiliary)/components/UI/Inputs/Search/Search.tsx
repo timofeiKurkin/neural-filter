@@ -26,7 +26,7 @@ const Search: FC = () => {
         <div className={`${styles.search} ${activeInput && styles.searchActive}`}>
             <div className={styles.searchWrapper}>
                 <div className={styles.searchBoxImage}>
-                    <Image src={img} alt={'loupe search'}/>
+                    <Image src={img} alt={'loupe search'} unoptimized/>
                 </div>
                 <div className={inputStyle.inputBox}>
                     <input

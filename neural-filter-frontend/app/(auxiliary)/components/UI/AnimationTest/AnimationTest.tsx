@@ -10,7 +10,7 @@ const AnimationTest: FC<{ title: string, children: React.ReactNode }> = ({title 
     const [isVisible, setVisible] = useState(false)
 
     const visibilityHandler = () => {
-        setVisible((prevState) => (!prevState))
+        setVisible((prevState) => !prevState)
     }
 
     const variants: Variants = {

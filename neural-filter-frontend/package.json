@@ -28,6 +28,7 @@
     "@types/redux-logger": "^3.0.12",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
+    "eslint-config-prettier": "^10.1.8",
     "react-redux": "^9.0.4",
     "redux-logger": "^3.0.6",
     "sass": "^1.69.6",

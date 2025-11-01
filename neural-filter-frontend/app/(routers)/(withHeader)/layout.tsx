@@ -20,7 +20,7 @@ export default function RootLayout({children}: PropsType) {
 
     if (Object.keys(user).length) {
         return (
-            <Scrollbar trigger={''}>
+            <Scrollbar>
                 <div className={styles.layoutWrapper}>
                     <Header/>
 

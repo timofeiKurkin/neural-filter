@@ -1,5 +1,5 @@
 import React from "react";
-import {InputChangeEventHandler} from "@/app/(auxiliary)/types";
+import {InputChangeEventHandler} from "@/app/(auxiliary)/types/AppTypes/AppTypes";
 
 export interface PropsType {
     // inputData: UseInputType;

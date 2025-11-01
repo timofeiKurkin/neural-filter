@@ -1,6 +1,6 @@
 "use client"
 
-import React, {FC, useEffect, useState} from "react";
+import React, {FC, useEffect} from "react";
 
 import useInput from "@/app/(auxiliary)/hooks/useInput";
 
@@ -15,7 +15,7 @@ import {color_1, color_white} from "@/styles/color";
 import styles from "./LoginBlock.module.scss"
 import {selectorUser, setAuth, setUser, useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {useRouter} from "next/navigation";
-import {AxiosError, AxiosResponse} from "axios";
+import {AxiosResponse} from "axios";
 import {jwtDecode} from "jwt-decode";
 import {JwtPayloadExtended} from "@/app/(auxiliary)/types/AppTypes/JWT";
 import {AxiosErrorType} from "@/app/(auxiliary)/types/AxiosTypes/AxiosTypes";
@@ -35,8 +35,6 @@ const LoginBlock: FC = () => {
         errorList: CustomErrorType[];
         rememberPath: string
     } = useSelector(selectorApplication)
-
-    const [hasLogin, setHasLogin] = useState<boolean>(true)
 
     const accessToken = getAccessToken()
 
@@ -59,8 +57,6 @@ const LoginBlock: FC = () => {
             args.password,
             args.accessToken
         ))
-
-        console.log("RESPONSE: ", response)
 
         if ((response as AxiosResponse).status === 200 && (response as AxiosResponse).data.access) {
             const data = (response as AxiosResponse).data
@@ -89,18 +85,6 @@ const LoginBlock: FC = () => {
         }
     }
 
-
-    useEffect(() => {
-        let firstAuth = localStorage.getItem("f-auth")
-        if (firstAuth) {
-            firstAuth = JSON.parse(firstAuth ?? '')
-            // if (firstAuth && loginValue.value) {
-            //     setHasLogin(false)
-            // }
-        }
-    }, []);
-
-
     useEffect(() => {
         if (isAuth && user.username && !rememberPath) {
             router.push('/')
@@ -111,7 +95,6 @@ const LoginBlock: FC = () => {
         rememberPath,
         router
     ]);
-
 
     return (
         <div className={styles.loginBlockWrapper}>
@@ -124,21 +107,18 @@ const LoginBlock: FC = () => {
 
                     <form>
                         <div className={styles.loginInputs}>
-                            {
-                                hasLogin &&
-                                <div>
-                                    <Input
-                                        value={loginValue.value}
-                                        placeholder={"Login"}
-                                        // disabled={}
-                                        maxLength={10}
-                                        tabIndex={1}
+                            <div>
+                                <Input
+                                    value={loginValue.value}
+                                    placeholder={"Login"}
+                                    // disabled={}
+                                    maxLength={10}
+                                    tabIndex={1}
 
-                                        onFocus={loginValue.onBlur}
-                                        onBlur={loginValue.onBlur}
-                                        onChange={loginValue.onChange}/>
-                                </div>
-                            }
+                                    onFocus={loginValue.onBlur}
+                                    onBlur={loginValue.onBlur}
+                                    onChange={loginValue.onChange}/>
+                            </div>
 
                             <div>
 

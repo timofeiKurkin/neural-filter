@@ -12,7 +12,6 @@ interface PropsType {
 }
 
 const CustomSuccess: FC<PropsType> = ({successNotification}) => {
-
     const variants: Variants = {
         "initial": {
             opacity: 1

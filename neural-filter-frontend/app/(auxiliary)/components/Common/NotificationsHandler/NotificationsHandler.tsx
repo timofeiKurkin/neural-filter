@@ -17,36 +17,24 @@ const NotificationsHandler = () => {
 
     const {errorList, successNotificationList}: InitialApplicationStateType = useSelector(selectorApplication)
 
-    // const [allNoti]
-
     useEffect(() => {
         if (errorList.length) {
             setTimeout(() => {
                 dispatch(setError(errorList.slice(0, -1)))
             }, 6000)
         }
+    }, [dispatch, errorList]);
+
+    useEffect(() => {
         if (successNotificationList.length) {
             setTimeout(() => {
                 dispatch(deleteLastSuccessNotification())
             }, 6000)
         }
-
-        return () => {
-            if (errorList.length) {
-                dispatch(setError([]))
-            }
-            if (successNotificationList.length) {
-                dispatch(clearSuccessNotifications([]))
-            }
-        }
-    }, [
-        dispatch,
-        errorList,
-        successNotificationList
-    ]);
+    }, [dispatch, successNotificationList]);
 
     return (
-        <div>
+        <>
             <div className={styles.errorsHandlerList} style={{
                 gridTemplateRows: `repeat(${errorList.length}, min-content)`
             }}>
@@ -62,11 +50,8 @@ const NotificationsHandler = () => {
                     <CustomSuccess key={`key=${index}`} successNotification={notification}/>
                 ))}
             </div>
-
-        </div>
+        </>
     );
-
-
 };
 
 export default NotificationsHandler;

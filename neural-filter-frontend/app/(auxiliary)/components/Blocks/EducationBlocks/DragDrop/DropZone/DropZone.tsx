@@ -1,6 +1,6 @@
-import React, {FC, useCallback, useEffect, useState} from "react";
+import React, {FC} from "react";
 
-import {FileError, useDropzone} from "react-dropzone";
+import {FileError, FileRejection, useDropzone} from "react-dropzone";
 import directory from "@/public/directory.svg";
 import directoryOpen from "@/public/directory-open.svg";
 import filePreview from "@/public/file.svg";
@@ -15,8 +15,6 @@ import {InitialFilesStateType, selectorFiles, setFiles} from "@/app/(auxiliary)/
 import {usePathname} from "next/navigation";
 import {selectorApplication, setError} from "@/app/(auxiliary)/lib/redux/store/slices/applicationSlice";
 import {CustomErrorType, ErrorFilesType} from "@/app/(auxiliary)/types/AppTypes/Errors";
-import {current} from "immer";
-
 
 const DropZone: FC = () => {
     const pathname = usePathname()
@@ -26,10 +24,32 @@ const DropZone: FC = () => {
     const {files, uploadingFilesStatus}: InitialFilesStateType = useSelector(selectorFiles)
     const {errorList}: { errorList: CustomErrorType[] } = useSelector(selectorApplication)
 
-    const [totalFilesSize, setTotalFilesSize] = useState<number>(0)
+    const onDrop = (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+        const filteredFiles = acceptedFiles.filter((file) =>
+            files.findIndex((prevFile) => prevFile.name === file.name) !== -1
+        )
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const filteredFiles = acceptedFiles.filter((file) => !files.includes(file))
+        fileRejections.forEach((rejections) => {
+            /**
+             * errorFiles - Ошибки из состояния.
+             * error - одна ошибка
+             */
+            const filteredErrors = errorList.filter((error) => ((error.expansion as ErrorFilesType).fileName === rejections.file.name))
+
+            dispatch(setError([
+                ...filteredErrors,
+                {
+                    id: errorList.length,
+                    page: page,
+                    typeError: "Upload error",
+                    expansion: {
+                        fileName: rejections.file.name,
+                        fileSize: rejections.file.size,
+                        errors: rejections.errors,
+                    }
+                }
+            ]))
+        })
 
         if (filteredFiles.length) {
             dispatch(setFiles([
@@ -37,7 +57,7 @@ const DropZone: FC = () => {
                 ...filteredFiles,
             ]))
         }
-    }, [dispatch, files])
+    }
 
     const noRepeatFiles = <T extends File>(file: T): FileError | FileError[] | null | any => {
         if (file.name && file.name.split('.')[1] !== 'pcap') {
@@ -57,7 +77,6 @@ const DropZone: FC = () => {
         const totalSize = files.reduce((acc, current) => {
             return acc + current.size
         }, 0) + file.size
-        setTotalFilesSize(() => totalSize)
 
         if(totalSize >= (1073741824 + 1073741824 * .1)) {
             return {
@@ -70,7 +89,6 @@ const DropZone: FC = () => {
     }
 
     const {
-        fileRejections,
         getRootProps,
         getInputProps,
         isDragActive
@@ -89,38 +107,6 @@ const DropZone: FC = () => {
             dispatch(setFiles(removeFile))
         }
     }
-
-
-    useEffect(() => {
-        if (fileRejections.length) {
-
-            /**
-             * Ошибки от библиотеки.
-             * rejections - одна ошибка
-             */
-            fileRejections.forEach((rejections) => {
-                /**
-                 * errorFiles - Ошибки из состояния.
-                 * error - одна ошибка
-                 */
-                const filteredErrors = errorList.filter((error) => ((error.expansion as ErrorFilesType).fileName === rejections.file.name))
-
-                dispatch(setError([
-                    ...filteredErrors,
-                    {
-                        id: errorList.length,
-                        page: page,
-                        typeError: "Upload error",
-                        expansion: {
-                            fileName: rejections.file.name,
-                            fileSize: rejections.file.size,
-                            errors: rejections.errors,
-                        }
-                    }
-                ]))
-            })
-        }
-    }, [fileRejections]);
 
     const listVariants: Variants = {
         'visible': {
@@ -161,7 +147,7 @@ const DropZone: FC = () => {
                             {
                                 isDragActive ?
                                     <div className={styles.dropTheDatasetHere}>
-                                        <Image src={directoryOpen} alt={"directory-open"}/>
+                                         <Image src={directoryOpen} alt={"directory-open"} unoptimized/>
 
                                         <RegularText>
                                             Drop the dataset here ...
@@ -169,7 +155,7 @@ const DropZone: FC = () => {
                                     </div>
                                     :
                                     <div className={styles.sendDataset}>
-                                        <Image src={directory} alt={"directory"}/>
+                                        <Image src={directory} alt={"directory"} unoptimized/>
                                         <RegularText>
                                             Send dataset
                                         </RegularText>
@@ -197,7 +183,7 @@ const DropZone: FC = () => {
                                                     animate={'visible'}
                                                     exit={'hidden'}
                                         >
-                                            <Image src={filePreview} alt={"file"}/>
+                                            <Image src={filePreview} alt={"file"} unoptimized/>
 
                                             <RegularText>{file.name}</RegularText>
 
@@ -208,7 +194,7 @@ const DropZone: FC = () => {
                                                          "pointer"
                                                  }}
                                                  onClick={() => removeFileHandler(file.name)}>
-                                                <Image src={cross} alt={'cross'}/>
+                                                <Image src={cross} alt={'cross'} unoptimized/>
                                             </div>
                                         </motion.div>
                                     ))

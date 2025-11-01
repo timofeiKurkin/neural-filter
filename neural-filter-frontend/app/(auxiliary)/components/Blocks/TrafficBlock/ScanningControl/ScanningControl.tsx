@@ -36,13 +36,11 @@ const ScanningControl = () => {
     useEffect(() => {
         return () => {
             if (ws && ws instanceof WebSocket) {
-                ws.send(JSON.stringify({
-                    ...stopScanningInstruction
-                }))
+                ws.send(JSON.stringify(stopScanningInstruction))
             }
             setScanningStatus(() => false)
         }
-    }, [])
+    }, [ws])
 
     return (
         scanningStatus ? (

@@ -1,6 +1,5 @@
 import React, {FC} from 'react';
 import MainTitle from "@/app/(auxiliary)/components/UI/TextTemplates/MainTitle";
-import Search from "@/app/(auxiliary)/components/UI/Inputs/Search/Search";
 
 import styles from "./NetworkAnomalies.module.scss";
 import PacketAnomalyReceiver
@@ -21,10 +20,6 @@ const NetworkAnomalies: FC = () => {
             <div className={styles.networkAnomaliesInterface}>
                 <InterfaceHandler/>
             </div>
-
-            {/*<div className={styles.networkAnomaliesSearch}>*/}
-            {/*    <Search/>*/}
-            {/*</div>*/}
 
             <div className={styles.networkAnomaliesControl}>
                 <ScanningControl/>

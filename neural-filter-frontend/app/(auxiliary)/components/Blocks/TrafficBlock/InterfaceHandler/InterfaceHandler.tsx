@@ -26,15 +26,12 @@ const InterfaceHandler: FC = () => {
     const [selectedInterface, setSelectedInterface] = useState<GetInterfaces>()
     const [selectStatus, setSelectStatus] = useState(false)
 
-    const accessToken = getAccessToken()
 
     useEffect(() => {
         let active = true
-        const fetchData = async (args: {
-            accessToken: string
-        }) => {
-            const response =
-                await axiosHandler(AllTrafficService.getInterface(accessToken))
+        const fetchData = async () => {
+            const accessToken = getAccessToken()
+            const response = await axiosHandler(AllTrafficService.getInterface(accessToken))
 
             if (active) {
                 if ((response as AxiosResponse<TrafficResponse>).status === 200) {
@@ -46,14 +43,12 @@ const InterfaceHandler: FC = () => {
             }
         }
 
-        fetchData({
-            accessToken
-        }).then()
+        fetchData().then()
 
         return () => {
             active = false
         }
-    }, [])
+    }, [dispatch])
 
     const selectInterface = (interfaceItem: GetInterfaces) => {
         setSelectStatus((prevState) => (!prevState))
@@ -97,7 +92,7 @@ const InterfaceHandler: FC = () => {
                     }
 
                     <div className={styles.interfaceHandlerArrow}>
-                        <Image src={arrowForSelect} alt={'array for select'}/>
+                        <Image src={arrowForSelect} alt={'array for select'} unoptimized/>
                     </div>
                 </div>
             </div>

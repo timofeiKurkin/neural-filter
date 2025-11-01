@@ -14,10 +14,8 @@ const ChangePasswordBlock = () => {
 
     const [oldPassword, setOldPassword] = useState<string>("")
     const [newPassword, setNewPassword] = useState<string>("")
-    const [compareLengthPasswords, setCompareLengthPasswords] =
-        useState<boolean>(() => false)
-    const [successChangePassword, setSuccessChangePassword] =
-        useState<boolean>(() => false)
+    const [successChangePassword, setSuccessChangePassword] = useState<boolean>(() => false)
+    const compareLengthPasswords = oldPassword === newPassword && oldPassword.length > 8 && newPassword.length > 8
 
     const changePasswordHandler = async (args: {
         oldPassword: string;
@@ -35,21 +33,10 @@ const ChangePasswordBlock = () => {
             if (data.success) {
                 setSuccessChangePassword((prevState) => (!prevState))
             }
+            setOldPassword("")
+            setNewPassword("")
         }
     }
-
-    useEffect(() => {
-        if (oldPassword !== newPassword) {
-            if (oldPassword.length > 8 && newPassword.length > 8) {
-                setCompareLengthPasswords(() => true)
-            }
-        } else {
-            setCompareLengthPasswords(() => false)
-        }
-    }, [
-        oldPassword,
-        newPassword
-    ]);
 
     return (
         <div className={styles.changePassword}>

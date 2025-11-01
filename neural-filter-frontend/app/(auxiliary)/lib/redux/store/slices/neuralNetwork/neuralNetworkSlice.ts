@@ -19,8 +19,7 @@ export interface InitialNeuralNetworkStateType {
 
 const initialState: InitialNeuralNetworkStateType = {
     currentModelStatus: {
-        workStatus: false,
-        modelID: ""
+        workStatus: false, modelID: ""
     },
     ws: {} as WebSocket,
     modelMetric: {} as ModelMetricType,
@@ -48,9 +47,9 @@ export const neuralNetworkSlice = createSlice({
         setModelMetric: (state, action: PayloadAction<ModelMetricType>) => {
             state.modelMetric = action.payload
         },
-        setNewAnomalyTraffic: (state, action: PayloadAction<{ [key: string]: TrafficPackageType }>) => {
-            const sessionKey = Object.keys(action.payload)[0]
-            state.anomalyTraffic.push(action.payload[sessionKey])
+        setNewAnomalyTraffic: (state, action: PayloadAction<AnomalyTrafficPackageType>) => {
+            // const sessionKey = Object.keys(action.payload)[0]
+            state.anomalyTraffic.push(action.payload)
 
             // if (sessionKey in state.anomalyTraffic) {
             //     state.anomalyTraffic[sessionKey].push(action.payload[sessionKey])

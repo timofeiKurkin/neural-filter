@@ -15,7 +15,6 @@ interface PropsType {
 }
 
 const DatasetsList: FC<PropsType> = ({datasets}) => {
-
     const formattedDataset = [...datasets].concat(new Array(6 - datasets.length).fill([]))
 
     return (

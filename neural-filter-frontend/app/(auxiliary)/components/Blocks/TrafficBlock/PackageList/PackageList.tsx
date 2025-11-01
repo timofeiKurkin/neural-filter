@@ -73,7 +73,7 @@ const PackageList: FC<PropsType> = ({
                 }
             </div>
 
-            <Scrollbar trigger={packages.length}>
+            <Scrollbar>
                 <div className={`${styles.packageList}`}>
                     {
                         (formattedPackages.length ? formattedPackages : packages).map((item) => (

@@ -36,7 +36,6 @@ const AppWrapper: FC<PropsType> = ({
 
     const {user, isAuth} = useSelector(selectorUser)
     const {rememberPath}: { rememberPath: string } = useSelector(selectorApplication)
-    const accessToken = getAccessToken()
 
     if (CSRFToken) {
         axios.defaults.headers.common['X-CSRFToken'] = CSRFToken
@@ -46,15 +45,14 @@ const AppWrapper: FC<PropsType> = ({
         if (!rememberPath && pathname !== "/login" && pathname !== "/settings") {
             dispatch(setPath(pathname))
         }
-    });
+    }, [dispatch, pathname, rememberPath]);
 
 
     /**
      * Токены авторизации из localStorage.
      */
-    const [tokens, setTokens] = useState<
-        AuthTokens
-    >(() => {
+    const [tokens, setTokens] = useState<AuthTokens>(() => {
+        const accessToken = getAccessToken()
         if (accessToken && refreshToken) {
             return {
                 access: accessToken,
@@ -182,7 +180,7 @@ const AppWrapper: FC<PropsType> = ({
     ]);
 
 
-    return (children)
+    return children
 };
 
 export default AppWrapper;

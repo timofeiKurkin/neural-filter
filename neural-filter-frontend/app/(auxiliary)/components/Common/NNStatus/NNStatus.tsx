@@ -5,18 +5,11 @@ import {color_6, color_7, color_8} from "@/styles/color";
 import {WS_URL_SERVER} from "@/app/(auxiliary)/lib/axios";
 import {useDispatch, useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {
-    InitialNeuralNetworkStateType,
-    selectorNeuralNetwork,
     setCurrentModelStatus,
     setNewAnomalyTraffic, setNoWorkStatus,
     setWebSocket
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {
-    InitialFilesStateType,
-    selectorFiles,
-    setDatasets,
-    setUpdateLossDatasets
-} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
+import {setUpdateLossDatasets} from "@/app/(auxiliary)/lib/redux/store/slices/filesSlice";
 import {
     NeuralNetworkFinishEducation,
     NeuralNetworkFoundAnomalyResponseType, NeuralNetworkNoWorkType,
@@ -44,35 +37,14 @@ interface StatusRenderType extends StatusType {
 
 const NnStatus = () => {
     const dispatch = useDispatch()
-    const {
-        currentModelStatus,
-        ws
-    }: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
-
-    const {
-        datasets
-    }: InitialFilesStateType = useSelector(selectorFiles)
 
     const [stateStatus, setStateStatus] = useState<StatusRenderType>({
         status: 'disconnection',
         statusCode: 0,
         colorStatus: color_6
     })
-    const [updateData, setUpdateData] = useState<{
-        type: string;
-        data: any;
-    }>()
 
     useEffect(() => {
-
-    }, [
-        dispatch,
-        updateData
-    ]);
-
-    useEffect(() => {
-        let timeOut
-
         const createWebSocket = () => {
             const url = `${WS_URL_SERVER}/ws/neural_network/`
             let socket = new WebSocket(url)
@@ -84,14 +56,7 @@ const NnStatus = () => {
              * Произошло соединение
              */
             socket.onopen = (e) => {
-                // console.log('Произошло соединение\n', e)
-
-                // if (startEducation.signal && startEducation.datasetID) {
-                //     socket.send(JSON.stringify({
-                //         send_type: "start_education",
-                //         data: startEducation.datasetID
-                //     }))
-                // }
+                console.log('Произошло соединение\n', e)
             }
 
             /**
@@ -102,35 +67,11 @@ const NnStatus = () => {
                 const data = JSON.parse(event.data)
 
                 if (data && Object.keys(data).length) {
-
-                    // if (data.type === "start_education") {
-                    //     const newMetrics: {
-                    //         dataset_id: string;
-                    //         loss: string;
-                    //         accuracy: string;
-                    //     } = data.data
-                    //
-                    //     const updatedDataset: DatasetType[] = datasets.map((dataset: DatasetType) => {
-                    //         if (dataset.group_file_id === newMetrics.dataset_id) {
-                    //             return {
-                    //                 ...dataset,
-                    //                 loss: newMetrics.loss,
-                    //                 accuracy: newMetrics.accuracy
-                    //             }
-                    //         }
-                    //         return dataset
-                    //     })
-                    //
-                    //     dispatch(setDatasets(updatedDataset))
-                    // }
-
                     if ((data as NeuralNetworkFoundAnomalyResponseType).send_type === "found_anomaly_traffic") {
                         const newAnomalyTraffic: NeuralNetworkFoundAnomalyResponseType = data
                         const anomalyTrafficSession = newAnomalyTraffic.data.session
 
-                        dispatch(setNewAnomalyTraffic({
-                            [anomalyTrafficSession]: newAnomalyTraffic.data.anomaly_package
-                        }))
+                        dispatch(setNewAnomalyTraffic(newAnomalyTraffic.data.anomaly_package))
                     }
 
                     if (
@@ -139,12 +80,10 @@ const NnStatus = () => {
                         const workResponse: NeuralNetworkWorkResponseType = data
 
                         if (workResponse.data.status === "success") {
-                            if (workResponse.data.modelID !== currentModelStatus.modelID) {
-                                dispatch(setCurrentModelStatus({
-                                    workStatus: true,
-                                    modelID: workResponse.data.modelID || ""
-                                }))
-                            }
+                            dispatch(setCurrentModelStatus({
+                                workStatus: true,
+                                modelID: workResponse.data.modelID || ""
+                            }))
                         }
                     }
 
@@ -204,19 +143,15 @@ const NnStatus = () => {
                 }))
                 setTimeout(createWebSocket, 5000)
             }
+
+            return () => {
+                socket.close()
+            };
         }
 
         createWebSocket()
 
-        return () => {
-            if (ws && ws instanceof WebSocket) {
-                ws.close();
-            }
-        };
-    }, []);
-
-
-    // console.log("stateStatus", stateStatus)
+    }, [dispatch]);
 
     return (
         <div className={styles.statusWrapper}>

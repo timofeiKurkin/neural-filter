@@ -1,10 +1,10 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC} from 'react';
 import {useSelector} from "@/app/(auxiliary)/lib/redux/store";
 import {
     InitialNeuralNetworkStateType,
     selectorNeuralNetwork
 } from "@/app/(auxiliary)/lib/redux/store/slices/neuralNetwork";
-import {AnomalyTrafficPackageType, HeaderItemsType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
+import {HeaderItemsType} from "@/app/(auxiliary)/types/AxiosTypes/AllTraffic";
 import _header from "@/data/trafficData/headerAnomalyItems.json";
 import RegularText from "@/app/(auxiliary)/components/UI/TextTemplates/RegularText";
 import styles from "./PackageAnomalyList.module.scss";
@@ -25,29 +25,7 @@ interface PropsType {
 const PackageAnomalyList: FC<PropsType> = ({
                                            workDataStatus
                                        }) => {
-    const {anomalyTraffic}: InitialNeuralNetworkStateType =
-        useSelector(selectorNeuralNetwork)
-
-    const [anomalySessions, setAnomalySessions] =
-        useState<AnomalyTrafficPackageType[]>([])
-
-
-    useEffect(() => {
-        setAnomalySessions(() => (anomalyTraffic))
-        // if (Object.keys(anomalyTraffic).length) {
-        //     for (const anomalyTrafficSession in anomalyTraffic) {
-        //         if (anomalyTraffic.length) {
-        //             setAnomalySessions(() => (anomalyTraffic))
-        //         }
-        //     }
-        // }
-
-        // return () => {
-        //     setAnomalySessions(() => [])
-        // }
-    }, [
-        anomalyTraffic
-    ])
+    const {anomalyTraffic}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     return (
         <div className={styles.packageAnomalyWrapper}>
@@ -66,7 +44,7 @@ const PackageAnomalyList: FC<PropsType> = ({
                 }
             </div>
 
-            <Scrollbar trigger={anomalySessions.length}>
+            <Scrollbar>
                 <div className={styles.packageList}>
                     {
                         !workDataStatus ? (
@@ -77,10 +55,10 @@ const PackageAnomalyList: FC<PropsType> = ({
                                 </LogoText>
                             </div>
                         ) : (
-                            anomalySessions.length ? (
+                            anomalyTraffic.length ? (
                                 <div className={styles.packageAnomalyList}>
                                     {
-                                        anomalySessions.map((item, index) => (
+                                        anomalyTraffic.map((item, index) => (
                                             <PackageAnomalyItem key={`key=${index}`}
                                                                 anomalyPackage={item}
                                                                 index={index}/>
@@ -89,7 +67,7 @@ const PackageAnomalyList: FC<PropsType> = ({
                                 </div>
                             ) : (
                                 <div className={styles.noAnomaliesFound}>
-                                    <Image src={checkMark} alt={"check-mark"}/> <MainTitle>The model hasn&apos;t
+                                    <Image src={checkMark} alt={"check-mark"} unoptimized/> <MainTitle>The model hasn&apos;t
                                     detected
                                     any
                                     anomalies yet</MainTitle>

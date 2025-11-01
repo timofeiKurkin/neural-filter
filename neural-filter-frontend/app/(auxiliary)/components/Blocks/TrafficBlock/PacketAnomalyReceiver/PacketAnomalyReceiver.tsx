@@ -16,25 +16,10 @@ import PackageAnomalyList from "@/app/(auxiliary)/components/Blocks/TrafficBlock
 
 
 const PacketAnomalyReceiver = () => {
-    const {
-        currentModelStatus,
-        ws,
-    }: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
+    const {currentModelStatus}: InitialNeuralNetworkStateType = useSelector(selectorNeuralNetwork)
 
     return (
         <PackageAnomalyList workDataStatus={currentModelStatus.workStatus}/>
-        // ws && ws instanceof WebSocket && (
-        //     currentModelStatus.workStatus ? (
-        //         <PackageAnomalyList/>
-        //     ) : (
-        //         <div>
-        //             <LogoText>
-        //                 Run an already trained model or create a new one on the page <Link
-        //                 href={"/education-ai"}>/education-ai</Link> page
-        //             </LogoText>
-        //         </div>
-        //     )
-        // )
     );
 };
 

@@ -19,23 +19,13 @@ const LearningMetrics = () => {
             {
                 (Object.keys(modelMetric).length > 0) ? (
                     <div className={styles.learningMetricsWrapper}>
-                        {/*<div className={styles.learningMetrics}>*/}
-
-                        {/*    <RegularText>{modelMetric.id}. {modelMetric.dataset_title}</RegularText>*/}
-                        {/*    <RegularText><span>Count of files: </span>{modelMetric.count_files}</RegularText>*/}
-                        {/*    <RegularText><span>Loss: </span>{modelMetric.loss}</RegularText>*/}
-                        {/*    <RegularText><span>Val_loss: </span>{modelMetric.val_loss}</RegularText>*/}
-                        {/*    <RegularText><span>Loss: </span>{modelMetric.accuracy}</RegularText>*/}
-                        {/*    <RegularText><span>Val_loss: </span>{modelMetric.val_accuracy}</RegularText>*/}
-
-                        {/*</div>*/}
-
                         {
                             (modelMetric.image_metric_exist) ? (
                                 <div className={styles.learningImageMetrics}>
                                     <Image
                                         src={`http://localhost:8000/network_anomalies/get_metric_image/${modelMetric.modelID}/`}
                                         alt={"metrics-alt"}
+                                        unoptimized
                                         width={460}
                                         height={460}
                                         priority={true}
