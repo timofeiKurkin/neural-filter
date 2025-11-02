@@ -16,10 +16,18 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-# env = dotenv_values("../../../.env")
 env = dotenv_values("../.env")
 
 if not env:
+    env = {
+        "DJANGO_SECRET_KEY": os.getenv("DJANGO_SECRET_KEY", ""),
+        "FRONTEND_HOST": os.getenv("FRONTEND_HOST", ""),
+        "POSTGRES_DB": os.getenv("POSTGRES_DB", ""),
+        "POSTGRES_USER": os.getenv("POSTGRES_USER", ""),
+        "POSTGRES_PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+        "POSTGRES_SERVER": os.getenv("POSTGRES_SERVER", ""),
+        "POSTGRES_PORT": os.getenv("POSTGRES_PORT", ""),
+    }
     print("there's no .env file")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

@@ -3,7 +3,6 @@ services:
     image: postgres:latest
     container_name: "${BACKEND_IMAGE}-postgres"
     environment:
-      POSTGRES_SERVER: ${POSTGRES_SERVER:-localhost}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespass}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
@@ -14,7 +13,6 @@ services:
       - nf-data:/var/lib/postgresql/data
     networks:
       - nf-network
-      - default
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -33,29 +31,29 @@ services:
     pull_policy: build
     networks:
       - nf-network
-      - default
     depends_on:
       postgres:
         condition: service_healthy
-    command: bash scripts/prestart.sh
+    command:
+      - bash
+      - scripts/prestart.sh
     environment:
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SUPERUSER_NAME=${SUPERUSER_NAME}
       - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - FRONTEND_HOST=${FRONTEND_HOST}
     env_file:
       - .env
 
   backend:
     image: "${BACKEND_IMAGE}:latest"
     container_name: "${BACKEND_IMAGE}"
-    build:
-      context: ./neural-filter-backend
-    pull_policy: build
     volumes:
       - nf-users-models:/neural_filter-backend/neural_filter/network_anomalies/neural_network/models
     networks:
@@ -64,16 +62,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      backend-prestart:
+        condition: service_completed_successfully
     environment:
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SUPERUSER_NAME=${SUPERUSER_NAME}
       - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
-    command: bash /neural_filter-backend/scripts/prestart.sh
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - FRONTEND_HOST=${FRONTEND_HOST}
+    command: ["python", "neural_filter/manage.py", "runserver", "0.0.0.0:8070"]
     env_file:
       - .env
     healthcheck:
@@ -83,7 +85,9 @@ services:
       retries: 5
       start_period: 30s
     ports:
-      - "8080:8080"
+      - "8070:8070"
+    expose:
+      - "8070"
 
 networks:
   nf-network:

@@ -1,5 +1,8 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
-python ./neural_filter/manage.py migrate
+set -e
+set -x
 
-python ./neural_filter/manage.py create_superuser
+python neural_filter/manage.py migrate
+
+python neural_filter/manage.py create_superuser

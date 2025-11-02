@@ -1,9 +1,19 @@
+import os
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from dotenv import dotenv_values
 
 env = dotenv_values("../.env")
+
+if not env:
+    env = {
+        "SUPERUSER_NAME": os.getenv("SUPERUSER_NAME", ""),
+        "SUPERUSER_EMAIL": os.getenv("SUPERUSER_EMAIL", ""),
+        "SUPERUSER_PASSWORD": os.getenv("SUPERUSER_PASSWORD", ""),
+    }
+    print("there's no .env file")
 
 
 class Command(BaseCommand):
